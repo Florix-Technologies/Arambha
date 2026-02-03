@@ -18,6 +18,9 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Arambha Design and Interior Studio",
   description: "Premium Interior Design, Furniture, and Architectural Solutions.",
+  icons: {
+    icon: '/logo2.png', // Using logo2.png from public folder
+  },
 };
 
 import Navbar from "@/components/layout/Navbar";
