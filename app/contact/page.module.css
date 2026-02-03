@@ -1,0 +1,143 @@
+.main {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.backgroundWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.backgroundVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(8px); /* Subtle blur like Gallery */
+  transform: scale(1.05);
+}
+
+.backgroundOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.4); /* Light overlay for readability */
+  z-index: 1;
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  padding: 8rem 0 4rem;
+  min-height: 100vh;
+  /* background-color: var(--color-bg-primary); Removed solid bg */
+}
+
+.contentWrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+}
+
+@media (min-width: 768px) {
+  .contentWrapper {
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+  }
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 3.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--color-text-primary);
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: 3rem;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.detailItem h3 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent-dark);
+  margin-bottom: 0.5rem;
+}
+
+.detailItem p {
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+}
+
+/* Form Styles */
+.form {
+  background-color: var(--color-surface);
+  padding: 3rem;
+  border-radius: 2px;
+  border: 1px solid var(--color-border);
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  background-color: #fafafa;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  border-color: var(--color-accent);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--color-text-primary);
+  color: #fff;
+  border: none;
+  font-family: var(--font-body);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submitBtn:hover {
+  background-color: var(--color-accent);
+}

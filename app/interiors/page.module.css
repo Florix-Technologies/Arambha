@@ -1,0 +1,120 @@
+.container {
+  padding: 8rem 0 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 5rem;
+  padding: 0 1rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-family: var(--font-heading);
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+}
+
+.section {
+  margin-bottom: 6rem;
+  padding: 0 1rem;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  border-left: 4px solid var(--color-accent);
+  padding-left: 1rem;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .categoryGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  border-color: var(--color-accent);
+}
+
+.imagePlaceholder {
+  height: 200px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.cardContent {
+  padding: 1.5rem;
+}
+
+.cardContent h3 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.cardContent p {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: 4rem 1rem;
+}
+
+.inquiryBox {
+  background-color: var(--color-bg-secondary);
+  padding: 4rem 1rem;
+  text-align: center;
+  margin: 0 1rem;
+  border-radius: 4px;
+}
+
+.inquiryBox h3 {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.contactBtn {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 1rem 2.5rem;
+  background-color: var(--color-text-primary);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 2px;
+  transition: background-color 0.3s ease;
+}
+
+.contactBtn:hover {
+  background-color: var(--color-accent);
+}

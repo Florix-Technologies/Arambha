@@ -1,66 +1,113 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Image from 'next/image';
+import Button from '@/components/ui/Button';
+import styles from './page.module.css';
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className={styles.main}>
+      {/* Hero Section */}
+      <section className={styles.hero}>
+        <div className={styles.heroBackground}>
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className={styles.heroVideo}
+          >
+            <source src="/v3_enhanced.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div className={styles.heroOverlay}></div>
+        
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>Crafting Spaces, Defining Lifestyles</h1>
+          <p className={styles.heroSubtitle}>PREMIUM INTERIOR DESIGN & ARCHITECTURAL SOLUTIONS</p>
+          <div className={styles.heroCta}>
+            <Button href="/gallery" variant="primary">View Our Work</Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Intro Section */}
+      <section className={`section ${styles.intro}`}>
+        <div className="container">
+          <h2 className={styles.introTitle}>Philosophy of Aesthetics</h2>
+          <p className={styles.introText}>
+            At Arambha, we believe that design is not just about visual appeal—it&apos;s about creating 
+            environments that resonate with the soul. Drawing inspiration from nature&apos;s earthy palette, 
+            we blend sustainable materials with modern architectural principles to craft spaces that 
+            are timeless, functional, and undeniably sophisticated.
           </p>
+          <Button href="/contact" variant="text">Start Your Project &rarr;</Button>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Featured Works */}
+      <section className="section">
+        <div className="container">
+          <div className={styles.featuredHeader}>
+            <h2 className={styles.featuredTitle}>Selected Works</h2>
+            <Button href="/gallery" variant="text">View All Projects</Button>
+          </div>
+
+          <div className={styles.grid}>
+            {/* Project 1 */}
+            <div className={styles.card}>
+              <div className={styles.cardImageWrapper}>
+                {/* Placeholder for project images - In real app, these would be real images */}
+                <Image
+                  src="/i1.jpeg"
+                  alt="The Stone Residence"
+                  fill
+                  className={styles.cardImage}
+                />
+              </div>
+              <div className={styles.cardContent}>
+                <h3 className={styles.cardTitle}>The Stone Residence</h3>
+                <p className={styles.cardCategory}>Residential Interior</p>
+              </div>
+            </div>
+
+             {/* Project 2 */}
+             <div className={styles.card}>
+              <div className={styles.cardImageWrapper}>
+                 <video
+                   autoPlay
+                   muted
+                   loop
+                   playsInline
+                   className={styles.cardImage}
+                 >
+                   <source src="/v6.mp4" type="video/mp4" />
+                   Your browser does not support the video tag.
+                 </video>
+              </div>
+              <div className={styles.cardContent}>
+                <h3 className={styles.cardTitle}>Olive Grove Villa</h3>
+                <p className={styles.cardCategory}>Architectural Design</p>
+              </div>
+            </div>
+
+             {/* Project 3 */}
+             <div className={styles.card}>
+              <div className={styles.cardImageWrapper}>
+                <Image
+                  src="/i3.jpeg"
+                  alt="Urban Loft"
+                  fill
+                  className={styles.cardImage}
+                />
+              </div>
+              <div className={styles.cardContent}>
+                <h3 className={styles.cardTitle}>Urban Loft</h3>
+                <p className={styles.cardCategory}>Furniture & Styling</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+      </section>
     </div>
   );
 }
