@@ -58,7 +58,7 @@ export default function InteriorsPage() {
                       display: 'inline-block',
                       marginTop: '0.75rem',
                       padding: '0.5rem 1.2rem',
-                      background: '#25D366',
+                      background: 'var(--color-text-secondary)',
                       color: '#fff',
                       borderRadius: '0.5rem',
                       fontWeight: 500,
