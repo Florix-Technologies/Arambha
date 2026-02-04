@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
 
-First, run the development server:
+# Arambha Ecommerce & Interior Platform
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## System Overview
+
+This is a full-stack platform for managing and showcasing furniture and interior products, built with Next.js (frontend) and Flask (backend, Firestore database).
+
+### Features
+- Dynamic categories and products (no hardcoding)
+- Admin panel for full CRUD management
+- Images are referenced by URL only (no upload complexity)
+- Admin sees a live image preview when entering a product
+- Users can place orders via WhatsApp with a single click
+- Scalable, CMS-style architecture
+
+## Setup Instructions
+
+### 1. Backend (Flask)
+- Install dependencies:
+  ```bash
+  pip install -r requirements.txt
+  ```
+- Set up Firebase and place `key.json` in the project root
+- Start Flask server:
+  ```bash
+  python app.py
+  ```
+
+### 2. Frontend (Next.js)
+- Set environment variable in `.env.local`:
+  ```
+  NEXT_PUBLIC_API_URL=http://localhost:5000
+  ```
+- Install dependencies:
+  ```bash
+  npm install
+  ```
+- Start Next.js dev server:
+  ```bash
+  npm run dev
+  ```
+
+### 3. Admin Panel
+- Go to `/admin` route in your browser
+- Add/manage categories and products for both furniture and interiors
+- When adding a product, paste an image URL (see live preview)
+
+### 4. Data Flow
+```
+Admin Panel → Flask Backend → Firestore → Frontend fetches dynamically
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 5. User Experience
+- All product images are loaded from URLs (no upload required)
+- On product pages, users see a "Place Order on WhatsApp" button below each product
+- Clicking the button opens WhatsApp with a pre-filled message containing product details
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API Reference
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `README_backend.md` for full API and database structure details.

@@ -1,12 +1,29 @@
+"use client";
+import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 
+type Category = { category_id: string; name: string; description: string };
+type Product = { product_id: string; name: string; description: string; imageUrl: string; price: number };
+
 export default function FurniturePage() {
-  const categories = [
-    { name: 'Chairs', items: ['Lounge Chair', 'Accent Chair', 'Dining Chair'] },
-    { name: 'Cots', items: ['King Size Bed', 'Queen Storage Bed', 'Kids Bunk'] },
-    { name: 'Dining Tables', items: ['6-Seater Oak', 'Round Marble', 'Minimalist Glass'] },
-    { name: 'Office Chairs', items: ['Ergonomic Mesh', 'Leather Executive', 'Visitor Chair'] },
-  ];
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [productsByCat, setProductsByCat] = useState<Record<string, Product[]>>({});
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  useEffect(() => {
+    fetch(`${API_BASE}/furniture/categories`)
+      .then(res => res.json())
+      .then(async (cats: Category[]) => {
+        setCategories(cats);
+        // Fetch products for each category
+        const prods: Record<string, Product[]> = {};
+        for (const cat of cats) {
+          const resp = await fetch(`${API_BASE}/furniture/categories/${cat.category_id}/products`);
+          prods[cat.category_id] = await resp.json();
+        }
+        setProductsByCat(prods);
+      });
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -14,31 +31,44 @@ export default function FurniturePage() {
         <h1 className={styles.title}>Furniture Collection</h1>
         <p className={styles.subtitle}>Handcrafted pieces that blend form, function, and timeless aesthetics.</p>
       </header>
-
       <div className={styles.categories}>
-        {categories.map((cat, index) => (
-          <section key={index} className={styles.categorySection}>
+        {categories.map(cat => (
+          <section key={cat.category_id} className={styles.categorySection}>
             <h2 className={styles.categoryTitle}>{cat.name}</h2>
             <div className={styles.grid}>
-              {cat.items.map((item, i) => (
-                <div key={i} className={styles.card}>
+              {productsByCat[cat.category_id]?.map(prod => (
+                <div key={prod.product_id} className={styles.card}>
                   <div className={styles.imagePlaceholder}>
-                    {/* Placeholder color based on index for variety */}
-                    <div style={{
-                      width: '100%', 
-                      height: '100%', 
-                      background: i % 2 === 0 ? '#E5E2DC' : '#D4CFC5',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#5C5852'
-                    }}>
-                      {item} Image
-                    </div>
+                    {prod.imageUrl ? (
+                      <img src={prod.imageUrl} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : prod.name}
                   </div>
                   <div className={styles.cardContent}>
-                    <h3 className={styles.productName}>{item}</h3>
-                    <p className={styles.productDesc}>Customizable finish and fabric.</p>
+                    <h3 className={styles.productName}>{prod.name}</h3>
+                    <p className={styles.productDesc}>{prod.description}</p>
+                    <a
+                      href={`https://wa.me/919999999999?text=${encodeURIComponent(
+                        `Hello, I am interested in buying the following product from your Furniture collection:%0A%0A` +
+                        `Product: ${prod.name}%0ADescription: ${prod.description}%0A` +
+                        (prod.price ? `Price: ${prod.price}%0A` : '') +
+                        `Image: ${prod.imageUrl}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-block',
+                        marginTop: '0.75rem',
+                        padding: '0.5rem 1.2rem',
+                        background: '#25D366',
+                        color: '#fff',
+                        borderRadius: '0.5rem',
+                        fontWeight: 500,
+                        textDecoration: 'none',
+                        fontSize: '1rem',
+                      }}
+                    >
+                      Place Order on WhatsApp
+                    </a>
                   </div>
                 </div>
               ))}
@@ -46,7 +76,6 @@ export default function FurniturePage() {
           </section>
         ))}
       </div>
-
       <div className={styles.customSection}>
         <h2>Looking for something unique?</h2>
         <p>We specialize in bespoke custom furniture design tailored to your specific needs.</p>
