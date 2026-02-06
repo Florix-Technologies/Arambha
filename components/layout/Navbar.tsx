@@ -8,7 +8,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const isDarkText = pathname !== '/' && pathname !== '/gallery' && pathname !== '/contact';
+  const isDarkText = pathname !== '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,10 +27,10 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''} ${isDarkText ? styles.dark : ''}`}>
+    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light}`}>
       <div className={`container ${styles.navContainer}`}>
         <Link href="/" className={styles.logo}>
-          <img src="/logo2.png" alt="Logo" />
+          <img src="/logo2.png" alt="Logo" style={{ width: '100px', height: '100px', borderRadius: '100%', objectFit: 'cover', border: '1px solid #eee' }} />
         </Link>
 
         {/* Desktop Menu */}
