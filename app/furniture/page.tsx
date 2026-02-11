@@ -1,28 +1,47 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 
-type Category = { category_id: string; name: string; description: string };
-type Product = { product_id: string; name: string; description: string; imageUrl: string; price: number };
+type Category = { id: string; name: string; slug: string };
+type Product = { id: string; name: string; description: string; image_url: string; price?: number };
 
 export default function FurniturePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [productsByCat, setProductsByCat] = useState<Record<string, Product[]>>({});
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
   useEffect(() => {
-    fetch(`${API_BASE}/furniture/categories`)
-      .then(res => res.json())
-      .then(async (cats: Category[]) => {
+    async function fetchData() {
+      try {
+        // Fetch categories for furniture collection
+        const { data: cats, error: catsError } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('collection', 'furniture');
+
+        if (catsError) throw catsError;
+        if (!cats) return;
+
         setCategories(cats);
+
         // Fetch products for each category
         const prods: Record<string, Product[]> = {};
         for (const cat of cats) {
-          const resp = await fetch(`${API_BASE}/furniture/categories/${cat.category_id}/products`);
-          prods[cat.category_id] = await resp.json();
+          const { data: prodData, error: prodError } = await supabase
+            .from('products')
+            .select('*')
+            .eq('category_id', cat.id);
+
+          if (prodError) throw prodError;
+          prods[cat.id] = prodData || [];
         }
         setProductsByCat(prods);
-      });
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    fetchData();
   }, []);
 
   return (
@@ -33,14 +52,14 @@ export default function FurniturePage() {
       </header>
       <div className={styles.categories}>
         {categories.map(cat => (
-          <section key={cat.category_id} className={styles.categorySection}>
+          <section key={cat.id} className={styles.categorySection}>
             <h2 className={styles.categoryTitle}>{cat.name}</h2>
             <div className={styles.grid}>
-              {productsByCat[cat.category_id]?.map(prod => (
-                <div key={prod.product_id} className={styles.card}>
+              {productsByCat[cat.id]?.map(prod => (
+                <div key={prod.id} className={styles.card}>
                   <div className={styles.imagePlaceholder}>
-                    {prod.imageUrl ? (
-                      <img src={prod.imageUrl} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {prod.image_url ? (
+                      <img src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : prod.name}
                   </div>
                   <div className={styles.cardContent}>
@@ -51,7 +70,7 @@ export default function FurniturePage() {
                         `Hello, I am interested in buying the following product from your Furniture collection:%0A%0A` +
                         `Product: ${prod.name}%0ADescription: ${prod.description}%0A` +
                         (prod.price ? `Price: ${prod.price}%0A` : '') +
-                        `Image: ${prod.imageUrl}`
+                        `Image: ${prod.image_url}`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"

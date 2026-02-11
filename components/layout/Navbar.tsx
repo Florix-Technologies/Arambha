@@ -31,7 +31,7 @@ export default function Navbar() {
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light}`}>
       <div className={`container ${styles.navContainer}`}>
         <Link href="/" className={styles.logo}>
-          <img src="/logo2.png" alt="Logo" style={{ width: '100px', height: '100px', borderRadius: '100%', objectFit: 'cover', border: '1px solid #eee' }} />
+          <img src="/logo2.png" alt="Logo" style={{ width: '140px', height: '140px', objectFit: 'cover' }} />
         </Link>
 
         {/* Desktop Menu */}

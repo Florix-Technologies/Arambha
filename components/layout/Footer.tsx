@@ -23,6 +23,7 @@ export default function Footer() {
           <div className={styles.sitemap}>
             <h3>Explore</h3>
             <Link href="/gallery">Gallery</Link>
+            <Link href="/services">Our Services</Link>
             <Link href="/interiors">Interiors</Link>
             <Link href="/furniture">Furniture</Link>
             <Link href="/contact">Contact</Link>

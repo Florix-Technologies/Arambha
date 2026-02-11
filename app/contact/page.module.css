@@ -17,7 +17,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: blur(8px); /* Subtle blur like Gallery */
+  filter: blur(8px);
+  /* Subtle blur like Gallery */
   transform: scale(1.05);
 }
 
@@ -27,7 +28,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.4); /* Light overlay for readability */
+  background: rgba(255, 255, 255, 0.4);
+  /* Light overlay for readability */
   z-index: 1;
 }
 
@@ -140,4 +142,19 @@
 
 .submitBtn:hover {
   background-color: var(--color-accent);
+}
+
+.mapContainer {
+  margin-top: 1rem;
+  width: 100%;
+  height: 250px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.mapFrame {
+  width: 100%;
+  height: 100%;
+  border: 0;
 }

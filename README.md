@@ -1,3 +1,117 @@
+## 🚀 Supabase-Only Migration Roadmap
+
+### ❌ Remove
+- Flask backend (all Python server code)
+- Firebase/Firestore (all config and logic)
+
+### ✅ Keep/Use
+- Supabase only (PostgreSQL tables)
+- Supabase client SDK in frontend
+- Same UI and logic (categories → products → highlight → images expand)
+- No backend server cost
+
+---
+
+### 🔥 New Architecture
+
+**Frontend → Supabase (directly)**
+
+No server. No Flask. No Firebase. Only Supabase client SDK.
+
+---
+
+### 1️⃣ Supabase Table Structure
+
+#### categories table
+| column     | type                         |
+| ---------- | ---------------------------- |
+| id         | uuid (primary key)           |
+| name       | text                         |
+| slug       | text                         |
+| collection | text (furniture/interiors)   |
+| created_at | timestamp                    |
+
+#### products table
+| column      | type                                |
+| ----------- | ----------------------------------- |
+| id          | uuid                                |
+| category_id | uuid (foreign key)                  |
+| name        | text                                |
+| description | text                                |
+| image_url   | text                                |
+| images      | text[] (array of image URLs)        |
+| price       | numeric                             |
+| created_at  | timestamp                           |
+
+---
+
+### 2️⃣ Install Supabase in Frontend
+
+```
+npm install @supabase/supabase-js
+```
+
+Create `/lib/supabase.ts`:
+
+```ts
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+```
+
+Add to `.env.local`:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
+```
+
+---
+
+### 3️⃣ Enable Row Level Security (RLS)
+
+In Supabase dashboard, enable RLS for both tables and add policy:
+
+```
+Allow read access for all users
+```
+
+---
+
+### 4️⃣ Update Frontend Data Fetching
+
+- Remove all fetch/API calls to Flask or Firebase.
+- Replace with Supabase queries using the Supabase client.
+- Example (see interiors page):
+
+```tsx
+import { supabase } from '@/lib/supabase';
+// ...
+const { data: cats } = await supabase.from('categories').select('*').eq('collection', 'furniture');
+```
+
+---
+
+### 5️⃣ Delete Unused Files
+
+- Remove backend/server files, old API docs, and Firebase config files.
+
+---
+
+### ✅ Final App
+
+- Pure frontend + Supabase
+- No backend hosting cost
+- Free tier is enough for most use cases
+- Secure (RLS)
+- Scalable and clean
+
+---
+
+**Need help? See interiors page for a full Supabase data-fetching example.**
 
 
 # Arambha Ecommerce & Interior Platform

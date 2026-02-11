@@ -5,6 +5,17 @@ import styles from "./page.module.css";
 
 const gallerySections = [
   {
+    title: "Complete House Interior",
+    items: [
+      "/i4.jpeg",
+      "/i2.jpeg",
+      "/v1.mp4",
+      "/v7.mp4",
+      "/v11.mp4"
+      
+    ],
+  },
+  {
     title: "Kitchen",
     items: [
       "/i4.jpeg",
