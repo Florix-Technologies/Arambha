@@ -7,39 +7,58 @@ const gallerySections = [
   {
     title: "Kitchen",
     items: [
-      "/i1.jpeg",
+      "/i4.jpeg",
       "/i2.jpeg",
       "/v1.mp4",
-      "/i7.jpeg",
-      "/v2.mp4"
+      "/v7.mp4",
+      "/v11.mp4"
       
     ],
   },
   {
     title: "Living Room",
     items: [
-      "/v2.mp4",
-      "/i4.jpeg",
-      "/i5.jpeg",
-      "/i6.jpeg",
-      "/v7.mp4"
+      "/i7.jpeg",
+      "/i1.jpeg",
+      "/v3.mp4",
+      "/i8.jpeg",
+      "/v4.mp4"
       
     ],
   },
   {
     title: "Bedroom",
     items: [
-      "/i7.jpeg",
-      "/v3.mp4",
-      "/i8.jpeg",
-      "/i3.jpeg",
-      "/v4.mp4",
+      "/i6.jpeg",
+      "/i5.jpeg",
+      "/v10.mp4",
+      "/v2.mp4",
+      "/v12.mp4",
+      
+    ],
+  },
+  {
+    title: "Wardrobes",
+    items: [
+      "/i6.jpeg",
+      "/i5.jpeg",
+      "/v10.mp4",
+      "/v2.mp4",
+      "/v12.mp4",
       
     ],
   },
 ];
 
 export default function GalleryPage() {
+  // Helper to handle video play/pause on hover
+  const handleVideoMouseEnter = (e: React.MouseEvent<HTMLVideoElement>) => {
+    e.currentTarget.play();
+  };
+  const handleVideoMouseLeave = (e: React.MouseEvent<HTMLVideoElement>) => {
+    e.currentTarget.pause();
+    e.currentTarget.currentTime = 0;
+  };
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -89,10 +108,11 @@ export default function GalleryPage() {
                   <video
                     src={src}
                     muted
-                    autoPlay
                     loop
                     playsInline
                     className={styles.media}
+                    onMouseEnter={handleVideoMouseEnter}
+                    onMouseLeave={handleVideoMouseLeave}
                   />
                 ) : (
                   <img
@@ -109,3 +129,4 @@ export default function GalleryPage() {
     </div>
   );
 }
+
