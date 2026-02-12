@@ -22,6 +22,9 @@ export default function AdminPage() {
   const [prodName, setProdName] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodImageUrl, setProdImageUrl] = useState('');
+  const [prodImages, setProdImages] = useState<string[]>([]);
+  const [prodImageInput, setProdImageInput] = useState('');
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -157,7 +160,7 @@ export default function AdminPage() {
           name: prodName,
           description: prodDesc,
           image_url: prodImageUrl,
-          images: [] // Initialize empty images array
+          images: prodImages // Include additional images array
         }]);
 
       if (error) {
@@ -168,6 +171,8 @@ export default function AdminPage() {
       setProdName('');
       setProdDesc('');
       setProdImageUrl('');
+      setProdImages([]);
+      setProdImageInput('');
       await fetchProducts(selectedCategory.id);
     } catch (error: any) {
       console.error('Error adding product:', error);
@@ -202,6 +207,50 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Update product images
+  const handleUpdateProduct = async (prod: Product) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('products')
+        .update({ images: prod.images || [] })
+        .eq('id', prod.id);
+
+      if (error) {
+        console.error('Update error:', error);
+        throw new Error(`${error.message} (Code: ${error.code})`);
+      }
+      setMessage('Product images updated successfully!');
+      setEditingProduct(null);
+      if (selectedCategory) {
+        await fetchProducts(selectedCategory.id);
+      }
+    } catch (error: any) {
+      console.error('Error updating product:', error);
+      setMessage(`Error updating product: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add image to editing product
+  const handleAddImageToProduct = () => {
+    if (!editingProduct || !prodImageInput.trim()) {
+      setMessage('Please enter an image URL');
+      return;
+    }
+    const newImages = [...(editingProduct.images || []), prodImageInput];
+    setEditingProduct({ ...editingProduct, images: newImages });
+    setProdImageInput('');
+  };
+
+  // Remove image from editing product
+  const handleRemoveImageFromProduct = (index: number) => {
+    if (!editingProduct) return;
+    const newImages = editingProduct.images?.filter((_, i) => i !== index) || [];
+    setEditingProduct({ ...editingProduct, images: newImages });
   };
 
   return (
@@ -316,7 +365,7 @@ export default function AdminPage() {
                 />
                 <input 
                   className={styles.input} 
-                  placeholder="Image URL" 
+                  placeholder="Main Image URL" 
                   value={prodImageUrl} 
                   onChange={e => setProdImageUrl(e.target.value)} 
                   required 
@@ -331,6 +380,69 @@ export default function AdminPage() {
                     onError={e => (e.currentTarget.style.display = 'none')} 
                   />
                 )}
+                
+                {/* Extra Images Section */}
+                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Extra Images (Optional)</label>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <input 
+                      className={styles.input}
+                      placeholder="Image URL" 
+                      value={prodImageInput} 
+                      onChange={e => setProdImageInput(e.target.value)} 
+                      disabled={loading}
+                      style={{ margin: 0 }}
+                    />
+                    <button 
+                      type="button"
+                      className={styles.button}
+                      onClick={() => {
+                        if (prodImageInput.trim()) {
+                          setProdImages([...prodImages, prodImageInput]);
+                          setProdImageInput('');
+                        }
+                      }}
+                      disabled={loading}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {prodImages.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {prodImages.map((img, idx) => (
+                        <div key={idx} style={{ position: 'relative' }}>
+                          <img 
+                            src={img} 
+                            alt={`Extra ${idx}`} 
+                            style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
+                            onError={e => (e.currentTarget.style.display = 'none')}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setProdImages(prodImages.filter((_, i) => i !== idx))}
+                            disabled={loading}
+                            style={{
+                              position: 'absolute',
+                              top: -8,
+                              right: -8,
+                              background: '#ef4444',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: 24,
+                              height: 24,
+                              cursor: 'pointer',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
                 <button className={styles.button} type="submit" disabled={loading}>Save</button>
               </form>
               {/* Product Grid */}
@@ -347,7 +459,20 @@ export default function AdminPage() {
                     <div className={styles.cardContent}>
                       <h3>{prod.name}</h3>
                       <p>{prod.description}</p>
+                      {prod.images && prod.images.length > 0 && (
+                        <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.5rem' }}>
+                          📸 {prod.images.length} extra image{prod.images.length !== 1 ? 's' : ''}
+                        </p>
+                      )}
                       <div className={styles.cardActions}>
+                        <button 
+                          className={styles.button}
+                          onClick={() => setEditingProduct(prod)}
+                          disabled={loading}
+                          style={{ flex: 1, marginRight: '0.5rem' }}
+                        >
+                          📷 Edit Images
+                        </button>
                         <button 
                           className={styles.deleteButton} 
                           onClick={() => handleDeleteProduct(prod)}
@@ -360,6 +485,94 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
+
+              {/* Edit Product Modal */}
+              {editingProduct && (
+                <div className={styles.modalOverlay}>
+                  <div className={styles.modal} style={{ maxWidth: '600px' }}>
+                    <h3>Edit Images for: {editingProduct.name}</h3>
+                    <p style={{ color: '#666', marginBottom: '1rem' }}>Main Image: {editingProduct.image_url}</p>
+                    
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Add More Images</label>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                      <input 
+                        className={styles.input}
+                        placeholder="Image URL" 
+                        value={prodImageInput} 
+                        onChange={e => setProdImageInput(e.target.value)} 
+                        disabled={loading}
+                        style={{ margin: 0 }}
+                      />
+                      <button 
+                        type="button"
+                        className={styles.button}
+                        onClick={handleAddImageToProduct}
+                        disabled={loading}
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {editingProduct.images && editingProduct.images.length > 0 && (
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Extra Images ({editingProduct.images.length})</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                          {editingProduct.images.map((img, idx) => (
+                            <div key={idx} style={{ position: 'relative' }}>
+                              <img 
+                                src={img} 
+                                alt={`Extra ${idx}`} 
+                                style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
+                                onError={e => (e.currentTarget.style.display = 'none')}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImageFromProduct(idx)}
+                                disabled={loading}
+                                style={{
+                                  position: 'absolute',
+                                  top: -8,
+                                  right: -8,
+                                  background: '#ef4444',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '50%',
+                                  width: 24,
+                                  height: 24,
+                                  cursor: 'pointer',
+                                  fontWeight: 'bold'
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className={styles.modalActions}>
+                      <button 
+                        className={styles.button} 
+                        onClick={() => handleUpdateProduct(editingProduct)}
+                        disabled={loading}
+                      >
+                        Save Changes
+                      </button>
+                      <button 
+                        className={styles.button} 
+                        onClick={() => {
+                          setEditingProduct(null);
+                          setProdImageInput('');
+                        }}
+                        disabled={loading}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div className={styles.emptyState}>Select a category to manage products.</div>

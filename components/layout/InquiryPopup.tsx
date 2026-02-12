@@ -1,12 +1,19 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./InquiryPopup.module.css";
 
 const Popup = () => {
+    const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
+
+    // Don't show popup on admin page
+    if (pathname === "/admin") {
+        return null;
+    }
 
     useEffect(() => {
         let firstTimer: NodeJS.Timeout;

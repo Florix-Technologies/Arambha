@@ -95,11 +95,79 @@ ON CONFLICT DO NOTHING;
 
 -- Sample categories for Interiors
 INSERT INTO categories (name, slug, collection) VALUES
+('Wooden Interior', 'wooden-interior', 'interiors'),m 
+('Aluminium Interior', 'aluminium-interior', 'interiors'),
 ('Kitchen Designs', 'kitchen-designs', 'interiors'),
 ('Living Room', 'living-room', 'interiors'),
 ('Bedrooms', 'bedrooms', 'interiors'),
 ('Wardrobes', 'wardrobes', 'interiors')
 ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- SAMPLE PRODUCTS FOR INTERIORS
+-- ============================================================
+
+-- Products for Wooden Interior
+INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'wooden-interior' AND collection = 'interiors'),
+  'Wooden Wall Paneling',
+  'Premium solid wood paneling with traditional craftsmanship. Perfect for creating a warm, sophisticated ambiance in any room.',
+  'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=500&h=500&fit=crop',
+  ARRAY['https://images.unsplash.com/photo-1592078615290-033ee584e267?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1616047207529-3ebe3f92d6d9?w=500&h=500&fit=crop'],
+  45000
+);
+
+INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'wooden-interior' AND collection = 'interiors'),
+  'Wooden Flooring Package',
+  'Beautiful engineered wooden flooring with lifetime durability. Complements modern and traditional interiors equally well.',
+  'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500&h=500&fit=crop',
+  ARRAY['https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop'],
+  35000
+);
+
+INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'wooden-interior' AND collection = 'interiors'),
+  'Custom Wooden Furniture Suite',
+  'Handcrafted wooden furniture set designed specifically for your space. Includes customization options for finish and dimensions.',
+  'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&h=500&fit=crop',
+  ARRAY['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=500&fit=crop'],
+  75000
+);
+
+-- Products for Aluminium Interior
+INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'aluminium-interior' AND collection = 'interiors'),
+  'Sleek Aluminium Window Frames',
+  'Modern aluminium window and door frames with thermal insulation. Contemporary design meets functional excellence.',
+  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=500&fit=crop',
+  ARRAY['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1552078526-7da38dd2b8b2?w=500&h=500&fit=crop'],
+  32000
+);
+
+INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'aluminium-interior' AND collection = 'interiors'),
+  'Aluminium Glass Partition Wall',
+  'Stylish partition system with frosted or clear glass panels. Ideal for creating open yet defined spaces in modern offices and homes.',
+  'https://images.unsplash.com/photo-1534183886241-2f3fab999f57?w=500&h=500&fit=crop',
+  ARRAY['https://images.unsplash.com/photo-1534183886241-2f3fab999f57?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1542575215-cdde9dbfc8be?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1564069114553-7215e50023cb?w=500&h=500&fit=crop'],
+  28000
+);
+
+INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'aluminium-interior' AND collection = 'interiors'),
+  'Premium Aluminium Kitchen System',
+  'Space-saving modular kitchen with premium aluminium framework. Anti-corrosion and easy-to-maintain design.',
+  'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop',
+  ARRAY['https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop'],
+  52000
+);
 
 -- ============================================================
 -- IMPORTANT NOTES

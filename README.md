@@ -1,3 +1,22 @@
+🔥 3️⃣ You Have Some Limitations to Fix
+
+You listed:
+
+⚠️ No authentication
+
+Meaning:
+Anyone can delete or insert.
+
+You should:
+
+Add auth for admin only
+
+Keep public read
+
+Restrict insert/delete to admin
+
+
+
 ## 🚀 Supabase-Only Migration Roadmap
 
 ### ❌ Remove

@@ -142,31 +142,21 @@ export default function InteriorsPage() {
 
           {/* ✅ IMAGE EXPANSION BELOW CATEGORY */}
           {selectedProduct?.categoryId === cat.id && (
-            <div style={{ marginTop: "2rem" }}>
+            <div className={styles.expandedImagesSection}>
+              <h4>Product Gallery</h4>
               {productsByCat[cat.id]
                 ?.find(p => p.id === selectedProduct.productId)
                 ?.images?.length ? (
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                    gap: "1.5rem",
-                  }}
-                >
+                <div className={styles.expandedImagesGrid}>
                   {productsByCat[cat.id]
                     ?.find(p => p.id === selectedProduct.productId)
                     ?.images?.map((img, i) => (
-                      <img
-                        key={i}
-                        src={img}
-                        alt="Product"
-                        style={{
-                          width: "100%",
-                          height: "250px",
-                          objectFit: "cover",
-                          borderRadius: "6px",
-                        }}
-                      />
+                      <div key={i} className={styles.expandedImageItem}>
+                        <img
+                          src={img}
+                          alt="Product"
+                        />
+                      </div>
                     ))}
                 </div>
               ) : null}
