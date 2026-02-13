@@ -103,18 +103,7 @@ export default function Home() {
             {/* Project 1 */}
             <div className={styles.card}>
               <div className={styles.cardImageWrapper}>
-                <span style={{
-                  position: 'absolute',
-                  top: '16px',
-                  left: '16px',
-                  background: 'rgba(90, 80, 110, 0.85)',
-                  color: '#fff',
-                  borderRadius: '1.2rem',
-                  padding: '0.3rem 1.1rem',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  zIndex: 2
-                }}>Starting at 3.57L*</span>
+                
                 <video
                   autoPlay
                   muted
@@ -126,18 +115,7 @@ export default function Home() {
                   <source src="/v11.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-                <span style={{
-                  position: 'absolute',
-                  left: '16px',
-                  bottom: '16px',
-                  background: 'rgba(0,0,0,0.7)',
-                  color: '#fff',
-                  borderRadius: '0.7rem',
-                  padding: '0.2rem 0.9rem',
-                  fontWeight: 700,
-                  fontSize: '1.1rem',
-                  zIndex: 2
-                }}>2BHK</span>
+                
               </div>
               <div className={styles.cardContent}>
                 <h3 className={styles.cardTitle}>The Stone Residence</h3>
@@ -148,18 +126,7 @@ export default function Home() {
             {/* Project 2 */}
             <div className={styles.card}>
               <div className={styles.cardImageWrapper}>
-                <span style={{
-                  position: 'absolute',
-                  top: '16px',
-                  left: '16px',
-                  background: 'rgba(90, 80, 110, 0.85)',
-                  color: '#fff',
-                  borderRadius: '1.2rem',
-                  padding: '0.3rem 1.1rem',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  zIndex: 2
-                }}>Starting at 4.23L*</span>
+                
                 <video
                   autoPlay
                   muted
@@ -171,18 +138,7 @@ export default function Home() {
                   <source src="/v6.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-                <span style={{
-                  position: 'absolute',
-                  left: '16px',
-                  bottom: '16px',
-                  background: 'rgba(0,0,0,0.7)',
-                  color: '#fff',
-                  borderRadius: '0.7rem',
-                  padding: '0.2rem 0.9rem',
-                  fontWeight: 700,
-                  fontSize: '1.1rem',
-                  zIndex: 2
-                }}>3BHK</span>
+                
               </div>
               <div className={styles.cardContent}>
                 <h3 className={styles.cardTitle}>Olive Grove Villa</h3>
@@ -193,18 +149,7 @@ export default function Home() {
             {/* Project 3 */}
             <div className={styles.card}>
               <div className={styles.cardImageWrapper}>
-                <span style={{
-                  position: 'absolute',
-                  top: '16px',
-                  left: '16px',
-                  background: 'rgba(90, 80, 110, 0.85)',
-                  color: '#fff',
-                  borderRadius: '1.2rem',
-                  padding: '0.3rem 1.1rem',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  zIndex: 2
-                }}>Starting at 2.99L*</span>
+                
                 <video
                   autoPlay
                   muted
@@ -216,18 +161,7 @@ export default function Home() {
                   <source src="/v10.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-                <span style={{
-                  position: 'absolute',
-                  left: '16px',
-                  bottom: '16px',
-                  background: 'rgba(0,0,0,0.7)',
-                  color: '#fff',
-                  borderRadius: '0.7rem',
-                  padding: '0.2rem 0.9rem',
-                  fontWeight: 700,
-                  fontSize: '1.1rem',
-                  zIndex: 2
-                }}>4BHK</span>
+                
               </div>
               <div className={styles.cardContent}>
                 <h3 className={styles.cardTitle}>Urban Loft</h3>

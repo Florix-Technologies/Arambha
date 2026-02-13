@@ -99,7 +99,7 @@ const Popup = () => {
                         {/* Left Image Section */}
                         <div className={styles.imageSection}>
                             <img
-                                src="/i1.jpeg" // Using an existing interior image
+                                src="/popup.jpeg" // Using an existing interior image
                                 alt="Beautiful Interior"
                                 className={styles.image}
                             />

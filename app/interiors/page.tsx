@@ -132,7 +132,7 @@ export default function InteriorsPage() {
                         fontSize: "1rem",
                       }}
                     >
-                      Place Order on WhatsApp
+                      Place Order
                     </a>
                   </div>
                 </div>

@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import LoginModal from '@/components/layout/LoginModal';
 import styles from './page.module.css';
 
 type Category = { id: string; name: string; slug: string; collection: string };
@@ -13,6 +14,8 @@ const collections = [
 ];
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const [selectedCollection, setSelectedCollection] = useState(collections[0].key);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -27,6 +30,32 @@ export default function AdminPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  // Check if user is authenticated on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsAuthenticated(true);
+        setUserEmail(session.user.email || '');
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setIsAuthenticated(true);
+        setUserEmail(session.user.email || '');
+      } else {
+        setIsAuthenticated(false);
+        setUserEmail('');
+      }
+    });
+
+    return () => subscription?.unsubscribe();
+  }, []);
 
   // Fetch categories when collection changes
   useEffect(() => {
@@ -253,12 +282,56 @@ export default function AdminPage() {
     setEditingProduct({ ...editingProduct, images: newImages });
   };
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setIsAuthenticated(false);
+      setUserEmail('');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Show login modal if not authenticated
+  if (!isAuthenticated) {
+    return <LoginModal onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className={styles.main}>
       {/* Header */}
       <header className={styles.header}>
-        <h1 className={styles.title}>Admin Panel</h1>
-        <p className={styles.subtitle}>Manage collections, categories, and products</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '2rem' }}>
+          <div>
+            <h1 className={styles.title}>Admin Panel</h1>
+            <p className={styles.subtitle}>Manage collections, categories, and products</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: '0.95rem', color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>
+              Logged in as: <strong>{userEmail}</strong>
+            </p>
+            <button 
+              onClick={handleLogout}
+              style={{
+                padding: '0.6rem 1.2rem',
+                background: '#ef4444',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: 500,
+                transition: 'background 0.3s ease'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#dc2626')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#ef4444')}
+            >
+              Logout
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* Messages */}
