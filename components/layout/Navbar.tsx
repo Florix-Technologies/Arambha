@@ -10,13 +10,37 @@ export default function Navbar() {
   const pathname = usePathname();
   const isDarkText = pathname !== '/';
 
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      const currentScrollY = window.scrollY;
+
+      // Determine if we are past the "Philosophy of Aesthetics" section
+      // Hero (100vh) + Philosophy (~500px) = roughly 1200px
+      const threshold = window.innerHeight * 1.3;
+
+      if (currentScrollY > threshold) {
+        if (currentScrollY > lastScrollY) {
+          // Scrolling down - hide
+          setIsVisible(false);
+        } else {
+          // Scrolling up - show
+          setIsVisible(true);
+        }
+      } else {
+        // Always show in the early sections
+        setIsVisible(true);
+      }
+
+      setScrolled(currentScrollY > 50);
+      setLastScrollY(currentScrollY);
     };
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   const services = [
     {
@@ -103,7 +127,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light}`}>
+    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light} ${!isVisible ? styles.hidden : ''}`}>
       <div className={`container ${styles.navContainer}`}>
         <Link href="/" className={styles.logo}>
           <img src="/logo2.png" alt="Logo" />

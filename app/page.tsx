@@ -1,51 +1,53 @@
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
 import styles from './page.module.css';
+import BudgetSlider from '@/components/ui/BudgetSlider';
+import StyleSlider from '@/components/ui/StyleSlider';
 
 export default function Home() {
 
   const stylesWeOffer = [
-  {
-    title: "1. Contemporary Style",
-    images: [
-      "home1.jpeg",
-      "/contemporary/2.jpg",
-      "/contemporary/3.jpg",
-      "/contemporary/4.jpg",
-      "/contemporary/5.jpg",
-    ],
-  },
-  {
-    title: "2. Minimalist Style",
-    images: [
-      "/minimalist/1.jpg",
-      "/minimalist/2.jpg",
-      "/minimalist/3.jpg",
-      "/minimalist/4.jpg",
-      "/minimalist/5.jpg",
-    ],
-  },
-  {
-    title: "3. Modern Classic Style (Fusion)",
-    images: [
-      "/fusion/1.jpg",
-      "/fusion/2.jpg",
-      "/fusion/3.jpg",
-      "/fusion/4.jpg",
-      "/fusion/5.jpg",
-    ],
-  },
-  {
-    title: "4. Traditional / Ethnic",
-    images: [
-      "/traditional/1.jpg",
-      "/traditional/2.jpg",
-      "/traditional/3.jpg",
-      "/traditional/4.jpg",
-      "/traditional/5.jpg",
-    ],
-  },
-];
+    {
+      title: "1. Contemporary Style",
+      images: [
+        "home1.jpeg",
+        "/contemporary/2.jpg",
+        "/contemporary/3.jpg",
+        "/contemporary/4.jpg",
+        "/contemporary/5.jpg",
+      ],
+    },
+    {
+      title: "2. Minimalist Style",
+      images: [
+        "/minimalist/1.jpg",
+        "/minimalist/2.jpg",
+        "/minimalist/3.jpg",
+        "/minimalist/4.jpg",
+        "/minimalist/5.jpg",
+      ],
+    },
+    {
+      title: "3. Modern Classic Style (Fusion)",
+      images: [
+        "/fusion/1.jpg",
+        "/fusion/2.jpg",
+        "/fusion/3.jpg",
+        "/fusion/4.jpg",
+        "/fusion/5.jpg",
+      ],
+    },
+    {
+      title: "4. Traditional / Ethnic",
+      images: [
+        "/traditional/1.jpg",
+        "/traditional/2.jpg",
+        "/traditional/3.jpg",
+        "/traditional/4.jpg",
+        "/traditional/5.jpg",
+      ],
+    },
+  ];
 
 
 
@@ -67,7 +69,7 @@ export default function Home() {
           </video>
         </div>
         <div className={styles.heroOverlay}></div>
-        
+
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>Crafting Spaces, Defining Lifestyles</h1>
           <p className={styles.heroSubtitle}>PREMIUM INTERIOR DESIGN & ARCHITECTURAL SOLUTIONS</p>
@@ -82,9 +84,9 @@ export default function Home() {
         <div className="container">
           <h2 className={styles.introTitle}>Philosophy of Aesthetics</h2>
           <p className={styles.introText}>
-            At Arambha, we believe that design is not just about visual appeal—it&apos;s about creating 
-            environments that resonate with the soul. Drawing inspiration from nature&apos;s earthy palette, 
-            we blend sustainable materials with modern architectural principles to craft spaces that 
+            At Arambha, we believe that design is not just about visual appeal—it&apos;s about creating
+            environments that resonate with the soul. Drawing inspiration from nature&apos;s earthy palette,
+            we blend sustainable materials with modern architectural principles to craft spaces that
             are timeless, functional, and undeniably sophisticated.
           </p>
           <Button href="/contact" variant="text">Start Your Project &rarr;</Button>
@@ -92,18 +94,14 @@ export default function Home() {
       </section>
 
       {/* Featured Works */}
-      <section className="section">
+      <section className={`section ${styles.featuredWorks}`}>
         <div className="container">
-          <div className={styles.featuredHeader}>
-            <h2 className={styles.featuredTitle}>Selected Works</h2>
-            <Button href="/gallery" variant="text">View All Projects</Button>
-          </div>
 
           <div className={styles.grid}>
             {/* Project 1 */}
             <div className={styles.card}>
               <div className={styles.cardImageWrapper}>
-                
+
                 <video
                   autoPlay
                   muted
@@ -115,7 +113,7 @@ export default function Home() {
                   <source src="/v11.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-                
+
               </div>
               <div className={styles.cardContent}>
                 <h3 className={styles.cardTitle}>The Stone Residence</h3>
@@ -126,7 +124,7 @@ export default function Home() {
             {/* Project 2 */}
             <div className={styles.card}>
               <div className={styles.cardImageWrapper}>
-                
+
                 <video
                   autoPlay
                   muted
@@ -138,7 +136,7 @@ export default function Home() {
                   <source src="/v6.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-                
+
               </div>
               <div className={styles.cardContent}>
                 <h3 className={styles.cardTitle}>Olive Grove Villa</h3>
@@ -149,7 +147,7 @@ export default function Home() {
             {/* Project 3 */}
             <div className={styles.card}>
               <div className={styles.cardImageWrapper}>
-                
+
                 <video
                   autoPlay
                   muted
@@ -161,7 +159,7 @@ export default function Home() {
                   <source src="/v10.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-                
+
               </div>
               <div className={styles.cardContent}>
                 <h3 className={styles.cardTitle}>Urban Loft</h3>
@@ -170,103 +168,49 @@ export default function Home() {
             </div>
           </div>
         </div>
-</section>
+      </section>
 
 
-{/* Interior Design Works with Budget */}
-<section className="section">
-  <div className="container">
+      {/* Interior Design Works with Budget */}
+      <section className="section">
+        <div className="container">
 
-    {/* Heading */}
-    <h2 className={styles.featuredTitle}>
-      Our Interior Design Works with Budget
-    </h2>
+          {/* Heading */}
+          <h2 className={styles.featuredTitle}>
+            Our Interior Design Works with Budget
+          </h2>
 
-    {/* ===================== */}
-    {/* Budget Cards – Row 1 */}
-    {/* ===================== */}
-    <div className={styles.grid}>
-      {[
-        { label: "2BHK – Price ?", img: "/placeholder.jpg" },
-        { label: "3BHK – Price ?", img: "/placeholder.jpg" },
-        { label: "4BHK – Price ?", img: "/placeholder.jpg" },
-      ].map((item, i) => (
-        <div key={i} className={styles.card}>
-          <div className={styles.cardImageWrapper}>
-            <img
-              src={item.img}
-              alt={item.label}
-              className={styles.cardImage}
-            />
+          {/* ===================== */}
+          {/* Budget Cards – Slider */}
+          {/* ===================== */}
+          <BudgetSlider />
+
+          {/* ===================== */}
+          {/* Styles We Offer */}
+          {/* ===================== */}
+          <div style={{ marginTop: "4rem" }}>
+
+            {/* MAIN HEADING */}
+            <h2 className={styles.featuredTitle}>
+              Styles We Offer
+            </h2>
+
+            {stylesWeOffer.map((style, i) => (
+              <div key={i} style={{ marginBottom: "3rem" }}>
+                <h3 className={styles.introTitle}>{style.title}</h3>
+
+                <div style={{ marginTop: "1rem" }}>
+                  <StyleSlider items={style.images} />
+                </div>
+              </div>
+            ))}
+
           </div>
-          <div className={styles.cardContent}>
-            <p className={styles.cardCategory}>{item.label}</p>
-          </div>
+
+
+
         </div>
-      ))}
-    </div>
-
-    {/* ===================== */}
-    {/* Room-wise Cards – Row 2 */}
-    {/* ===================== */}
-    <div className={styles.grid} style={{ marginTop: "3rem" }}>
-      {[
-        { title: "Kitchen", img: "/placeholder.jpg" },
-        { title: "Bedroom – Sliding", img: "/placeholder.jpg" },
-        { title: "Bedroom – Swing Door", img: "/placeholder.jpg" },
-        { title: "Living", img: "/placeholder.jpg" },
-      ].map((room, i) => (
-        <div key={i} className={styles.card}>
-          <div className={styles.cardContent}>
-            <h3 className={styles.cardTitle}>{room.title}</h3>
-          </div>
-          <div className={styles.cardImageWrapper}>
-            <img
-              src={room.img}
-              alt={room.title}
-              className={styles.cardImage}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-
-    {/* ===================== */}
-    {/* Styles We Offer */}
-    {/* ===================== */}
-            <div style={{ marginTop: "4rem" }}>
-
-  {/* MAIN HEADING */}
-  <h2 className={styles.featuredTitle}>
-    Styles We Offer
-  </h2>
-
-  {stylesWeOffer.map((style, i) => (
-    <div key={i} style={{ marginBottom: "3rem" }}>
-      <h3 className={styles.introTitle}>{style.title}</h3>
-
-      <div className={styles.grid} style={{ marginTop: "1rem" }}>
-        {style.images.map((src, idx) => (
-          <div key={idx} className={styles.card}>
-            <div className={styles.cardImageWrapper}>
-              <img
-                src={src}
-                alt={`${style.title} ${idx + 1}`}
-                className={styles.cardImage}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  ))}
-
-</div>
-
-
-
-  </div>
-</section>
+      </section>
 
 
     </div>
