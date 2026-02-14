@@ -16,6 +16,7 @@ const collections = [
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // Flag to prevent re-auth during logout
   const [selectedCollection, setSelectedCollection] = useState(collections[0].key);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -30,14 +31,30 @@ export default function AdminPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [sessionTimeout, setSessionTimeout] = useState<NodeJS.Timeout | null>(null); // Session timeout
 
   // Check if user is authenticated on mount
   useEffect(() => {
+    console.log('Auth useEffect running...');
+    
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setIsAuthenticated(true);
-        setUserEmail(session.user.email || '');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Session check result:', session?.user?.email || 'No session');
+        
+        if (session?.user) {
+          setIsAuthenticated(true);
+          setUserEmail(session.user.email || '');
+          // Start a 30-minute inactivity timeout
+          startSessionTimeout();
+        } else {
+          setIsAuthenticated(false);
+          setUserEmail('');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
+        setUserEmail('');
       }
     };
 
@@ -45,17 +62,37 @@ export default function AdminPage() {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      console.log('Auth event:', event, 'User:', session?.user?.email || 'null', 'LoggingOut flag:', isLoggingOut);
+      
+      // Don't re-authenticate during logout
+      if (isLoggingOut) {
+        console.log('Ignoring auth change because user is logging out');
+        return;
+      }
+      
+      if (event === 'SIGNED_OUT') {
+        console.log('User signed out detected');
+        setIsAuthenticated(false);
+        setUserEmail('');
+        clearSessionTimeout();
+      } else if (session?.user) {
+        console.log('User signed in/session exists');
         setIsAuthenticated(true);
         setUserEmail(session.user.email || '');
+        startSessionTimeout();
       } else {
         setIsAuthenticated(false);
         setUserEmail('');
+        clearSessionTimeout();
       }
     });
 
-    return () => subscription?.unsubscribe();
-  }, []);
+    return () => {
+      console.log('Cleaning up auth subscription');
+      subscription?.unsubscribe();
+      clearSessionTimeout();
+    };
+  }, [isLoggingOut]);
 
   // Fetch categories when collection changes
   useEffect(() => {
@@ -282,15 +319,73 @@ export default function AdminPage() {
     setEditingProduct({ ...editingProduct, images: newImages });
   };
 
-  // Handle logout
+  // Session timeout - auto logout after 30 minutes of inactivity
+  const startSessionTimeout = () => {
+    clearSessionTimeout(); // Clear any existing timeout
+    const timeout = setTimeout(() => {
+      console.log('Session timeout - auto logging out');
+      handleLogout();
+    }, 30 * 60 * 1000); // 30 minutes
+    setSessionTimeout(timeout);
+  };
+
+  const clearSessionTimeout = () => {
+    if (sessionTimeout) {
+      clearTimeout(sessionTimeout);
+      setSessionTimeout(null);
+    }
+  };
+
+  // Handle logout - END SESSION PROPERLY
   const handleLogout = async () => {
+    console.log('🔴 LOGOUT STARTED');
+    setIsLoggingOut(true); // Set flag to prevent auth listener from re-authenticating
+    
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      console.log('Clearing Supabase session...');
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      console.log('✅ Supabase session cleared');
+
+      // Clear all SessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.clear();
+        console.log('✅ SessionStorage cleared');
+      }
+
+      // Clear localStorage completely
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        console.log('✅ LocalStorage cleared');
+      }
+
+      // IMMEDIATELY set authentication to false
       setIsAuthenticated(false);
       setUserEmail('');
-    } catch (error) {
-      console.error('Logout error:', error);
+      setSelectedCategory(null);
+      setProducts([]);
+      setCatName('');
+      setMessage('');
+      setProdName('');
+      setProdDesc('');
+      setProdImageUrl('');
+      setProdImages([]);
+      setProdImageInput('');
+      setEditingProduct(null);
+      setSelectedCollection(collections[0].key);
+      clearSessionTimeout();
+
+      console.log('✅ All state cleared - Login modal should now be visible');
+      console.log('🔴 LOGOUT COMPLETE');
+      
+    } catch (error: any) {
+      console.error('❌ Logout error:', error);
+      // Force logout anyway
+      setIsAuthenticated(false);
+      setUserEmail('');
+      clearSessionTimeout();
+    } finally {
+      setIsLoggingOut(false); // Unset flag
     }
   };
 
