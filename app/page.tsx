@@ -172,7 +172,7 @@ export default function Home() {
 
 
       {/* Interior Design Works with Budget */}
-      <section className="section">
+      <section className={`section ${styles.budgetSection}`}>
         <div className="container">
 
           {/* Heading */}
@@ -191,13 +191,13 @@ export default function Home() {
           <div style={{ marginTop: "4rem" }}>
 
             {/* MAIN HEADING */}
-            <h2 className={styles.featuredTitle}>
+            <h2 className={styles.featuredTitle} style={{ marginBottom: "2.5rem" }}>
               Styles We Offer
             </h2>
 
             {stylesWeOffer.map((style, i) => (
-              <div key={i} style={{ marginBottom: "3rem" }}>
-                <h3 className={styles.introTitle}>{style.title}</h3>
+              <div key={i} style={{ marginBottom: "4rem" }}>
+                <h3 className={styles.introTitle} style={{ marginBottom: "1.5rem" }}>{style.title}</h3>
 
                 <div style={{ marginTop: "1rem" }}>
                   <StyleSlider items={style.images} />

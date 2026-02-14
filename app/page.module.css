@@ -142,6 +142,17 @@
   }
 }
 
+.budgetSection {
+  padding-top: 0 !important;
+  margin-top: -1rem;
+}
+
+@media (min-width: 768px) {
+  .budgetSection {
+    margin-top: -2rem;
+  }
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr;
