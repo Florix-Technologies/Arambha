@@ -30,16 +30,16 @@
 
 .logo {
   position: absolute;
-  top: -50px;
-  left: -120px;
-  /* Shifted even further left */
+  top: -40px;
+  left: -60px;
+  /* Moved right from -120px */
   z-index: 1002;
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .logo img {
-  height: 310px;
-  /* Increased size for dramatic hero presence */
+  height: 220px;
+  /* Reduced from 250px */
   width: auto;
   object-fit: contain;
   transition: all 0.4s ease;
@@ -47,13 +47,15 @@
 
 .scrolled .logo {
   top: -25px;
-  left: -80px;
+  /* Moved down from -35px */
+  left: -10px;
+  /* Moved right from -30px */
   /* Moved right during scroll */
 }
 
 .scrolled .logo img {
-  height: 140px;
-  /* Scaled down but still prominent */
+  height: 100px;
+  /* Reduced from 120px */
 }
 
 .desktopMenu {

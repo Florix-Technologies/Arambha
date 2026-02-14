@@ -7,6 +7,7 @@ const outfit = Outfit({
   variable: "--font-outfit",
   display: "swap",
 });
+// ejidedjed
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
