@@ -9,7 +9,9 @@ import styles from "./page.module.css";
 type Category = { id: string; name: string; slug: string };
 type Product = { id: string; name: string; description: string; image_url: string };
 
-export default function GalleryPage() {
+import { Suspense } from "react";
+
+function GalleryContent() {
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter");
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
@@ -260,5 +262,19 @@ export default function GalleryPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function GalleryPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>
+        <p style={{ fontSize: '1.2rem', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-cormorant)' }}>
+          Loading Gallery...
+        </p>
+      </div>
+    }>
+      <GalleryContent />
+    </Suspense>
   );
 }

@@ -63,7 +63,9 @@ function Carousel({ items }: { items: MediaItem[] }) {
   );
 }
 
-export default function ServicesPage() {
+import { Suspense } from "react";
+
+function ServicesContent() {
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter");
 
@@ -155,5 +157,19 @@ export default function ServicesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ServicesPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>
+        <p style={{ fontSize: '1.2rem', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-cormorant)' }}>
+          Loading Services...
+        </p>
+      </div>
+    }>
+      <ServicesContent />
+    </Suspense>
   );
 }
