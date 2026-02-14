@@ -76,6 +76,7 @@ export default function ServicesPage() {
         { type: "image", src: "/images/modular1.jpg" },
         { type: "image", src: "/images/modular2.jpg" },
         { type: "video", src: "/videos/modular.mp4" },
+        { type: "video", src: "/videos/modular.mp4" },
       ] as MediaItem[]
     },
     {
