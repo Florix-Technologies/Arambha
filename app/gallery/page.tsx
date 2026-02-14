@@ -2,68 +2,62 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { supabase } from '@/lib/supabase';
 import styles from "./page.module.css";
 
-const gallerySections = [
-  {
-    title: "Complete House Interior",
-    items: [
-      "/i4.jpeg",
-      "/i2.jpeg",
-      "/v1.mp4",
-      "/v7.mp4",
-      "/v11.mp4"
-
-    ],
-  },
-  {
-    title: "Kitchen",
-    items: [
-      "/i4.jpeg",
-      "/i2.jpeg",
-      "/v1.mp4",
-      "/v7.mp4",
-      "/v11.mp4"
-
-    ],
-  },
-  {
-    title: "Living Room",
-    items: [
-      "/i7.jpeg",
-      "/i1.jpeg",
-      "/v3.mp4",
-      "/i8.jpeg",
-      "/v4.mp4"
-
-    ],
-  },
-  {
-    title: "Bedroom",
-    items: [
-      "/i6.jpeg",
-      "/i5.jpeg",
-      "/v10.mp4",
-      "/v2.mp4",
-      "/v12.mp4",
-
-    ],
-  },
-  {
-    title: "Wardrobes",
-    items: [
-      "/i6.jpeg",
-      "/i5.jpeg",
-      "/v10.mp4",
-      "/v2.mp4",
-      "/v12.mp4",
-
-    ],
-  },
-];
+type Category = { id: string; name: string; slug: string };
+type Product = { id: string; name: string; description: string; image_url: string };
 
 export default function GalleryPage() {
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [gallerySections, setGallerySections] = useState<Array<{ id: string; title: string; items: string[] }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch gallery data from Supabase
+  useEffect(() => {
+    async function fetchGalleryData() {
+      try {
+        setLoading(true);
+
+        // Fetch categories for gallery collection
+        const { data: cats, error: catsError } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('collection', 'gallery')
+          .order('created_at', { ascending: true });
+
+        if (catsError) throw catsError;
+        if (!cats) return;
+
+        // Fetch products for each category
+        const sections = [];
+        for (const cat of cats) {
+          const { data: prodData, error: prodError } = await supabase
+            .from('products')
+            .select('*')
+            .eq('category_id', cat.id)
+            .order('created_at', { ascending: true });
+
+          if (prodError) throw prodError;
+
+          const items = (prodData || []).map(prod => prod.image_url);
+          sections.push({
+            id: cat.id,
+            title: cat.name,
+            items
+          });
+        }
+
+        setGallerySections(sections);
+      } catch (error) {
+        console.error('Error fetching gallery data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchGalleryData();
+  }, []);
 
   // Close modal on Escape key
   useEffect(() => {
@@ -112,66 +106,72 @@ export default function GalleryPage() {
         </p>
       </header>
 
-      {gallerySections.map((section, index) => (
-        <section key={index} className={styles.section}>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className={styles.sectionTitle}
-          >
-            {section.title}
-          </motion.h2>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+          <p style={{ fontSize: '1.1rem', color: 'var(--color-text-secondary)' }}>Loading gallery...</p>
+        </div>
+      ) : (
+        gallerySections.map((section) => (
+          <section key={section.id} className={styles.section}>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className={styles.sectionTitle}
+            >
+              {section.title}
+            </motion.h2>
 
-          <motion.div
-            className={styles.grid}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={{
-              hidden: {},
-              visible: {
-                transition: {
-                  staggerChildren: 0.08,
+            <motion.div
+              className={styles.grid}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.08,
+                  },
                 },
-              },
-            }}
-          >
-            {section.items.map((src, i) => (
-              <motion.div
-                key={i}
-                className={styles.card}
-                variants={{
-                  hidden: { opacity: 0, scale: 0.95 },
-                  visible: { opacity: 1, scale: 1 },
-                }}
-                transition={{ duration: 0.4 }}
-                onClick={() => openLightbox(src)}
-                style={{ cursor: "pointer" }}
-              >
-                {src.endsWith(".mp4") ? (
-                  <video
-                    src={src}
-                    muted
-                    loop
-                    playsInline
-                    className={styles.media}
-                    onMouseEnter={handleVideoMouseEnter}
-                    onMouseLeave={handleVideoMouseLeave}
-                  />
-                ) : (
-                  <img
-                    src={src}
-                    alt={`${section.title} ${i + 1}`}
-                    className={styles.media}
-                  />
-                )}
-              </motion.div>
-            ))}
-          </motion.div>
-        </section>
-      ))}
+              }}
+            >
+              {section.items.map((src, i) => (
+                <motion.div
+                  key={i}
+                  className={styles.card}
+                  variants={{
+                    hidden: { opacity: 0, scale: 0.95 },
+                    visible: { opacity: 1, scale: 1 },
+                  }}
+                  transition={{ duration: 0.4 }}
+                  onClick={() => openLightbox(src)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {src.endsWith(".mp4") ? (
+                    <video
+                      src={src}
+                      muted
+                      loop
+                      playsInline
+                      className={styles.media}
+                      onMouseEnter={handleVideoMouseEnter}
+                      onMouseLeave={handleVideoMouseLeave}
+                    />
+                  ) : (
+                    <img
+                      src={src}
+                      alt={`${section.title} ${i + 1}`}
+                      className={styles.media}
+                    />
+                  )}
+                </motion.div>
+              ))}
+            </motion.div>
+          </section>
+        ))
+      )}
 
       {/* Lightbox Modal */}
       <AnimatePresence>

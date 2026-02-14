@@ -10,7 +10,8 @@ type Product = { id: string; category_id: string; name: string; description: str
 
 const collections = [
   { key: 'furniture', label: 'Furniture' },
-  { key: 'interiors', label: 'Interiors' }
+  { key: 'interiors', label: 'Interiors' },
+  { key: 'gallery', label: 'Gallery' }
 ];
 
 export default function AdminPage() {

@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   slug TEXT NOT NULL,
-  collection TEXT NOT NULL CHECK (collection IN ('furniture', 'interiors')),
+  collection TEXT NOT NULL CHECK (collection IN ('furniture', 'interiors', 'gallery')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   UNIQUE(slug, collection)
 );
@@ -95,7 +95,7 @@ ON CONFLICT DO NOTHING;
 
 -- Sample categories for Interiors
 INSERT INTO categories (name, slug, collection) VALUES
-('Wooden Interior', 'wooden-interior', 'interiors'),m 
+('Wooden Interior', 'wooden-interior', 'interiors'),
 ('Aluminium Interior', 'aluminium-interior', 'interiors'),
 ('Kitchen Designs', 'kitchen-designs', 'interiors'),
 ('Living Room', 'living-room', 'interiors'),
@@ -110,7 +110,7 @@ ON CONFLICT DO NOTHING;
 -- Products for Wooden Interior
 INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
 (
-  (SELECT id FROM categories WHERE slug = 'wooden-interior' AND collection = 'interiors'),
+  (SELECT id FROM categories WHERE slug = 'wooden-interior' AND collection = 'interiors' LIMIT 1),
   'Wooden Wall Paneling',
   'Premium solid wood paneling with traditional craftsmanship. Perfect for creating a warm, sophisticated ambiance in any room.',
   'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=500&h=500&fit=crop',
@@ -120,7 +120,7 @@ INSERT INTO products (category_id, name, description, image_url, images, price) 
 
 INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
 (
-  (SELECT id FROM categories WHERE slug = 'wooden-interior' AND collection = 'interiors'),
+  (SELECT id FROM categories WHERE slug = 'wooden-interior' AND collection = 'interiors' LIMIT 1),
   'Wooden Flooring Package',
   'Beautiful engineered wooden flooring with lifetime durability. Complements modern and traditional interiors equally well.',
   'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500&h=500&fit=crop',
@@ -130,7 +130,7 @@ INSERT INTO products (category_id, name, description, image_url, images, price) 
 
 INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
 (
-  (SELECT id FROM categories WHERE slug = 'wooden-interior' AND collection = 'interiors'),
+  (SELECT id FROM categories WHERE slug = 'wooden-interior' AND collection = 'interiors' LIMIT 1),
   'Custom Wooden Furniture Suite',
   'Handcrafted wooden furniture set designed specifically for your space. Includes customization options for finish and dimensions.',
   'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&h=500&fit=crop',
@@ -141,7 +141,7 @@ INSERT INTO products (category_id, name, description, image_url, images, price) 
 -- Products for Aluminium Interior
 INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
 (
-  (SELECT id FROM categories WHERE slug = 'aluminium-interior' AND collection = 'interiors'),
+  (SELECT id FROM categories WHERE slug = 'aluminium-interior' AND collection = 'interiors' LIMIT 1),
   'Sleek Aluminium Window Frames',
   'Modern aluminium window and door frames with thermal insulation. Contemporary design meets functional excellence.',
   'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=500&fit=crop',
@@ -151,7 +151,7 @@ INSERT INTO products (category_id, name, description, image_url, images, price) 
 
 INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
 (
-  (SELECT id FROM categories WHERE slug = 'aluminium-interior' AND collection = 'interiors'),
+  (SELECT id FROM categories WHERE slug = 'aluminium-interior' AND collection = 'interiors' LIMIT 1),
   'Aluminium Glass Partition Wall',
   'Stylish partition system with frosted or clear glass panels. Ideal for creating open yet defined spaces in modern offices and homes.',
   'https://images.unsplash.com/photo-1534183886241-2f3fab999f57?w=500&h=500&fit=crop',
@@ -161,12 +161,217 @@ INSERT INTO products (category_id, name, description, image_url, images, price) 
 
 INSERT INTO products (category_id, name, description, image_url, images, price) VALUES
 (
-  (SELECT id FROM categories WHERE slug = 'aluminium-interior' AND collection = 'interiors'),
+  (SELECT id FROM categories WHERE slug = 'aluminium-interior' AND collection = 'interiors' LIMIT 1),
   'Premium Aluminium Kitchen System',
   'Space-saving modular kitchen with premium aluminium framework. Anti-corrosion and easy-to-maintain design.',
   'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop',
   ARRAY['https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop', 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=500&fit=crop'],
   52000
+);
+
+-- ============================================================
+-- SAMPLE CATEGORIES FOR GALLERY
+-- ============================================================
+INSERT INTO categories (name, slug, collection) VALUES
+('Complete House Interior', 'complete-house-interior', 'gallery'),
+('Kitchen', 'kitchen-gallery', 'gallery'),
+('Living Room', 'living-room-gallery', 'gallery'),
+('Bedroom', 'bedroom-gallery', 'gallery'),
+('Wardrobes', 'wardrobes-gallery', 'gallery')
+ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- SAMPLE PRODUCTS FOR GALLERY
+-- ============================================================
+
+-- Products for Complete House Interior
+INSERT INTO products (category_id, name, description, image_url, images) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'complete-house-interior' AND collection = 'gallery' LIMIT 1),
+  'Complete House Interior - Image 1',
+  'image',
+  '/i4.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'complete-house-interior' AND collection = 'gallery' LIMIT 1),
+  'Complete House Interior - Image 2',
+  'image',
+  '/i2.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'complete-house-interior' AND collection = 'gallery' LIMIT 1),
+  'Complete House Interior - Video 1',
+  'video',
+  '/v1.mp4',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'complete-house-interior' AND collection = 'gallery' LIMIT 1),
+  'Complete House Interior - Video 2',
+  'video',
+  '/v7.mp4',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'complete-house-interior' AND collection = 'gallery' LIMIT 1),
+  'Complete House Interior - Video 3',
+  'video',
+  '/v11.mp4',
+  ARRAY[]::TEXT[]
+);
+
+-- Products for Kitchen
+INSERT INTO products (category_id, name, description, image_url, images) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'kitchen-gallery' AND collection = 'gallery' LIMIT 1),
+  'Kitchen - Image 1',
+  'image',
+  '/i4.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'kitchen-gallery' AND collection = 'gallery' LIMIT 1),
+  'Kitchen - Image 2',
+  'image',
+  '/i2.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'kitchen-gallery' AND collection = 'gallery' LIMIT 1),
+  'Kitchen - Video 1',
+  'video',
+  '/v1.mp4',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'kitchen-gallery' AND collection = 'gallery' LIMIT 1),
+  'Kitchen - Video 2',
+  'video',
+  '/v7.mp4',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'kitchen-gallery' AND collection = 'gallery' LIMIT 1),
+  'Kitchen - Video 3',
+  'video',
+  '/v11.mp4',
+  ARRAY[]::TEXT[]
+);
+
+-- Products for Living Room
+INSERT INTO products (category_id, name, description, image_url, images) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'living-room-gallery' AND collection = 'gallery' LIMIT 1),
+  'Living Room - Image 1',
+  'image',
+  '/i7.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'living-room-gallery' AND collection = 'gallery' LIMIT 1),
+  'Living Room - Image 2',
+  'image',
+  '/i1.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'living-room-gallery' AND collection = 'gallery' LIMIT 1),
+  'Living Room - Video 1',
+  'video',
+  '/v3.mp4',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'living-room-gallery' AND collection = 'gallery' LIMIT 1),
+  'Living Room - Image 3',
+  'image',
+  '/i8.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'living-room-gallery' AND collection = 'gallery' LIMIT 1),
+  'Living Room - Video 2',
+  'video',
+  '/v4.mp4',
+  ARRAY[]::TEXT[]
+);
+
+-- Products for Bedroom
+INSERT INTO products (category_id, name, description, image_url, images) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'bedroom-gallery' AND collection = 'gallery' LIMIT 1),
+  'Bedroom - Image 1',
+  'image',
+  '/i6.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'bedroom-gallery' AND collection = 'gallery' LIMIT 1),
+  'Bedroom - Image 2',
+  'image',
+  '/i5.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'bedroom-gallery' AND collection = 'gallery' LIMIT 1),
+  'Bedroom - Video 1',
+  'video',
+  '/v10.mp4',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'bedroom-gallery' AND collection = 'gallery' LIMIT 1),
+  'Bedroom - Video 2',
+  'video',
+  '/v2.mp4',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'bedroom-gallery' AND collection = 'gallery' LIMIT 1),
+  'Bedroom - Video 3',
+  'video',
+  '/v12.mp4',
+  ARRAY[]::TEXT[]
+);
+
+-- Products for Wardrobes
+INSERT INTO products (category_id, name, description, image_url, images) VALUES
+(
+  (SELECT id FROM categories WHERE slug = 'wardrobes-gallery' AND collection = 'gallery' LIMIT 1),
+  'Wardrobes - Image 1',
+  'image',
+  '/i6.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'wardrobes-gallery' AND collection = 'gallery' LIMIT 1),
+  'Wardrobes - Image 2',
+  'image',
+  '/i5.jpeg',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'wardrobes-gallery' AND collection = 'gallery' LIMIT 1),
+  'Wardrobes - Video 1',
+  'video',
+  '/v10.mp4',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'wardrobes-gallery' AND collection = 'gallery' LIMIT 1),
+  'Wardrobes - Video 2',
+  'video',
+  '/v2.mp4',
+  ARRAY[]::TEXT[]
+),
+(
+  (SELECT id FROM categories WHERE slug = 'wardrobes-gallery' AND collection = 'gallery' LIMIT 1),
+  'Wardrobes - Video 3',
+  'video',
+  '/v12.mp4',
+  ARRAY[]::TEXT[]
 );
 
 -- ============================================================
