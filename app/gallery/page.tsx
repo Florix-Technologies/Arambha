@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from '@/lib/supabase';
 import styles from "./page.module.css";
 
@@ -9,6 +10,8 @@ type Category = { id: string; name: string; slug: string };
 type Product = { id: string; name: string; description: string; image_url: string };
 
 export default function GalleryPage() {
+  const searchParams = useSearchParams();
+  const filter = searchParams.get("filter");
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [gallerySections, setGallerySections] = useState<Array<{ id: string; title: string; items: string[] }>>([]);
   const [loading, setLoading] = useState(true);
@@ -20,18 +23,40 @@ export default function GalleryPage() {
         setLoading(true);
 
         // Fetch categories for gallery collection
-        const { data: cats, error: catsError } = await supabase
+        let query = supabase
           .from('categories')
           .select('*')
           .eq('collection', 'gallery')
           .order('created_at', { ascending: true });
 
+        // If a filter is present, try to match it against slug or name
+        if (filter) {
+          // Note: In Supabase, you might want to use .or() or just .eq('slug', filter)
+          // For now, let's assume 'slug' exists or matching by name as a fallback
+          query = query.eq('slug', filter);
+        }
+
+        const { data: cats, error: catsError } = await query;
+
         if (catsError) throw catsError;
-        if (!cats) return;
+
+        // If filtering returned nothing, try matching loosely or just show everything if no filter
+        let finalCats = cats || [];
+        if (filter && finalCats.length === 0) {
+          // Fallback: search by name loosely if slug filter failed
+          const { data: fallbackCats } = await supabase
+            .from('categories')
+            .select('*')
+            .eq('collection', 'gallery')
+            .ilike('name', `%${filter.replace('-', ' ')}%`);
+          if (fallbackCats) finalCats = fallbackCats;
+        }
+
+        if (finalCats.length === 0 && !filter) return;
 
         // Fetch products for each category
         const sections = [];
-        for (const cat of cats) {
+        for (const cat of finalCats) {
           const { data: prodData, error: prodError } = await supabase
             .from('products')
             .select('*')
@@ -40,7 +65,7 @@ export default function GalleryPage() {
 
           if (prodError) throw prodError;
 
-          const items = (prodData || []).map(prod => prod.image_url);
+          const items = (prodData || []).map((prod: Product) => prod.image_url);
           sections.push({
             id: cat.id,
             title: cat.name,
@@ -57,7 +82,7 @@ export default function GalleryPage() {
     }
 
     fetchGalleryData();
-  }, []);
+  }, [filter]);
 
   // Close modal on Escape key
   useEffect(() => {
