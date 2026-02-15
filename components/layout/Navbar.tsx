@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
@@ -9,6 +10,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const isDarkText = pathname !== '/';
+  const isContactPage = pathname === '/contact';
 
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -143,14 +145,14 @@ export default function Navbar() {
 
   const furnitureItems = [
     {
-      title: "Seating & Comfort",
+      title: "Handcrafted Pieces",
       links: [
         { name: 'Sofas', href: '/furniture?filter=sofas' },
         { name: 'Chairs', href: '/furniture?filter=chairs' },
       ]
     },
     {
-      title: "Living & Bedroom",
+      title: "Home Essentials",
       links: [
         { name: 'Tables', href: '/furniture?filter=tables' },
         { name: 'Beds', href: '/furniture?filter=beds' },
@@ -158,17 +160,88 @@ export default function Navbar() {
     }
   ];
 
+  const [dynamicInteriors, setDynamicInteriors] = useState(interiorItems);
+  const [dynamicFurniture, setDynamicFurniture] = useState(furnitureItems);
+  const [dynamicGallery, setDynamicGallery] = useState(galleryItems);
+
+  useEffect(() => {
+    async function fetchDynamicNav() {
+      try {
+        const { data: allCategories, error } = await supabase
+          .from('categories')
+          .select('name, slug, collection');
+
+        if (error) throw error;
+        if (!allCategories) return;
+
+        // Group by collection and ensure unique names
+        const furnitureCats = Array.from(new Map(allCategories.filter(c => c.collection === 'furniture').map(c => [c.name.toLowerCase().trim(), c])).values());
+        const interiorCats = Array.from(new Map(allCategories.filter(c => c.collection === 'interiors').map(c => [c.name.toLowerCase().trim(), c])).values());
+        const galleryCats = Array.from(new Map(allCategories.filter(c => c.collection === 'gallery').map(c => [c.name.toLowerCase().trim(), c])).values());
+
+        // Map Furniture
+        if (furnitureCats.length > 0) {
+          const groupedFurniture = [];
+          for (let i = 0; i < furnitureCats.length; i += 4) {
+            groupedFurniture.push({
+              title: i === 0 ? "Furniture Collection" : "More Categories",
+              links: furnitureCats.slice(i, i + 4).map(c => ({
+                name: c.name,
+                href: `/furniture?filter=${c.slug}`
+              }))
+            });
+          }
+          setDynamicFurniture(groupedFurniture);
+        }
+
+        // Map Interiors
+        if (interiorCats.length > 0) {
+          const groupedInteriors = [];
+          for (let i = 0; i < interiorCats.length; i += 4) {
+            groupedInteriors.push({
+              title: i === 0 ? "Design Styles" : "Additional Designs",
+              links: interiorCats.slice(i, i + 4).map(c => ({
+                name: c.name,
+                href: `/interiors?filter=${c.slug}`
+              }))
+            });
+          }
+          setDynamicInteriors(groupedInteriors);
+        }
+
+        // Map Gallery
+        if (galleryCats.length > 0) {
+          const groupedGallery = [];
+          for (let i = 0; i < galleryCats.length; i += 4) {
+            groupedGallery.push({
+              title: i === 0 ? "Our Portfolio" : "More Projects",
+              links: galleryCats.slice(i, i + 4).map(c => ({
+                name: c.name,
+                href: `/gallery?filter=${c.slug}`
+              }))
+            });
+          }
+          setDynamicGallery(groupedGallery);
+        }
+      } catch (err) {
+        console.error('Error fetching navigation categories:', err);
+      }
+    }
+
+    fetchDynamicNav();
+  }, []);
+
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Gallery', href: '/gallery', hasDropdown: true, dropdownContent: galleryItems, size: 'medium' },
+    { name: 'Gallery', href: '/gallery', hasDropdown: true, dropdownContent: dynamicGallery, size: 'small' },
     { name: 'Our Services', href: '/services', hasDropdown: true, dropdownContent: services, size: 'medium' },
-    { name: 'Interiors', href: '/interiors', hasDropdown: true, dropdownContent: interiorItems, size: 'small' },
-    { name: 'Furniture', href: '/furniture', hasDropdown: true, dropdownContent: furnitureItems, size: 'small' },
+    { name: 'Interiors', href: '/interiors', hasDropdown: true, dropdownContent: dynamicInteriors, size: 'small' },
+    { name: 'Furniture', href: '/furniture', hasDropdown: true, dropdownContent: dynamicFurniture, size: 'small' },
     { name: 'Contact Us', href: '/contact' },
   ];
 
   return (
-    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light} ${!isVisible ? styles.hidden : ''}`}>
+    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light} ${!isVisible ? styles.hidden : ''} ${isContactPage ? styles.contactNav : ''}`}>
       <div className={`container ${styles.navContainer}`}>
         <Link href="/" className={styles.logo}>
           <img src="/logo2.png" alt="Logo" />
@@ -189,11 +262,11 @@ export default function Navbar() {
               {link.hasDropdown && (
                 <div className={`${styles.megaMenu} ${link.size === 'large' ? styles.largeMenu : link.size === 'medium' ? styles.mediumMenu : styles.smallMenu}`}>
                   <div className={`${styles.megaMenuContent} ${link.size === 'large' ? styles.largeContent : link.size === 'medium' ? styles.mediumContent : styles.smallContent}`}>
-                    {link.dropdownContent?.map((section, idx) => (
+                    {link.dropdownContent?.map((section: any, idx: number) => (
                       <div key={idx} className={styles.megaMenuColumn}>
                         <h4 className={styles.columnTitle}>{section.title}</h4>
                         <ul className={styles.columnList}>
-                          {section.links.map((sLink, sIdx) => (
+                          {section.links.map((sLink: any, sIdx: number) => (
                             <li key={sIdx}>
                               <Link href={sLink.href} className={styles.megaMenuLink}>
                                 {sLink.name}

@@ -63,6 +63,35 @@
   /* Reduced from 120px */
 }
 
+@media (max-width: 768px) {
+  .logo {
+    top: -15px;
+    left: 10px;
+  }
+
+  .logo img {
+    height: 100px;
+  }
+
+  .scrolled .logo {
+    top: -5px;
+    left: 10px;
+  }
+
+  .scrolled .logo img {
+    height: 60px;
+  }
+
+  .navbar {
+    height: 80px;
+  }
+
+  .scrolled {
+    height: 70px;
+  }
+}
+
+
 .desktopMenu {
   display: none;
 }
@@ -164,7 +193,7 @@
 }
 
 .smallMenu {
-  width: 540px;
+  width: 420px;
 }
 
 .navItemContainer:hover .megaMenu {
@@ -359,4 +388,12 @@
 
 .dark .mobileToggle .bar {
   background-color: var(--color-text-primary);
+}
+
+.contactNav:not(.scrolled) .navLink {
+  color: #f2f0eb !important;
+}
+
+.contactNav:not(.scrolled) .mobileToggle .bar {
+  background-color: #f2f0eb;
 }

@@ -1,9 +1,32 @@
+"use client";
+import { motion, Variants } from 'framer-motion';
 import styles from './page.module.css';
 
 export default function ContactPage() {
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+    }
+  };
+
   return (
     <main className={styles.main}>
-      <div className={styles.backgroundWrapper}>
+      {/* Immersive Video Background */}
+      <div className={styles.videoWrapper}>
         <video
           autoPlay
           muted
@@ -13,68 +36,120 @@ export default function ContactPage() {
         >
           <source src="/v5.mp4" type="video/mp4" />
         </video>
-        <div className={styles.backgroundOverlay}></div>
+        <div className={styles.videoOverlay}></div>
       </div>
 
       <div className={styles.container}>
-        <div className={styles.contentWrapper}>
+        <motion.div
+          className={styles.contentWrapper}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Main Centered Heading */}
+          <div className={styles.centeredHeader}>
+            <motion.div variants={itemVariants}>
+              <h1 className={styles.title}>Let&apos;s Create Something <br /><span>Extraordinary</span></h1>
+              <p className={styles.subtitle}>
+                From bespoke furniture to complete home transformations, we are here to bring your vision to life.
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Left Side: Detail Cards */}
           <div className={styles.infoSection}>
-            <h1 className={styles.title}>Get in Touch</h1>
-            <p className={styles.subtitle}>
-              Whether you have a specific project in mind or just want to explore possibilities,
-              we&apos;re here to help you create your perfect space.
-            </p>
-
-            <div className={styles.details}>
-              <div className={styles.detailItem}>
-                <h3>Visit Us</h3>
-                <p>123 Design Avenue,<br />Indiranagar, Bangalore - 560038</p>
-                <div className={styles.mapContainer}>
-                  <iframe
-                    className={styles.mapFrame}
-                    src="https://maps.google.com/maps?q=Florix%20Technologies%20Bangalore&output=embed"
-                    loading="lazy"
-                    allowFullScreen
-                    referrerPolicy="no-referrer-when-downgrade"
-                  ></iframe>
+            <div className={styles.contactDetails}>
+              <motion.div className={styles.detailCard} variants={itemVariants}>
+                <div className={styles.iconBox}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>
                 </div>
-              </div>
+                <div>
+                  <h3>Studio Headquarters</h3>
+                  <p>123 Design Avenue, Indiranagar<br />Bangalore, KA 560038</p>
+                </div>
+              </motion.div>
 
-              <div className={styles.detailItem}>
-                <h3>Contact</h3>
-                <p>+91 98765 43210</p>
-                <p>hello@arambha.com</p>
-              </div>
+              <motion.div className={styles.detailCard} variants={itemVariants}>
+                <div className={styles.iconBox}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.81 12.81 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" /></svg>
+                </div>
+                <div>
+                  <h3>Direct Inquiry</h3>
+                  <p>+91 98765 43210</p>
+                  <p>concierge@arambha.com</p>
+                </div>
+              </motion.div>
 
-              <div className={styles.detailItem}>
-                <h3>Hours</h3>
-                <p>Mon - Sat: 10:00 AM - 7:00 PM</p>
-                <p>Sun: By Appointment</p>
-              </div>
+              <motion.div className={styles.detailCard} variants={itemVariants}>
+                <div className={styles.iconBox}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                </div>
+                <div>
+                  <h3>Opening Hours</h3>
+                  <p>Mon - Sat: 10:00 AM - 7:00 PM</p>
+                  <p>Sunday: By Appointment</p>
+                </div>
+              </motion.div>
             </div>
+
+            <motion.div className={styles.mapWrapper} variants={itemVariants}>
+              <iframe
+                className={styles.mapFrame}
+                src="https://maps.google.com/maps?q=Florix%20Technologies%20Bangalore&output=embed"
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </motion.div>
           </div>
 
-          <div className={styles.formSection}>
-            <form className={styles.form}>
-              <div className={styles.formGroup}>
-                <label htmlFor="name">Name</label>
-                <input type="text" id="name" name="name" placeholder="Your Name" />
+          {/* Right Side: Form */}
+          <motion.div className={styles.formSection} variants={itemVariants}>
+            <div className={styles.formCard}>
+              <div className={styles.formHeader}>
+                <h2>Send a Message</h2>
+                <p>Tell us about your project and we&apos;ll get back to you within 24 hours.</p>
               </div>
 
-              <div className={styles.formGroup}>
-                <label htmlFor="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Your Email" />
-              </div>
+              <form className={styles.form}>
+                <div className={styles.inputRow}>
+                  <div className={styles.formGroup}>
+                    <label>Full Name</label>
+                    <input type="text" placeholder="John Doe" required />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Email Address</label>
+                    <input type="email" placeholder="john@example.com" required />
+                  </div>
+                </div>
 
-              <div className={styles.formGroup}>
-                <label htmlFor="message">Message</label>
-                <textarea id="message" name="message" rows={5} placeholder="Tell us about your project"></textarea>
-              </div>
+                <div className={styles.formGroup}>
+                  <label>Subject</label>
+                  <select>
+                    <option>Interior Design Consultation</option>
+                    <option>Bespoke Furniture Inquiry</option>
+                    <option>Commercial Project</option>
+                    <option>Other</option>
+                  </select>
+                </div>
 
-              <button type="submit" className={styles.submitBtn}>Send Message</button>
-            </form>
-          </div>
-        </div>
+                <div className={styles.formGroup}>
+                  <label>Your Message</label>
+                  <textarea rows={6} placeholder="Tell us more about what you&apos;re looking for..." required></textarea>
+                </div>
+
+                <motion.button
+                  type="submit"
+                  className={styles.submitBtn}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Request Consultation
+                </motion.button>
+              </form>
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
     </main>
   );

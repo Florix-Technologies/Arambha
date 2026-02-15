@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from '@/lib/supabase';
 import styles from "./page.module.css";
 
@@ -13,10 +13,25 @@ import { Suspense } from "react";
 
 function GalleryContent() {
   const searchParams = useSearchParams();
-  const filter = searchParams.get("filter");
+  const router = useRouter();
+  const filter = searchParams.get("filter") || "all";
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [gallerySections, setGallerySections] = useState<Array<{ id: string; title: string; items: string[] }>>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Fetch categories once
+  useEffect(() => {
+    async function fetchCategories() {
+      const { data } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('collection', 'gallery')
+        .order('created_at', { ascending: true });
+      if (data) setAllCategories(data);
+    }
+    fetchCategories();
+  }, []);
 
   // Fetch gallery data from Supabase
   useEffect(() => {
@@ -31,10 +46,8 @@ function GalleryContent() {
           .eq('collection', 'gallery')
           .order('created_at', { ascending: true });
 
-        // If a filter is present, try to match it against slug or name
-        if (filter) {
-          // Note: In Supabase, you might want to use .or() or just .eq('slug', filter)
-          // For now, let's assume 'slug' exists or matching by name as a fallback
+        // If a filter is present and not 'all', try to match it against slug
+        if (filter && filter !== "all") {
           query = query.eq('slug', filter);
         }
 
@@ -44,7 +57,7 @@ function GalleryContent() {
 
         // If filtering returned nothing, try matching loosely or just show everything if no filter
         let finalCats = cats || [];
-        if (filter && finalCats.length === 0) {
+        if (filter && filter !== "all" && finalCats.length === 0) {
           // Fallback: search by name loosely if slug filter failed
           const { data: fallbackCats } = await supabase
             .from('categories')
@@ -54,7 +67,10 @@ function GalleryContent() {
           if (fallbackCats) finalCats = fallbackCats;
         }
 
-        if (finalCats.length === 0 && !filter) return;
+        if (finalCats.length === 0) {
+          setGallerySections([]);
+          return;
+        }
 
         // Fetch products for each category
         const sections = [];
@@ -131,12 +147,61 @@ function GalleryContent() {
         <p className={styles.subtitle}>
           Carefully crafted interiors designed for comfort, elegance, and function.
         </p>
+
+        {/* Filter Bar */}
+        <div className={styles.filterBar}>
+          <button
+            className={`${styles.filterButton} ${filter === 'all' ? styles.activeFilter : ''}`}
+            onClick={() => router.push('/gallery')}
+          >
+            All
+          </button>
+          {allCategories.map((cat) => (
+            <button
+              key={cat.id}
+              className={`${styles.filterButton} ${filter === cat.slug ? styles.activeFilter : ''}`}
+              onClick={() => router.push(`/gallery?filter=${cat.slug}`)}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
       </header>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-          <p style={{ fontSize: '1.1rem', color: 'var(--color-text-secondary)' }}>Loading gallery...</p>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingPulse}></div>
+          <p>Capturing Perfection...</p>
         </div>
+      ) : gallerySections.length === 0 ? (
+        <motion.div
+          className={styles.emptyState}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <div className={styles.emptyStateBlur}></div>
+          <div className={styles.emptyStateContent}>
+            <div className={styles.emptyStateIconContainer}>
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <div className={styles.iconPulse}></div>
+            </div>
+            <h3>Gallery Under Curation</h3>
+            <p>We're currently selecting our finest captures to showcase here. Every project tells a story of elegance and precision.</p>
+            <div className={styles.emptyActions}>
+              <button onClick={() => router.push('/gallery')} className={styles.secondaryBtn}>
+                Reset Filter
+              </button>
+              <a href="/contact" className={styles.primaryBtn}>
+                Start Your Project
+              </a>
+            </div>
+          </div>
+        </motion.div>
       ) : (
         gallerySections.map((section) => (
           <section key={section.id} className={styles.section}>
@@ -173,10 +238,10 @@ function GalleryContent() {
                     visible: { opacity: 1, scale: 1 },
                   }}
                   transition={{ duration: 0.4 }}
-                  onClick={() => openLightbox(src)}
-                  style={{ cursor: "pointer" }}
+                  onClick={() => src && openLightbox(src)}
+                  style={{ cursor: src ? "pointer" : "default" }}
                 >
-                  {src.endsWith(".mp4") ? (
+                  {src && src.endsWith(".mp4") ? (
                     <video
                       src={src}
                       muted
@@ -186,12 +251,16 @@ function GalleryContent() {
                       onMouseEnter={handleVideoMouseEnter}
                       onMouseLeave={handleVideoMouseLeave}
                     />
-                  ) : (
+                  ) : src ? (
                     <img
                       src={src}
                       alt={`${section.title} ${i + 1}`}
                       className={styles.media}
                     />
+                  ) : (
+                    <div className={styles.noImage}>
+                      <span>{section.title} {i + 1}</span>
+                    </div>
                   )}
                 </motion.div>
               ))}

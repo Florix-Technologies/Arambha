@@ -10,10 +10,10 @@ interface ButtonProps {
   type?: 'button' | 'submit' | 'reset';
 }
 
-export default function Button({ 
-  children, 
-  variant = 'primary', 
-  href, 
+export default function Button({
+  children,
+  variant = 'primary',
+  href,
   className = '',
   onClick,
   type = 'button'
