@@ -1,26 +1,42 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 
 type Category = { id: string; name: string; slug: string };
 type Product = { id: string; name: string; description: string; image_url: string; price?: number };
 
-export default function FurniturePage() {
+function FurnitureContent() {
+  const searchParams = useSearchParams();
+  const filter = searchParams.get('filter');
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [productsByCat, setProductsByCat] = useState<Record<string, Product[]>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
+        setLoading(true);
         // Fetch categories for furniture collection
-        const { data: cats, error: catsError } = await supabase
+        let query = supabase
           .from('categories')
           .select('*')
           .eq('collection', 'furniture');
 
+        if (filter) {
+          query = query.eq('slug', filter);
+        }
+
+        const { data: cats, error: catsError } = await query;
+
         if (catsError) throw catsError;
-        if (!cats) return;
+        if (!cats || cats.length === 0) {
+          setCategories([]);
+          setLoading(false);
+          return;
+        }
 
         setCategories(cats);
 
@@ -38,22 +54,45 @@ export default function FurniturePage() {
         setProductsByCat(prods);
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
     }
 
     fetchData();
-  }, []);
+  }, [filter]);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>
+        <p style={{ fontSize: '1.2rem', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-cormorant)' }}>
+          Loading Furniture...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Furniture Collection</h1>
+        <h1 className={styles.title}>
+          {filter && categories.length > 0 ? categories[0].name : "Furniture Collection"}
+        </h1>
         <p className={styles.subtitle}>Handcrafted pieces that blend form, function, and timeless aesthetics.</p>
       </header>
       <div className={styles.categories}>
+        {categories.length === 0 && !loading && (
+          <div style={{ textAlign: 'center', padding: '3rem' }}>
+            <p>No categories found.</p>
+            <a href="/furniture" className={styles.inquireLink} style={{ marginTop: '1rem', display: 'inline-block' }}>
+              View All Furniture
+            </a>
+          </div>
+        )}
+
         {categories.map(cat => (
-          <section key={cat.id} className={styles.categorySection}>
-            <h2 className={styles.categoryTitle}>{cat.name}</h2>
+          <section key={cat.id} className={styles.categorySection} id={cat.slug}>
+            {!filter && <h2 className={styles.categoryTitle}>{cat.name}</h2>}
             <div className={styles.grid}>
               {productsByCat[cat.id]?.map(prod => (
                 <div key={prod.id} className={styles.card}>
@@ -101,5 +140,13 @@ export default function FurniturePage() {
         <a href="/contact" className={styles.inquireLink}>Request Custom Design</a>
       </div>
     </div>
+  );
+}
+
+export default function FurniturePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FurnitureContent />
+    </Suspense>
   );
 }

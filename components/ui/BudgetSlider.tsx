@@ -3,15 +3,15 @@ import InfiniteSlider from './InfiniteSlider';
 import styles from './BudgetSlider.module.css';
 
 const budgetItems = [
-    { label: "2BHK – Price ?", img: "/placeholder.jpg" },
-    { label: "3BHK – Price ?", img: "/placeholder.jpg" },
-    { label: "4BHK – Price ?", img: "/placeholder.jpg" },
-    { label: "Kitchen", img: "/placeholder.jpg" },
-    { label: "Bedroom – Sliding", img: "/placeholder.jpg" },
-    { label: "Bedroom – Swing Door", img: "/placeholder.jpg" },
-    { label: "Living", img: "/placeholder.jpg" },
-    { label: "Modern Kitchen", img: "/placeholder.jpg" },
-    { label: "Luxury Wardrobe", img: "/placeholder.jpg" },
+    { label: "2BHK – Luxury", img: "/i1.jpeg" },
+    { label: "3BHK – Premium", img: "/i2.jpeg" },
+    { label: "4BHK – Ultra", img: "/i3.jpeg" },
+    { label: "Designer Kitchen", img: "/i4.jpeg" },
+    { label: "Master Bedroom", img: "/i5.jpeg" },
+    { label: "Sliding Wardrobe", img: "/i6.jpeg" },
+    { label: "Elegant Living", img: "/i7.jpeg" },
+    { label: "Modern Bathroom", img: "/i8.jpeg" },
+    { label: "Kids Bedroom", img: "/i9.jpeg" },
 ];
 
 export default function BudgetSlider() {

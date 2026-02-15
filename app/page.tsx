@@ -3,6 +3,11 @@ import Button from '@/components/ui/Button';
 import styles from './page.module.css';
 import BudgetSlider from '@/components/ui/BudgetSlider';
 import StyleSlider from '@/components/ui/StyleSlider';
+import ProcessSection from '@/components/ui/ProcessSection';
+import StatsSection from '@/components/ui/StatsSection';
+import WhatYouGet from '@/components/ui/WhatYouGet';
+import WhyArambha from '@/components/ui/WhyArambha';
+import CTASection from '@/components/ui/CTASection';
 
 export default function Home() {
 
@@ -10,41 +15,41 @@ export default function Home() {
     {
       title: "1. Contemporary Style",
       images: [
-        "home1.jpeg",
-        "/contemporary/2.jpg",
-        "/contemporary/3.jpg",
-        "/contemporary/4.jpg",
-        "/contemporary/5.jpg",
+        "/home1.jpeg",
+        "/i1.jpeg",
+        "/i2.jpeg",
+        "/i3.jpeg",
+        "/i4.jpeg",
       ],
     },
     {
       title: "2. Minimalist Style",
       images: [
-        "/minimalist/1.jpg",
-        "/minimalist/2.jpg",
-        "/minimalist/3.jpg",
-        "/minimalist/4.jpg",
-        "/minimalist/5.jpg",
+        "/i5.jpeg",
+        "/i6.jpeg",
+        "/i7.jpeg",
+        "/i8.jpeg",
+        "/i9.jpeg",
       ],
     },
     {
       title: "3. Modern Classic Style (Fusion)",
       images: [
-        "/fusion/1.jpg",
-        "/fusion/2.jpg",
-        "/fusion/3.jpg",
-        "/fusion/4.jpg",
-        "/fusion/5.jpg",
+        "/i10.jpeg",
+        "/home1.jpeg",
+        "/i2.jpeg",
+        "/i4.jpeg",
+        "/i6.jpeg",
       ],
     },
     {
       title: "4. Traditional / Ethnic",
       images: [
-        "/traditional/1.jpg",
-        "/traditional/2.jpg",
-        "/traditional/3.jpg",
-        "/traditional/4.jpg",
-        "/traditional/5.jpg",
+        "/i1.jpeg",
+        "/i3.jpeg",
+        "/i5.jpeg",
+        "/i7.jpeg",
+        "/i9.jpeg",
       ],
     },
   ];
@@ -212,7 +217,11 @@ export default function Home() {
         </div>
       </section>
 
-
+      <ProcessSection />
+      <StatsSection />
+      <WhatYouGet />
+      <WhyArambha />
+      <CTASection />
     </div>
   );
 }

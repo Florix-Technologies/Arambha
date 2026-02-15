@@ -117,12 +117,53 @@ export default function Navbar() {
     }
   ];
 
+  const interiorItems = [
+    {
+      title: "Core Designs",
+      links: [
+        { name: 'Living Room', href: '/interiors?filter=living-room' },
+        { name: 'Bedrooms', href: '/interiors?filter=bedrooms' },
+      ]
+    },
+    {
+      title: "Modern Systems",
+      links: [
+        { name: 'Kitchen Designs', href: '/interiors?filter=kitchen-designs' },
+        { name: 'Wardrobes', href: '/interiors?filter=wardrobes' },
+      ]
+    },
+    {
+      title: "Custom Materials",
+      links: [
+        { name: 'Wooden Interior', href: '/interiors?filter=wooden-interior' },
+        { name: 'Aluminium Interior', href: '/interiors?filter=aluminium-interior' },
+      ]
+    }
+  ];
+
+  const furnitureItems = [
+    {
+      title: "Seating & Comfort",
+      links: [
+        { name: 'Sofas', href: '/furniture?filter=sofas' },
+        { name: 'Chairs', href: '/furniture?filter=chairs' },
+      ]
+    },
+    {
+      title: "Living & Bedroom",
+      links: [
+        { name: 'Tables', href: '/furniture?filter=tables' },
+        { name: 'Beds', href: '/furniture?filter=beds' },
+      ]
+    }
+  ];
+
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Gallery', href: '/gallery', hasDropdown: true, dropdownContent: galleryItems },
-    { name: 'Our Services', href: '/services', hasDropdown: true, dropdownContent: services },
-    { name: 'Interiors', href: '/interiors' },
-    { name: 'Furniture', href: '/furniture' },
+    { name: 'Gallery', href: '/gallery', hasDropdown: true, dropdownContent: galleryItems, size: 'medium' },
+    { name: 'Our Services', href: '/services', hasDropdown: true, dropdownContent: services, size: 'medium' },
+    { name: 'Interiors', href: '/interiors', hasDropdown: true, dropdownContent: interiorItems, size: 'small' },
+    { name: 'Furniture', href: '/furniture', hasDropdown: true, dropdownContent: furnitureItems, size: 'small' },
     { name: 'Contact Us', href: '/contact' },
   ];
 
@@ -136,7 +177,7 @@ export default function Navbar() {
         {/* Desktop Menu */}
         <div className={styles.desktopMenu}>
           {navLinks.map((link) => (
-            <div key={link.name} className={styles.navItemContainer}>
+            <div key={link.name} className={`${styles.navItemContainer} ${link.name === 'Furniture' ? styles.furnitureItem : ''}`}>
               <Link
                 href={link.href}
                 className={`${styles.navLink} ${pathname === link.href ? styles.active : ''}`}
@@ -146,8 +187,8 @@ export default function Navbar() {
               </Link>
 
               {link.hasDropdown && (
-                <div className={styles.megaMenu}>
-                  <div className={styles.megaMenuContent}>
+                <div className={`${styles.megaMenu} ${link.size === 'large' ? styles.largeMenu : link.size === 'medium' ? styles.mediumMenu : styles.smallMenu}`}>
+                  <div className={`${styles.megaMenuContent} ${link.size === 'large' ? styles.largeContent : link.size === 'medium' ? styles.mediumContent : styles.smallContent}`}>
                     {link.dropdownContent?.map((section, idx) => (
                       <div key={idx} className={styles.megaMenuColumn}>
                         <h4 className={styles.columnTitle}>{section.title}</h4>

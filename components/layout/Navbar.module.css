@@ -143,19 +143,28 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%) translateY(20px);
-  width: 720px;
-  /* Reduced from 780px */
   max-width: 95vw;
   background-color: #ffffff;
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
   border-radius: 12px;
   padding: 1rem;
-  /* Reduced from 1.2rem */
   opacity: 0;
   visibility: hidden;
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   z-index: 1000;
   border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.largeMenu {
+  width: 780px;
+}
+
+.mediumMenu {
+  width: 680px;
+}
+
+.smallMenu {
+  width: 540px;
 }
 
 .navItemContainer:hover .megaMenu {
@@ -164,11 +173,31 @@
   transform: translateX(-50%) translateY(10px);
 }
 
-.megaMenuContent {
+/* Adjust Furniture menu specifically to shift more to the left */
+.furnitureItem .megaMenu {
+  transform: translateX(-80%) translateY(20px);
+}
+
+.furnitureItem:hover .megaMenu {
+  transform: translateX(-80%) translateY(10px);
+}
+
+.largeContent {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  /* Reduced from 1.5rem */
+  gap: 1.5rem;
+}
+
+.mediumContent {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.9rem;
+}
+
+.smallContent {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.8rem;
 }
 
 .megaMenuColumn {
@@ -201,7 +230,6 @@
 
 .megaMenuLink {
   font-size: 0.85rem;
-  /* Reduced from 0.95rem */
   color: #555;
   transition: all 0.2s ease;
   display: block;

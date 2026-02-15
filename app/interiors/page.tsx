@@ -1,38 +1,54 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 
 type Category = { id: string; name: string; slug: string };
 
-type Product = { 
-  id: string; 
-  name: string; 
-  description: string; 
-  image_url: string; 
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+  image_url: string;
   price?: number;
   images?: string[];
 };
 
-export default function InteriorsPage() {
+function InteriorsContent() {
+  const searchParams = useSearchParams();
+  const filter = searchParams.get('filter');
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [productsByCat, setProductsByCat] = useState<Record<string, Product[]>>({});
   const [selectedProduct, setSelectedProduct] = useState<{
     categoryId: string;
     productId: string;
   } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
+        setLoading(true);
         // Fetch categories for interiors collection
-        const { data: cats, error: catsError } = await supabase
+        let query = supabase
           .from('categories')
           .select('*')
           .eq('collection', 'interiors');
 
+        if (filter) {
+          query = query.eq('slug', filter);
+        }
+
+        const { data: cats, error: catsError } = await query;
+
         if (catsError) throw catsError;
-        if (!cats) return;
+        if (!cats || cats.length === 0) {
+          setCategories([]);
+          setLoading(false);
+          return;
+        }
 
         setCategories(cats);
 
@@ -50,22 +66,45 @@ export default function InteriorsPage() {
         setProductsByCat(prods);
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
     }
 
     fetchData();
-  }, []);
+  }, [filter]);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>
+        <p style={{ fontSize: '1.2rem', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-cormorant)' }}>
+          Loading Interiors...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Interior Solutions</h1>
+        <h1 className={styles.title}>
+          {filter && categories.length > 0 ? categories[0].name : "Interior Solutions"}
+        </h1>
         <p className={styles.subtitle}>Bespoke craft for modern living spaces.</p>
       </header>
 
+      {categories.length === 0 && !loading && (
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <p>No categories found.</p>
+          <a href="/interiors" className={styles.contactBtn} style={{ marginTop: '1rem', display: 'inline-block' }}>
+            View All Interiors
+          </a>
+        </div>
+      )}
+
       {categories.map(cat => (
-        <section className={styles.section} key={cat.id}>
-          <h2 className={styles.sectionTitle}>{cat.name}</h2>
+        <section className={styles.section} key={cat.id} id={cat.slug}>
+          {!filter && <h2 className={styles.sectionTitle}>{cat.name}</h2>}
 
           <div className={styles.categoryGrid}>
             {productsByCat[cat.id]?.map(prod => {
@@ -173,5 +212,13 @@ export default function InteriorsPage() {
         </a>
       </div>
     </div>
+  );
+}
+
+export default function InteriorsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <InteriorsContent />
+    </Suspense>
   );
 }

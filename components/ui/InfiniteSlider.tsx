@@ -1,76 +1,84 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import styles from './BudgetSlider.module.css';
 
-// Reusable slider for both Budget and Style sections
 interface GenericSliderProps {
     items: any[];
     renderItem: (item: any, index: number) => React.ReactNode;
 }
 
 export default function InfiniteSlider({ items, renderItem }: GenericSliderProps) {
-    const [currentIndex, setCurrentIndex] = useState(items.length); // Start at the middle set
+    const totalItems = items.length;
     const [itemsToShow, setItemsToShow] = useState(3);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const controls = useAnimation();
 
-    const totalItems = items.length;
-    // Create a tripled list for seamless looping: [Set1][Set2][Set3]
-    const tripledItems = [...items, ...items, ...items];
+    // Use a ref to track the "virtual" index so we don't have to wait for state updates
+    // We use 6x items to provide a massive runway for seamless looping
+    const indexRef = useRef(totalItems * 3);
+    const [currentIndex, setCurrentIndex] = useState(indexRef.current);
+
+    const duplicatedItems = [...items, ...items, ...items, ...items, ...items, ...items];
 
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth < 640) {
-                setItemsToShow(1);
-            } else if (window.innerWidth < 1024) {
-                setItemsToShow(2);
-            } else {
-                setItemsToShow(3);
-            }
+            if (window.innerWidth < 640) setItemsToShow(1);
+            else if (window.innerWidth < 1024) setItemsToShow(2);
+            else setItemsToShow(3);
         };
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const getTranslation = (index: number) => {
-        const gapInRem = 2; // matches gap: 2rem in CSS
-        // Each item width = (100% - total_gap) / itemsToShow
-        // Translation = index * (item_width + gap)
+    const getTranslation = useCallback((index: number) => {
+        const gapInRem = 2; // matches gap in CSS
+        // ItemWidth = (100% - total_gap) / itemsToShow
+        // FullStep = ItemWidth + Gap
         return `calc(-${index} * ( (100% - ${(itemsToShow - 1) * gapInRem}rem) / ${itemsToShow} + ${gapInRem}rem ))`;
-    };
+    }, [itemsToShow]);
+
+    // Initial placement and sync when itemsToShow changes
+    useEffect(() => {
+        controls.set({ x: getTranslation(indexRef.current) });
+    }, [itemsToShow, getTranslation, controls]);
 
     const slide = async (direction: 'next' | 'prev') => {
         if (isTransitioning) return;
         setIsTransitioning(true);
 
-        const step = itemsToShow;
-        const newIndex = direction === 'next' ? currentIndex + step : currentIndex - step;
+        // Moving by 1 card provides the most consistent "forward" feel
+        const step = 1;
+        const targetIndex = direction === 'next' ? indexRef.current + step : indexRef.current - step;
 
-        // Animate to the new index
+        // 1. Animate to the target index (this is the visible motion)
         await controls.start({
-            x: getTranslation(newIndex),
-            transition: { type: "spring", stiffness: 100, damping: 20, mass: 1 }
+            x: getTranslation(targetIndex),
+            transition: {
+                type: "spring",
+                stiffness: 120, // Snappy but smooth
+                damping: 20,
+                mass: 1
+            }
         });
 
-        // Seamless loop check:
-        // If we've moved into the third set or first set, jump back to the middle set silently
-        let resetIndex = newIndex;
-        if (newIndex >= totalItems * 2) {
-            resetIndex = newIndex - totalItems;
-        } else if (newIndex < totalItems) {
-            resetIndex = newIndex + totalItems;
+        // 2. Perform silent jump if we're drifting too far into the buffer sets
+        // We stay within indices [totalItems*2, totalItems*4]
+        let resetIndex = targetIndex;
+        if (targetIndex >= totalItems * 4) {
+            resetIndex = targetIndex - totalItems;
+        } else if (targetIndex < totalItems * 2) {
+            resetIndex = targetIndex + totalItems;
         }
 
-        if (resetIndex !== newIndex) {
-            // Jump without animation
+        if (resetIndex !== targetIndex) {
+            // The jump is invisible because duplicatedItems[resetIndex] === duplicatedItems[targetIndex]
             await controls.set({ x: getTranslation(resetIndex) });
-            setCurrentIndex(resetIndex);
-        } else {
-            setCurrentIndex(newIndex);
         }
 
+        indexRef.current = resetIndex;
+        setCurrentIndex(resetIndex);
         setIsTransitioning(false);
     };
 
@@ -86,9 +94,9 @@ export default function InfiniteSlider({ items, renderItem }: GenericSliderProps
                 <motion.div
                     className={styles.cardsTrack}
                     animate={controls}
-                    initial={{ x: getTranslation(items.length) }}
+                    initial={{ x: getTranslation(indexRef.current) }}
                 >
-                    {tripledItems.map((item, idx) => (
+                    {duplicatedItems.map((item, idx) => (
                         <div
                             key={`${idx}`}
                             className={styles.cardWrapper}
