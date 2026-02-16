@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Button from '@/components/ui/Button';
 import styles from './page.module.css';
 import BudgetSlider from '@/components/ui/BudgetSlider';
-import StyleSlider from '@/components/ui/StyleSlider';
+import DesignCategories from '@/components/ui/DesignCategories';
 import ProcessSection from '@/components/ui/ProcessSection';
 import StatsSection from '@/components/ui/StatsSection';
 import WhatYouGet from '@/components/ui/WhatYouGet';
@@ -11,51 +11,24 @@ import CTASection from '@/components/ui/CTASection';
 
 export default function Home() {
 
-  const stylesWeOffer = [
+  const designCategories = [
     {
       title: "1. Contemporary Style",
-      images: [
-        "/home1.jpeg",
-        "/i1.jpeg",
-        "/i2.jpeg",
-        "/i3.jpeg",
-        "/i4.jpeg",
-      ],
+      images: ["/home1.jpeg", "/i1.jpeg", "/i2.jpeg", "/i3.jpeg", "/i4.jpeg"],
     },
     {
       title: "2. Minimalist Style",
-      images: [
-        "/i5.jpeg",
-        "/i6.jpeg",
-        "/i7.jpeg",
-        "/i8.jpeg",
-        "/i9.jpeg",
-      ],
+      images: ["/i5.jpeg", "/i6.jpeg", "/i7.jpeg", "/i8.jpeg", "/i9.jpeg"],
     },
     {
       title: "3. Modern Classic Style (Fusion)",
-      images: [
-        "/i10.jpeg",
-        "/home1.jpeg",
-        "/i2.jpeg",
-        "/i4.jpeg",
-        "/i6.jpeg",
-      ],
+      images: ["/i10.jpeg", "/home1.jpeg", "/i2.jpeg", "/i4.jpeg", "/i6.jpeg"],
     },
     {
       title: "4. Traditional / Ethnic",
-      images: [
-        "/i1.jpeg",
-        "/i3.jpeg",
-        "/i5.jpeg",
-        "/i7.jpeg",
-        "/i9.jpeg",
-      ],
+      images: ["/i1.jpeg", "/i3.jpeg", "/i5.jpeg", "/i7.jpeg", "/i9.jpeg"],
     },
   ];
-
-
-
 
   return (
     <div className={styles.main}>
@@ -96,7 +69,7 @@ export default function Home() {
           </p>
           <h2 className={styles.introTitle}>Our Legacy in Furniture & Interiors</h2>
           <p className={styles.introText}>
-        With over 35 years of experience in furniture and interior solutions, we have successfully completed 2000+ projects and delivered 30,000+ furniture pieces across India. Our commitment to quality, reliability, and customer satisfaction has made us a trusted partner in transforming homes and commercial spaces.
+            With over 35 years of experience in furniture and interior solutions, we have successfully completed 2000+ projects and delivered 30,000+ furniture pieces across India. Our commitment to quality, reliability, and customer satisfaction has made us a trusted partner in transforming homes and commercial spaces.
           </p>
           <Button href="/contact" variant="text">Start Your Project &rarr;</Button>
         </div>
@@ -186,7 +159,7 @@ export default function Home() {
 
           {/* Heading */}
           <h2 className={styles.featuredTitle}>
-            Your Vision , Your Budget , Our Expertise 
+            Your Vision , Your Budget , Our Expertise
           </h2>
 
           {/* ===================== */}
@@ -194,32 +167,12 @@ export default function Home() {
           {/* ===================== */}
           <BudgetSlider />
 
-          {/* ===================== */}
-          {/* Styles We Offer */}
-          {/* ===================== */}
-          <div style={{ marginTop: "4rem" }}>
-
-            {/* MAIN HEADING */}
-            <h2 className={styles.featuredTitle} style={{ marginBottom: "2.5rem" }}>
-            Explore our wide Range of Design Categories 
-            </h2>
-
-            {stylesWeOffer.map((style, i) => (
-              <div key={i} style={{ marginBottom: "4rem" }}>
-                <h3 className={styles.introTitle} style={{ marginBottom: "1.5rem" }}>{style.title}</h3>
-
-                <div style={{ marginTop: "1rem" }}>
-                  <StyleSlider items={style.images} />
-                </div>
-              </div>
-            ))}
-
-          </div>
-
-
-
         </div>
       </section>
+
+      {/* Design Categories Section */}
+      <DesignCategories categories={designCategories} />
+
 
       <ProcessSection />
       <StatsSection />
