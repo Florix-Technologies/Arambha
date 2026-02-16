@@ -19,19 +19,19 @@ const Popup = () => {
         let firstTimer: NodeJS.Timeout;
         let repeatTimer: NodeJS.Timeout;
 
-        // First popup after 8 seconds (slightly faster than 10s to engage sooner)
+        // First popup after 2 minutes
         if (!hasOpenedOnce) {
             firstTimer = setTimeout(() => {
                 setIsOpen(true);
                 setHasOpenedOnce(true);
-            }, 40000);
+            }, 120000);
         }
 
-        // After first time → repeat every 30 sec (28s interval + wait time)
+        // After first time → repeat every 2 minutes
         if (hasOpenedOnce) {
             repeatTimer = setInterval(() => {
                 setIsOpen(true);
-            }, 80000);
+            }, 120000);
         }
 
         return () => {

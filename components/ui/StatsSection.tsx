@@ -73,9 +73,9 @@ export default function StatsSection() {
             <div className={styles.shape + ' ' + styles.shape2} />
 
             <div className={styles.container}>
-                <StatCounter value={1050} label="Finished Projects" />
-                <StatCounter value={1000} label="Premium Designs" />
-                <StatCounter value={1050} label="Happy Clients" />
+                <StatCounter value={20000} label="Finished Projects" />
+                <StatCounter value={2000} label="Premium Designs" />
+                <StatCounter value={20000} label="Happy Clients" />
             </div>
         </section>
     );

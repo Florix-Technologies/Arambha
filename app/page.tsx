@@ -94,6 +94,10 @@ export default function Home() {
             we blend sustainable materials with modern architectural principles to craft spaces that
             are timeless, functional, and undeniably sophisticated.
           </p>
+          <h2 className={styles.introTitle}>Our Legacy in Furniture & Interiors</h2>
+          <p className={styles.introText}>
+        With over 35 years of experience in furniture and interior solutions, we have successfully completed 2000+ projects and delivered 30,000+ furniture pieces across India. Our commitment to quality, reliability, and customer satisfaction has made us a trusted partner in transforming homes and commercial spaces.
+          </p>
           <Button href="/contact" variant="text">Start Your Project &rarr;</Button>
         </div>
       </section>
@@ -182,7 +186,7 @@ export default function Home() {
 
           {/* Heading */}
           <h2 className={styles.featuredTitle}>
-            Our Interior Design Works with Budget
+            Your Vision , Your Budget , Our Expertise 
           </h2>
 
           {/* ===================== */}
@@ -197,7 +201,7 @@ export default function Home() {
 
             {/* MAIN HEADING */}
             <h2 className={styles.featuredTitle} style={{ marginBottom: "2.5rem" }}>
-              Styles We Offer
+            Explore our wide Range of Design Categories 
             </h2>
 
             {stylesWeOffer.map((style, i) => (
