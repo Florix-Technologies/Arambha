@@ -53,7 +53,6 @@
   }
 }
 
-
 .header {
   text-align: center;
   margin-bottom: 4rem;
@@ -64,6 +63,8 @@
   font-family: var(--font-heading);
   font-size: 3rem;
   margin-bottom: 1rem;
+  font-weight: 600;
+  /* Bolded as requested */
 }
 
 .subtitle {
@@ -117,7 +118,6 @@
     font-size: 0.8rem;
   }
 }
-
 
 .gallery {
   display: grid;
@@ -214,7 +214,8 @@
 .sectionTitle {
   font-family: var(--font-cormorant);
   font-size: 2.5rem;
-  font-weight: 400;
+  font-weight: 600;
+  /* Bolded as requested */
   margin-bottom: 2.5rem;
   letter-spacing: 0.5px;
   color: var(--color-text-primary);
@@ -508,7 +509,8 @@
   font-size: 2.8rem;
   color: var(--color-text-primary);
   margin-bottom: 1.2rem;
-  font-weight: 400;
+  font-weight: 600;
+  /* Bolded as likely part of request */
 }
 
 .emptyState p {

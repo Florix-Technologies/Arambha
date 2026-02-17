@@ -259,6 +259,7 @@
 
 .megaMenuLink {
   font-size: 0.85rem;
+  font-weight: 600;
   color: #555;
   transition: all 0.2s ease;
   display: block;

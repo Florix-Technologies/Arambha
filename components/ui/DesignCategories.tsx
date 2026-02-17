@@ -105,7 +105,24 @@ export default function DesignCategories({ categories }: DesignCategoriesProps) 
             <div className="container">
                 <div className={styles.header}>
                     <div className={styles.headerContent}>
-                        <h2 className={styles.title}>Explore our wide Range of Design Categories</h2>
+                        <motion.span
+                            className={styles.subtitle}
+                            initial={{ opacity: 0, letterSpacing: "20px" }}
+                            whileInView={{ opacity: 1, letterSpacing: "4px" }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1.2 }}
+                        >
+                            The Categories
+                        </motion.span>
+                        <motion.h2
+                            className={styles.title}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: 0.3 }}
+                        >
+                            Explore our wide Range of Design Categories
+                        </motion.h2>
                     </div>
                     <div className={styles.headerAction}>
                         <Button variant="primary" className={styles.quoteBtn}>
