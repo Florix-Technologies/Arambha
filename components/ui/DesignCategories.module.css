@@ -1,5 +1,5 @@
 .section {
-    padding: 4rem 0;
+    padding: 6rem 0;
     background-color: var(--color-bg-primary);
 }
 
@@ -7,7 +7,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    margin-bottom: 3rem;
+    margin-bottom: 4rem;
 }
 
 @media (min-width: 992px) {
@@ -31,19 +31,11 @@
     line-height: 1.2;
 }
 
-.subtitle {
-    font-family: var(--font-body);
-    font-size: 1.1rem;
-    color: var(--color-text-secondary);
-    line-height: 1.5;
-}
-
 .quoteBtn {
     gap: 0.75rem;
     padding: 0.8rem 1.5rem;
     border-radius: 6px;
     background-color: #E27272 !important;
-    /* Premium Coral color similar to image */
     border-color: #E27272 !important;
     color: #fff !important;
     text-transform: none;
@@ -59,112 +51,204 @@
     margin-right: 0.5rem;
 }
 
-.grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 3rem 2rem;
+/* Dynamic Accordion Grid */
+.squareGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    height: 700px;
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Hover effects for the 2x2 grid */
+.hoverGrid0 {
+    grid-template-columns: 1.4fr 0.6fr;
+    grid-template-rows: 1.4fr 0.6fr;
+}
+
+.hoverGrid1 {
+    grid-template-columns: 0.6fr 1.4fr;
+    grid-template-rows: 1.4fr 0.6fr;
+}
+
+.hoverGrid2 {
+    grid-template-columns: 1.4fr 0.6fr;
+    grid-template-rows: 0.6fr 1.4fr;
+}
+
+.hoverGrid3 {
+    grid-template-columns: 0.6fr 1.4fr;
+    grid-template-rows: 0.6fr 1.4fr;
 }
 
 .categoryCard {
-    flex: 1 1 100%;
-    max-width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #f0f0f0;
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-@media (min-width: 640px) {
-    .categoryCard {
-        flex: 0 1 calc(50% - 1rem);
-        max-width: calc(50% - 1rem);
-    }
-}
-
-@media (min-width: 1024px) {
-    .categoryCard {
-        flex: 0 1 calc(33.333% - 1.34rem);
-        max-width: calc(33.333% - 1.34rem);
-    }
+.cardHovered {
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
 }
 
 .imageContainer {
     position: relative;
     width: 100%;
-    aspect-ratio: 1.2 / 1;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    margin-bottom: 1.5rem;
+    height: 100%;
 }
 
 .categoryImage {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.cardHovered .categoryImage {
+    transform: scale(1.05);
+}
+
+/* Glassmorphism Title Overlay */
+.titleOverlay {
+    position: absolute;
+    z-index: 10;
+    padding: 1.2rem 2.5rem;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.titleCenter {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 1;
+}
+
+.titleLeftBottom {
+    top: calc(100% - 3.5rem);
+    left: 1.5rem;
+    transform: translate(0, -50%);
+    padding: 0.6rem 1.4rem;
+    border-radius: 12px;
+}
+
+.overlayTitle {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+
+.titleLeftBottom .overlayTitle {
+    font-size: 1.1rem;
+}
+
+/* Nav Controls */
+.navControls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 15;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+
+.cardHovered .navControls {
+    opacity: 1;
+    visibility: visible;
 }
 
 .navBtn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background-color: rgba(226, 114, 114, 0.8);
-    /* Matching button color */
+    background-color: rgba(226, 114, 114, 0.95);
     color: white;
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-    z-index: 2;
 }
 
 .navBtn:hover {
-    background-color: rgba(226, 114, 114, 1);
+    background-color: #E27272;
     transform: translateY(-50%) scale(1.1);
 }
 
 .prevBtn {
-    left: 10px;
+    left: 1.5rem;
 }
 
 .nextBtn {
-    right: 10px;
+    right: 1.5rem;
 }
 
 .pagination {
     position: absolute;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 1.5rem;
+    right: 2rem;
     display: flex;
-    gap: 6px;
-    z-index: 2;
+    gap: 8px;
+    z-index: 12;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.cardHovered .pagination {
+    opacity: 1;
 }
 
 .dot {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.4);
     transition: all 0.3s ease;
 }
 
 .activeDot {
     background-color: #fff;
-    width: 12px;
-    border-radius: 4px;
+    width: 18px;
+    border-radius: 5px;
 }
 
-.categoryTitle {
-    font-family: var(--font-body);
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    color: var(--color-text-primary);
-    text-align: center;
+/* Mobile adjustments */
+@media (max-width: 767px) {
+    .squareGrid {
+        height: auto;
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 300px);
+    }
+
+    .hoverGrid0,
+    .hoverGrid1,
+    .hoverGrid2,
+    .hoverGrid3 {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 1fr);
+        /* Disable accordion on mobile for better UX */
+    }
 }

@@ -13,25 +13,44 @@ interface DesignCategoriesProps {
     categories: Category[];
 }
 
-const CategoryCard = ({ category }: { category: Category }) => {
+const CategoryCard = ({
+    category,
+    isHovered,
+    onMouseEnter,
+    onMouseLeave
+}: {
+    category: Category;
+    isHovered: boolean;
+    onMouseEnter: () => void;
+    onMouseLeave: () => void;
+}) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    const nextSlide = () => {
+    // Clean title
+    const cleanTitle = category.title.replace(/^\d+\.\s*/, '');
+
+    const nextSlide = (e: React.MouseEvent) => {
+        e.stopPropagation();
         setCurrentIndex((prev) => (prev + 1) % category.images.length);
     };
 
-    const prevSlide = () => {
+    const prevSlide = (e: React.MouseEvent) => {
+        e.stopPropagation();
         setCurrentIndex((prev) => (prev - 1 + category.images.length) % category.images.length);
     };
 
     return (
-        <div className={styles.categoryCard}>
+        <div
+            className={`${styles.categoryCard} ${isHovered ? styles.cardHovered : ''}`}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+        >
             <div className={styles.imageContainer}>
                 <AnimatePresence mode="wait">
                     <motion.img
                         key={currentIndex}
                         src={category.images[currentIndex]}
-                        alt={`${category.title} ${currentIndex + 1}`}
+                        alt={`${cleanTitle} ${currentIndex + 1}`}
                         className={styles.categoryImage}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -40,17 +59,24 @@ const CategoryCard = ({ category }: { category: Category }) => {
                     />
                 </AnimatePresence>
 
-                <button className={`${styles.navBtn} ${styles.prevBtn}`} onClick={prevSlide} aria-label="Previous image">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                </button>
+                {/* Title Overlay moves on hover */}
+                <div className={`${styles.titleOverlay} ${isHovered ? styles.titleLeftBottom : styles.titleCenter}`}>
+                    <h3 className={styles.overlayTitle}>{cleanTitle}</h3>
+                </div>
 
-                <button className={`${styles.navBtn} ${styles.nextBtn}`} onClick={nextSlide} aria-label="Next image">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                </button>
+                <div className={styles.navControls}>
+                    <button className={`${styles.navBtn} ${styles.prevBtn}`} onClick={prevSlide} aria-label="Previous image">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+
+                    <button className={`${styles.navBtn} ${styles.nextBtn}`} onClick={nextSlide} aria-label="Next image">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </div>
 
                 <div className={styles.pagination}>
                     {category.images.map((_, idx) => (
@@ -61,12 +87,19 @@ const CategoryCard = ({ category }: { category: Category }) => {
                     ))}
                 </div>
             </div>
-            <h3 className={styles.categoryTitle}>{category.title}</h3>
         </div>
     );
 };
 
 export default function DesignCategories({ categories }: DesignCategoriesProps) {
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+    // Get dynamic grid class based on which card is hovered
+    const getGridClass = () => {
+        if (hoveredIndex === null) return '';
+        return styles[`hoverGrid${hoveredIndex}`];
+    };
+
     return (
         <section className={styles.section}>
             <div className="container">
@@ -84,9 +117,15 @@ export default function DesignCategories({ categories }: DesignCategoriesProps) 
                     </div>
                 </div>
 
-                <div className={styles.grid}>
-                    {categories.map((category, idx) => (
-                        <CategoryCard key={idx} category={category} />
+                <div className={`${styles.squareGrid} ${getGridClass()}`}>
+                    {categories.slice(0, 4).map((category, idx) => (
+                        <CategoryCard
+                            key={idx}
+                            category={category}
+                            isHovered={hoveredIndex === idx}
+                            onMouseEnter={() => setHoveredIndex(idx)}
+                            onMouseLeave={() => setHoveredIndex(null)}
+                        />
                     ))}
                 </div>
             </div>
