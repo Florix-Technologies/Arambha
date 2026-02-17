@@ -73,8 +73,8 @@ export default function StatsSection() {
             <div className={styles.shape + ' ' + styles.shape2} />
 
             <div className={styles.container}>
-                <StatCounter value={20000} label="Finished Projects" />
-                <StatCounter value={2000} label="Premium Designs" />
+                <StatCounter value={20000} label="Furniture Delivered" />
+                <StatCounter value={2000} label="Finished Projects" />
                 <StatCounter value={20000} label="Happy Clients" />
             </div>
         </section>
