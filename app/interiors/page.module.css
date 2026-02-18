@@ -464,14 +464,59 @@
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Expanded Images Section - HIDDEN BY DEFAULT */
+/* Expanded Images Section */
 .expandedImagesSection {
-    display: none;
+    display: block;
     margin-top: 2rem;
     padding: 2rem;
     background: #fdfdfb;
     border-radius: 30px;
     border: 1px solid rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.expandedImagesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.expandedImageItem {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: zoom-in;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.expandedImageItem:hover {
+    transform: scale(1.03);
+}
+
+.expandedImageItem img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.expandedImageItem:hover img {
+    transform: scale(1.1);
 }
 
 .expandedImagesSection h4 {

@@ -14,19 +14,19 @@ export default function Home() {
   const designCategories = [
     {
       title: "1. Contemporary Style",
-      images: ["/home1.jpeg", "/i1.jpeg", "/i2.jpeg", "/i3.jpeg", "/i4.jpeg"],
+      images: ["ContemporaryStyle/ContemporaryStyle1.jpeg", "ContemporaryStyle/ContemporaryStyle2.jpeg", "ContemporaryStyle/ContemporaryStyle3.jpeg", "ContemporaryStyle/ContemporaryStyle4.jpeg", "ContemporaryStyle/ContemporaryStyle5.jpeg"],
     },
     {
       title: "2. Minimalist Style",
-      images: ["/i5.jpeg", "/i6.jpeg", "/i7.jpeg", "/i8.jpeg", "/i9.jpeg"],
+      images: ["Minimalist/m4.jpeg", "Minimalist/m5.jpeg", "Minimalist/m6.jpeg", "Minimalist/m7.jpeg"],
     },
     {
       title: "3. Modern Classic Style (Fusion)",
-      images: ["/i10.jpeg", "/home1.jpeg", "/i2.jpeg", "/i4.jpeg", "/i6.jpeg"],
+      images: ["/MCS/MCS1.jpeg", "/MCS/MCS2.jpeg", "/MCS/MCS3.jpeg", "/MCS/MCS4.jpeg", "/MCS/MCS5.jpeg"],
     },
     {
       title: "4. Traditional / Ethnic",
-      images: ["/i1.jpeg", "/i3.jpeg", "/i5.jpeg", "/i7.jpeg", "/i9.jpeg"],
+      images: ["Traditional/t1.jpg", "Traditional/t2.jpg", "Traditional/t3.jpg", "Traditional/t4.jpg", "Traditional/t5.jpg", "Traditional/t6.jpg", "Traditional/t7.jpg"],
     },
   ];
 
