@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './WhyArambha.module.css';
 
 const tabs = [
@@ -44,6 +45,7 @@ const tabs = [
 ];
 
 export default function WhyArambha() {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState(0);
     const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
     const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -57,6 +59,10 @@ export default function WhyArambha() {
             });
         }
     }, [activeTab]);
+
+    const handlePersonaliseDesign = () => {
+        router.push('/contact');
+    };
 
     return (
         <section className={styles.section}>
@@ -131,6 +137,7 @@ export default function WhyArambha() {
                                     transition={{ duration: 0.5, delay: 0.3 }}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
+                                    onClick={handlePersonaliseDesign}
                                 >
                                     Personalise Your Design
                                 </motion.button>

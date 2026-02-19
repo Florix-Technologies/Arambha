@@ -7,10 +7,10 @@ const budgetItems = [
     { label: "3BHK – Premium", price: "₹Starting from 4.5 Lakhs", img: "/v122.mp4" },
     { label: "4BHK – Ultra", price: "₹Starting from 6 Lakhs", img: "/i3.jpeg" },
     { label: "Designer Kitchen", price: "₹Starting from 1.5 Lakhs", img: "/i4.jpeg" },
-    { label: "Master Bedroom", price: "₹Starting from 1.3 Lakhs", img: "/i5.jpeg" },
-    { label: "Sliding Wardrobe", price: "₹Starting from 1.3 Lakhs", img: "/i6.jpeg" },
+    { label: "Master Bedroom", price: "₹Starting from 1.3 Lakhs", img: "/mater1.jpeg" },
+    { label: "Sliding Wardrobe", price: "₹Starting from 1.3 Lakhs", img: "/sliding1.jpeg" },
     { label: "Elegant Living", price: "₹Starting from 1.4 Lakhs", img: "/i7.jpeg" },
-    { label: "Modern Bathroom", price: "₹Starting from 70 Thousand", img: "/i8.jpeg" },
+    { label: "Modern Bathroom", price: "₹Starting from 70 Thousand", img: "/bath1.jpeg" },
     { label: "Kids Bedroom", price: "₹Starting from 90 Thousand", img: "/i9.jpeg" },
 ];
 

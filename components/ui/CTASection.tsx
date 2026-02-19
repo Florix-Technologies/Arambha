@@ -1,9 +1,15 @@
 "use client";
 
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import styles from './CTASection.module.css';
 
 export default function CTASection() {
+    const router = useRouter();
+    
+    const handleBookNow = () => {
+        router.push('/contact');
+    };
     return (
         <section
             className={styles.section}
@@ -76,6 +82,7 @@ export default function CTASection() {
                         transition={{ duration: 0.6, delay: 0.6 }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={handleBookNow}
                     >
                         Book Now
                     </motion.button>
