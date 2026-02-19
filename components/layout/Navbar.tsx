@@ -53,10 +53,14 @@ export default function Navbar() {
       ]
     },
     {
-      title: "Modular Solutions",
+       title: "Interior Solution",
       links: [
         { name: 'Kitchen', href: '/services?filter=kitchen' },
         { name: 'Wardrobe', href: '/services?filter=wardrobe' },
+        { name: 'Living room with TV unit', href: '/services?filter=living-room-tv' },
+        { name: 'Crockery unit', href: '/services?filter=crockery-unit' },
+        { name: 'Pooja room', href: '/services?filter=pooja-room' },
+        { name: 'Washroom and Master washroom', href: '/services?filter=washroom' },
       ]
     },
     {

@@ -174,7 +174,7 @@ function ServicesContent() {
     },
     {
       id: "kitchen",
-      category: "Modular Solutions",
+      category: "Interior Solution",
       title: "Kitchen",
       items: [
         { type: "image", src: "/images/kitchen1.jpg" },
@@ -183,18 +183,54 @@ function ServicesContent() {
     },
     {
       id: "wardrobe",
-      category: "Modular Solutions",
+      category: "Interior Solution",
       title: "Wardrobe",
       items: [
         { type: "image", src: "/images/wardrobe1.jpg" },
         { type: "image", src: "/images/wardrobe2.jpg" },
       ] as MediaItem[]
     },
+    {
+      id: "living-room-tv",
+      category: "Interior Solution",
+      title: "Living room with TV unit",
+      items: [
+        { type: "image", src: "/images/sample1.jpg" },
+        { type: "image", src: "/images/sample2.jpg" },
+      ] as MediaItem[]
+    },
+    {
+      id: "crockery-unit",
+      category: "Interior Solution",
+      title: "Crockery unit",
+      items: [
+        { type: "image", src: "/images/sample1.jpg" },
+        { type: "image", src: "/images/sample2.jpg" },
+      ] as MediaItem[]
+    },
+    {
+      id: "pooja-room",
+      category: "Interior Solution",
+      title: "Pooja room",
+      items: [
+        { type: "image", src: "/images/sample1.jpg" },
+        { type: "image", src: "/images/sample2.jpg" },
+      ] as MediaItem[]
+    },
+    {
+      id: "washroom",
+      category: "Interior Solution",
+      title: "Washroom and Master washroom",
+      items: [
+        { type: "image", src: "/images/sample1.jpg" },
+        { type: "image", src: "/images/sample2.jpg" },
+      ] as MediaItem[]
+    },
     { id: "civil-works", category: "Interior Finishing", title: "Civil Works", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
     { id: "lighting", category: "Interior Finishing", title: "Lighting", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
     { id: "flooring", category: "Interior Finishing", title: "Flooring", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
     { id: "false-ceiling", category: "Interior Finishing", title: "False Ceiling", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
-    { id: "wall-design", category: "Interior Finishing", title: "Wall Design", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
+    { id: "wall-design", category: "Interior Finishing", title: "Wall Design", items: [{ type: "image", src: "walldesign1.jpeg" }, { type: "image", src: "walldesign2.jpeg" },, { type: "image", src: "walldesign3.jpeg" }] as MediaItem[] },
     { id: "painting", category: "Interior Finishing", title: "Painting", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
     { id: "furniture", category: "Furniture & Partition System", title: "Furniture", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
     { id: "office-furniture", category: "Furniture & Partition System", title: "Office & Commercial Furniture", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
