@@ -1,8 +1,16 @@
 "use client";
 import { motion, Variants } from 'framer-motion';
+import { useState } from 'react';
 import styles from './page.module.css';
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -21,6 +29,44 @@ export default function ContactPage() {
       y: 0,
       transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
     }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    const whatsappNumber = '919876543210';
+    const message = `Hi Arambha,
+
+I would like to request a consultation.
+
+*Full Name:* ${formData.fullName}
+*Email:* ${formData.email}
+*Subject:* ${formData.subject}
+*Message:* ${formData.message}
+
+Please get back to me at your earliest convenience.
+
+Thank you!`;
+
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
+    
+    // Reset form
+    setFormData({
+      fullName: '',
+      email: '',
+      subject: '',
+      message: ''
+    });
   };
 
   return (
@@ -111,31 +157,58 @@ export default function ContactPage() {
                 <p>Tell us about your project and we&apos;ll get back to you within 24 hours.</p>
               </div>
 
-              <form className={styles.form}>
+              <form className={styles.form} onSubmit={handleSubmit}>
                 <div className={styles.inputRow}>
                   <div className={styles.formGroup}>
                     <label>Full Name</label>
-                    <input type="text" placeholder="John Doe" required />
+                    <input 
+                      type="text" 
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      placeholder="John Doe" 
+                      required 
+                    />
                   </div>
                   <div className={styles.formGroup}>
                     <label>Email Address</label>
-                    <input type="email" placeholder="john@example.com" required />
+                    <input 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="john@example.com" 
+                      required 
+                    />
                   </div>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label>Subject</label>
-                  <select>
-                    <option>Interior Design Consultation</option>
-                    <option>Bespoke Furniture Inquiry</option>
-                    <option>Commercial Project</option>
-                    <option>Other</option>
+                  <select 
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select a subject</option>
+                    <option value="Interior Design Consultation">Interior Design Consultation</option>
+                    <option value="Bespoke Furniture Inquiry">Bespoke Furniture Inquiry</option>
+                    <option value="Commercial Project">Commercial Project</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label>Your Message</label>
-                  <textarea rows={6} placeholder="Tell us more about what you&apos;re looking for..." required></textarea>
+                  <textarea 
+                    rows={6} 
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    placeholder="Tell us more about what you're looking for..." 
+                    required
+                  ></textarea>
                 </div>
 
                 <motion.button
