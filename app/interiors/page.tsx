@@ -47,7 +47,7 @@ function InteriorsContent() {
 
         // Group all categories by name for the filter dropdown
         const fullCategoryMap: Record<string, { name: string; slug: string; ids: string[] }> = {};
-        fullCatsList?.forEach(cat => {
+        fullCatsList?.forEach((cat: Category) => {
           const key = cat.name.toLowerCase().trim();
           if (!fullCategoryMap[key]) {
             fullCategoryMap[key] = { name: cat.name, slug: cat.slug, ids: [] };
@@ -77,7 +77,7 @@ function InteriorsContent() {
 
         // Group categories by name
         const categoryMap: Record<string, { name: string; slug: string; ids: string[] }> = {};
-        allCats.forEach(cat => {
+        allCats.forEach((cat: Category) => {
           const key = cat.name.toLowerCase().trim();
           if (!categoryMap[key]) {
             categoryMap[key] = { name: cat.name, slug: cat.slug, ids: [] };

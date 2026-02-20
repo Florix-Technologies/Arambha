@@ -35,7 +35,7 @@ function FurnitureContent() {
 
         // Group all categories for the dropdown
         const fullCategoryMap: Record<string, { name: string; slug: string; ids: string[] }> = {};
-        fullCatsList?.forEach(cat => {
+        fullCatsList?.forEach((cat: Category) => {
           const key = cat.name.toLowerCase().trim();
           if (!fullCategoryMap[key]) {
             fullCategoryMap[key] = { name: cat.name, slug: cat.slug, ids: [] };
@@ -65,7 +65,7 @@ function FurnitureContent() {
 
         // Group categories by name to handle duplicates
         const categoryMap: Record<string, { name: string; slug: string; ids: string[] }> = {};
-        allCats.forEach(cat => {
+        allCats.forEach((cat: Category) => {
           const key = cat.name.toLowerCase().trim();
           if (!categoryMap[key]) {
             categoryMap[key] = { name: cat.name, slug: cat.slug, ids: [] };

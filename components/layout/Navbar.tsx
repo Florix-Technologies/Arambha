@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import styles from './Navbar.module.css';
 
+type Category = { name: string; slug: string; collection: string };
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -179,9 +181,9 @@ export default function Navbar() {
         if (!allCategories) return;
 
         // Group by collection and ensure unique names
-        const furnitureCats = Array.from(new Map(allCategories.filter(c => c.collection === 'furniture').map(c => [c.name.toLowerCase().trim(), c])).values());
-        const interiorCats = Array.from(new Map(allCategories.filter(c => c.collection === 'interiors').map(c => [c.name.toLowerCase().trim(), c])).values());
-        const galleryCats = Array.from(new Map(allCategories.filter(c => c.collection === 'gallery').map(c => [c.name.toLowerCase().trim(), c])).values());
+        const furnitureCats = Array.from(new Map(allCategories.filter((c: Category) => c.collection === 'furniture').map((c: Category) => [c.name.toLowerCase().trim(), c])).values()) as Category[];
+        const interiorCats = Array.from(new Map(allCategories.filter((c: Category) => c.collection === 'interiors').map((c: Category) => [c.name.toLowerCase().trim(), c])).values()) as Category[];
+        const galleryCats = Array.from(new Map(allCategories.filter((c: Category) => c.collection === 'gallery').map((c: Category) => [c.name.toLowerCase().trim(), c])).values()) as Category[];
 
         // Map Furniture
         if (furnitureCats.length > 0) {
@@ -189,7 +191,7 @@ export default function Navbar() {
           for (let i = 0; i < furnitureCats.length; i += 4) {
             groupedFurniture.push({
               title: i === 0 ? "Furniture Collection" : "More Categories",
-              links: furnitureCats.slice(i, i + 4).map(c => ({
+              links: furnitureCats.slice(i, i + 4).map((c: Category) => ({
                 name: c.name,
                 href: `/furniture?filter=${c.slug}`
               }))
@@ -204,7 +206,7 @@ export default function Navbar() {
           for (let i = 0; i < interiorCats.length; i += 4) {
             groupedInteriors.push({
               title: i === 0 ? "Design Styles" : "Additional Designs",
-              links: interiorCats.slice(i, i + 4).map(c => ({
+              links: interiorCats.slice(i, i + 4).map((c: Category) => ({
                 name: c.name,
                 href: `/interiors?filter=${c.slug}`
               }))
@@ -219,7 +221,7 @@ export default function Navbar() {
           for (let i = 0; i < galleryCats.length; i += 4) {
             groupedGallery.push({
               title: i === 0 ? "Our Portfolio" : "More Projects",
-              links: galleryCats.slice(i, i + 4).map(c => ({
+              links: galleryCats.slice(i, i + 4).map((c: Category) => ({
                 name: c.name,
                 href: `/gallery?filter=${c.slug}`
               }))
