@@ -294,23 +294,23 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, rgba(242, 240, 235, 0.98) 0%, rgba(255, 255, 255, 0.96) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10000;
-    padding: 140px 3rem 3rem 3rem;
-    overflow-y: auto;
+    padding: 0;
+    overflow: hidden;
 }
 
 .closeButton {
     position: fixed;
-    top: 120px;
-    right: 3rem;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(242, 240, 235, 0.8));
-    border: 2px solid rgba(0, 0, 0, 0.08);
+    top: 2rem;
+    right: 2rem;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     color: #333;
     width: 56px;
     height: 56px;
@@ -327,10 +327,10 @@
 }
 
 .closeButton:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(242, 240, 235, 0.95));
+    background: rgba(0, 0, 0, 0.1);
     transform: rotate(90deg) scale(1.1);
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
-    border-color: var(--color-accent);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border-color: #333;
 }
 
 .closeButton:active {
@@ -338,29 +338,70 @@
 }
 
 .lightboxContent {
-    max-width: 85vw;
-    max-height: calc(100vh - 180px);
+    width: 100vw;
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10001;
-    position: relative;
+    overflow: auto;
+    scrollbar-width: none;
+}
+
+.lightboxContent::-webkit-scrollbar {
+    display: none;
 }
 
 .lightboxMedia {
-    max-width: 100%;
-    max-height: calc(100vh - 180px);
+    max-width: 100vw;
+    max-height: 100vh;
     width: auto;
     height: auto;
     object-fit: contain;
-    border-radius: 16px;
-    box-shadow:
-        0 30px 90px rgba(0, 0, 0, 0.25),
-        0 10px 40px rgba(0, 0, 0, 0.15),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-    border: 3px solid rgba(255, 255, 255, 0.8);
-    background: #fff;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, cursor 0.3s ease;
+    cursor: zoom-in;
+}
+
+.zoomed {
+    transform: scale(2);
+    cursor: zoom-out;
+    max-width: none;
+    max-height: none;
+}
+
+.zoomButton {
+    position: fixed;
+    top: 2rem;
+    right: 6.5rem;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #333;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    z-index: 10002;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.zoomButton:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: scale(1.1);
+    border-color: #333;
+}
+
+@media (max-width: 768px) {
+    .zoomButton {
+        top: 95px;
+        right: 4.5rem;
+        width: 40px;
+        height: 40px;
+    }
 }
 
 .lightboxMedia:hover {

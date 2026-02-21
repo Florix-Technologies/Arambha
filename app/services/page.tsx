@@ -13,15 +13,18 @@ type MediaItem = {
 function MediaGrid({ items }: { items: MediaItem[] }) {
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<"image" | "video" | null>(null);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const openLightbox = (src: string, type: "image" | "video") => {
     setSelectedMedia(src);
     setSelectedType(type);
+    setIsZoomed(false);
   };
 
   const closeLightbox = () => {
     setSelectedMedia(null);
     setSelectedType(null);
+    setIsZoomed(false);
   };
 
   // Close modal on Escape key and manage body scroll
@@ -123,7 +126,8 @@ function MediaGrid({ items }: { items: MediaItem[] }) {
                 <img
                   src={selectedMedia}
                   alt="Enlarged view"
-                  className={styles.lightboxMedia}
+                  className={`${styles.lightboxMedia} ${isZoomed ? styles.zoomed : ''}`}
+                  onClick={() => setIsZoomed(!isZoomed)}
                 />
               ) : (
                 <video
@@ -131,7 +135,7 @@ function MediaGrid({ items }: { items: MediaItem[] }) {
                   autoPlay
                   loop
                   controls
-                  className={styles.lightboxMedia}
+                  className={`${styles.lightboxMedia} ${isZoomed ? styles.zoomed : ''}`}
                 />
               )}
             </motion.div>
@@ -156,9 +160,9 @@ function ServicesContent() {
       category: "Complete Interior Solutions",
       title: "Modular House Interiors",
       items: [
+        { type: "image", src: "/MHI.jpeg" },
         { type: "image", src: "/modular1.jpeg" },
-        { type: "video", src: "/videos/modular.mp4" },
-        { type: "video", src: "/videos/modular.mp4" },
+        { type: "image", src: "/MHI3.jpeg" },
       ] as MediaItem[]
     },
     {
@@ -166,9 +170,9 @@ function ServicesContent() {
       category: "Complete Interior Solutions",
       title: "Hybrid Manual Interiors",
       items: [
+        { type: "image", src: "/HMI2.jpg.jpeg" },
         { type: "image", src: "/hybrid1.jpeg" },
-        { type: "image", src: "/images/hybrid2.jpg" },
-        { type: "video", src: "/videos/hybrid.mp4" },
+        { type: "image", src: "/HMI3.jpeg" },
       ] as MediaItem[]
     },
     {
@@ -176,8 +180,9 @@ function ServicesContent() {
       category: "Interior Solution",
       title: "Kitchen",
       items: [
+        { type: "image", src: "/K2.jpg.jpeg" },
+        { type: "image", src: "/K3.jpeg" },
         { type: "image", src: "/kitchen1.jpeg" },
-        { type: "image", src: "/images/kitchen2.jpg" },
       ] as MediaItem[]
     },
     {
@@ -185,8 +190,9 @@ function ServicesContent() {
       category: "Interior Solution",
       title: "Wardrobe",
       items: [
+        { type: "image", src: "/w2.jpg.jpeg" },
         { type: "image", src: "/swing1.jpeg" },
-        { type: "image", src: "/images/wardrobe2.jpg" },
+        { type: "image", src: "/w3.jpeg" },
       ] as MediaItem[]
     },
     {
@@ -194,8 +200,9 @@ function ServicesContent() {
       category: "Interior Solution",
       title: "Living room with TV unit",
       items: [
+        { type: "image", src: "/LR2.jpg.jpeg" },
+        { type: "image", src: "/LR3.jpg.jpeg" },
         { type: "image", src: "/living1.jpeg" },
-        { type: "image", src: "/images/sample2.jpg" },
       ] as MediaItem[]
     },
     {
@@ -204,7 +211,8 @@ function ServicesContent() {
       title: "Crockery unit",
       items: [
         { type: "image", src: "/dining1.jpeg" },
-        { type: "image", src: "/images/sample2.jpg" },
+        { type: "image", src: "/CU3.jpeg" },
+        { type: "image", src: "/CU2.jpg.jpeg" },
       ] as MediaItem[]
     },
     {
@@ -212,8 +220,9 @@ function ServicesContent() {
       category: "Interior Solution",
       title: "Pooja room",
       items: [
+        { type: "image", src: "/PR2.jpg.jpeg" },
         { type: "image", src: "/puja1.jpeg" },
-        { type: "image", src: "/images/sample2.jpg" },
+        { type: "image", src: "/PR3.jpg.jpeg" },
       ] as MediaItem[]
     },
     {
@@ -222,14 +231,15 @@ function ServicesContent() {
       title: "Washroom and Master washroom",
       items: [
         { type: "image", src: "/bathroom1.jpeg" },
-        { type: "image", src: "/images/sample2.jpg" },
+        { type: "image", src: "/BRS3.jpeg" },
+        { type: "image", src: "/BRS2.jpg.jpeg" },
       ] as MediaItem[]
     },
-    { id: "civil-works", category: "Interior Finishing", title: "Civil Works", items: [{ type: "image", src: "/civil1.png" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
-    { id: "lighting", category: "Interior Finishing", title: "Lighting", items: [{ type: "image", src: "/light1.jpeg" }, { type: "image", src: "/light2.jpeg" }] as MediaItem[] },
+    { id: "civil-works", category: "Interior Finishing", title: "Civil Works", items: [{ type: "image", src: "/civil1.png" }, { type: "image", src: "civil3.jpg.jpeg" },{ type: "image", src: "civil2.jpeg" }] as MediaItem[] },
+    { id: "lighting", category: "Interior Finishing", title: "Lighting", items: [{ type: "image", src: "/light1.jpeg" }, { type: "image", src: "/L2.jpg.jpeg" }, { type: "image", src: "/L3.jpeg" }] as MediaItem[] },
     { id: "flooring", category: "Interior Finishing", title: "Flooring", items: [{ type: "image", src: "floring1.jpeg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
     { id: "false-ceiling", category: "Interior Finishing", title: "False Ceiling", items: [{ type: "image", src: "/false1.png" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
-    { id: "wall-design", category: "Interior Finishing", title: "Wall Design", items: [{ type: "image", src: "walldesign1.jpeg" }, { type: "image", src: "walldesign2.jpeg" },, { type: "image", src: "walldesign3.jpeg" }] as MediaItem[] },
+    { id: "wall-design", category: "Interior Finishing", title: "Wall Design", items: [{ type: "image", src: "walldesign1.jpeg" }, { type: "image", src: "walldesign2.jpeg" }, , { type: "image", src: "walldesign3.jpeg" }] as MediaItem[] },
     { id: "painting", category: "Interior Finishing", title: "Painting", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
     { id: "furniture", category: "Furniture & Partition System", title: "Furniture", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
     { id: "office-furniture", category: "Furniture & Partition System", title: "Office & Commercial Furniture", items: [{ type: "image", src: "/office.png" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },

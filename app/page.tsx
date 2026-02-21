@@ -92,7 +92,7 @@ export default function Home() {
                   className={styles.cardImage}
                   style={{ zIndex: 1 }}
                 >
-                  <source src="/v111.mp4" type="video/mp4" />
+                  <source src="/SR.MP4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
 
