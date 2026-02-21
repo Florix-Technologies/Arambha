@@ -24,10 +24,10 @@ export default function Footer() {
               src="/logo1.png"
               alt="Arambha Logo"
               style={{
-                height: '240px',
-                width: 'auto',
-                marginLeft: '-120px',
-                marginTop: '-30px'
+                height: '300px',
+                width: '300px',
+                marginLeft: '20px',
+                marginTop: '-20px'
               }}
             />
             <p className={styles.brandTagline}>

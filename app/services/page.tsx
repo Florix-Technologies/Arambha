@@ -237,13 +237,13 @@ function ServicesContent() {
     },
     { id: "civil-works", category: "Interior Finishing", title: "Civil Works", items: [{ type: "image", src: "/civil1.png" }, { type: "image", src: "civil3.jpg.jpeg" },{ type: "image", src: "civil2.jpeg" }] as MediaItem[] },
     { id: "lighting", category: "Interior Finishing", title: "Lighting", items: [{ type: "image", src: "/light1.jpeg" }, { type: "image", src: "/L2.jpg.jpeg" }, { type: "image", src: "/L3.jpeg" }] as MediaItem[] },
-    { id: "flooring", category: "Interior Finishing", title: "Flooring", items: [{ type: "image", src: "floring1.jpeg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
-    { id: "false-ceiling", category: "Interior Finishing", title: "False Ceiling", items: [{ type: "image", src: "/false1.png" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
+    { id: "flooring", category: "Interior Finishing", title: "Flooring", items: [{ type: "image", src: "floring1.jpeg" }, { type: "image", src: "/f2.jpeg" }, { type: "image", src: "/f3.jpg.jpeg" }] as MediaItem[] },
+    { id: "false-ceiling", category: "Interior Finishing", title: "False Ceiling", items: [{ type: "image", src: "/false1.png" }, { type: "image", src: "/fc2.jpg.jpeg" }, { type: "image", src: "/fc3.jpeg" }] as MediaItem[] },
     { id: "wall-design", category: "Interior Finishing", title: "Wall Design", items: [{ type: "image", src: "walldesign1.jpeg" }, { type: "image", src: "walldesign2.jpeg" }, , { type: "image", src: "walldesign3.jpeg" }] as MediaItem[] },
-    { id: "painting", category: "Interior Finishing", title: "Painting", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
-    { id: "furniture", category: "Furniture & Partition System", title: "Furniture", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
-    { id: "office-furniture", category: "Furniture & Partition System", title: "Office & Commercial Furniture", items: [{ type: "image", src: "/office.png" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
-    { id: "aluminum-interiors", category: "Furniture & Partition System", title: "Aluminum Interiors & Partitions", items: [{ type: "image", src: "/images/sample1.jpg" }, { type: "image", src: "/images/sample2.jpg" }] as MediaItem[] },
+    { id: "painting", category: "Interior Finishing", title: "Painting", items: [{ type: "image", src: "/p2.jpg.jpeg" }, { type: "image", src: "/p3.jpg.jpeg" }] as MediaItem[] },
+    { id: "furniture", category: "Furniture & Partition System", title: "Furniture", items: [{ type: "image", src: "/f2.jpg.jpeg" }, { type: "image", src: "/fu3.jpg.jpeg" }] as MediaItem[] },
+    { id: "office-furniture", category: "Furniture & Partition System", title: "Office & Commercial Furniture", items: [{ type: "image", src: "/ocf1.jpg.jpeg" }, { type: "image", src: "/ocf2.jpg.jpeg" }] as MediaItem[] },
+    { id: "aluminum-interiors", category: "Furniture & Partition System", title: "Aluminum Interiors & Partitions", items: [{ type: "image", src: "/al1.jpeg" }, { type: "image", src: "/al2.jpeg" }] as MediaItem[] },
   ];
 
   // Get unique categories for filtering
