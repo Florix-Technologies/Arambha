@@ -1,5 +1,6 @@
 "use client";
 import InfiniteSlider from './InfiniteSlider';
+import VideoPlayer from './VideoPlayer';
 import styles from './BudgetSlider.module.css';
 
 const budgetItems = [
@@ -30,13 +31,9 @@ export default function BudgetSlider() {
                 <div className={styles.card}>
                     <div className={styles.cardImageWrapper}>
                         {getMediaType(item.img) === 'video' ? (
-                            <video
+                            <VideoPlayer
                                 src={item.img}
                                 className={styles.cardImage}
-                                autoPlay
-                                muted
-                                loop
-                                playsInline
                             />
                         ) : (
                             <img
