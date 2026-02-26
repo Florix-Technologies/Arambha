@@ -53,7 +53,7 @@ export default function Navbar() {
       ]
     },
     {
-       title: "Interior Solution",
+      title: "Interior Solution",
       links: [
         { name: 'Kitchen', href: '/services?filter=kitchen' },
         { name: 'Wardrobe', href: '/services?filter=wardrobe' },
@@ -142,7 +142,6 @@ export default function Navbar() {
       title: "Custom Materials",
       links: [
         { name: 'Wooden Interior', href: '/interiors?filter=wooden-interior' },
-        { name: 'Aluminium Interior', href: '/interiors?filter=aluminium-interior' },
       ]
     }
   ];
@@ -180,7 +179,7 @@ export default function Navbar() {
 
         // Group by collection and ensure unique names
         const furnitureCats = Array.from(new Map(allCategories.filter(c => c.collection === 'furniture').map(c => [c.name.toLowerCase().trim(), c])).values());
-        const interiorCats = Array.from(new Map(allCategories.filter(c => c.collection === 'interiors').map(c => [c.name.toLowerCase().trim(), c])).values());
+        const interiorCats = Array.from(new Map(allCategories.filter(c => c.collection === 'interiors').map(c => [c.name.toLowerCase().trim(), c])).values()).filter(c => c.name.toLowerCase().trim() !== 'aluminion interior');
         const galleryCats = Array.from(new Map(allCategories.filter(c => c.collection === 'gallery').map(c => [c.name.toLowerCase().trim(), c])).values());
 
         // Map Furniture

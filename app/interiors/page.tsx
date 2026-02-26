@@ -5,11 +5,11 @@ import styles from './page.module.css';
 
 type Category = { id: string; name: string; slug: string };
 
-type Product = { 
-  id: string; 
-  name: string; 
-  description: string; 
-  image_url: string; 
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+  image_url: string;
   price?: number;
   images?: string[];
 };
@@ -34,8 +34,6 @@ export default function InteriorsPage() {
         if (catsError) throw catsError;
         if (!cats) return;
 
-        setCategories(cats);
-
         // Fetch products for each category
         const prods: Record<string, Product[]> = {};
         for (const cat of cats) {
@@ -47,6 +45,16 @@ export default function InteriorsPage() {
           if (prodError) throw prodError;
           prods[cat.id] = prodData || [];
         }
+
+        // Remove only the empty "Aluminion interior" and "Wooden Interior" categories
+        const excludeNames = ['aluminion interior', 'wooden interior'];
+        const filteredCats = cats.filter(cat => {
+          const isEmpty = !prods[cat.id]?.length;
+          const isExcluded = excludeNames.includes(cat.name.toLowerCase());
+          return !(isEmpty && isExcluded);
+        });
+
+        setCategories(filteredCats);
         setProductsByCat(prods);
       } catch (error) {
         console.error('Error fetching data:', error);
