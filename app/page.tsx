@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
 import styles from './page.module.css';
@@ -8,6 +9,28 @@ import StatsSection from '@/components/ui/StatsSection';
 import WhatYouGet from '@/components/ui/WhatYouGet';
 import WhyArambha from '@/components/ui/WhyArambha';
 import CTASection from '@/components/ui/CTASection';
+
+export const metadata: Metadata = {
+  title: 'Arambha Design & Interior Studio | Premium Interior Design in Bangalore',
+  description:
+    'Crafting Spaces, Defining Lifestyles. Premium interior design & architectural solutions in Bangalore with 35+ years of experience. Modular kitchens, wardrobes, living rooms, custom furniture & complete home interiors. 2000+ projects delivered.',
+  alternates: {
+    canonical: 'https://arambhainteriors.com',
+  },
+};
+
+const homeJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Arambha Design & Interior Studio - Home',
+  description: 'Premium Interior Design & Architectural Solutions in Bangalore.',
+  url: 'https://arambhainteriors.com',
+  mainEntity: {
+    '@type': 'LocalBusiness',
+    name: 'Arambha Design & Interior Studio',
+    url: 'https://arambhainteriors.com',
+  },
+};
 
 export default function Home() {
 
@@ -32,6 +55,10 @@ export default function Home() {
 
   return (
     <div className={styles.main}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
+      />
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroBackground}>
