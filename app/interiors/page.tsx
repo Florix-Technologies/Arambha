@@ -120,7 +120,7 @@ export default function InteriorsPage() {
                     <p>{prod.description}</p>
 
                     <a
-                      href={`https://wa.me/919999999999?text=${encodeURIComponent(
+                      href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
                         `Hello, I am interested in buying the following product:%0A%0A` +
                         `Product: ${prod.name}%0A` +
                         `Description: ${prod.description}%0A` +

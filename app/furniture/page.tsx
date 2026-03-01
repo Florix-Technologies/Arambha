@@ -66,7 +66,7 @@ export default function FurniturePage() {
                     <h3 className={styles.productName}>{prod.name}</h3>
                     <p className={styles.productDesc}>{prod.description}</p>
                     <a
-                      href={`https://wa.me/919999999999?text=${encodeURIComponent(
+                      href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
                         `Hello, I am interested in buying the following product from your Furniture collection:%0A%0A` +
                         `Product: ${prod.name}%0ADescription: ${prod.description}%0A` +
                         (prod.price ? `Price: ${prod.price}%0A` : '') +

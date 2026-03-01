@@ -98,7 +98,7 @@ export default function Home() {
           <p className={styles.introText}>
             With over 35 years of experience in furniture and interior solutions, we have successfully completed 2000+ projects and delivered 30,000+ furniture pieces across India. Our commitment to quality, reliability, and customer satisfaction has made us a trusted partner in transforming homes and commercial spaces.
           </p>
-          <Button href="/contact" variant="text">Start Your Project &rarr;</Button>
+          <Button href="/contact" variant="text" className={styles.highlightedLink}>Start Your Project &rarr;</Button>
         </div>
       </section>
 
@@ -125,7 +125,6 @@ export default function Home() {
 
               </div>
               <div className={styles.cardContent}>
-                <h3 className={styles.cardTitle}>The Stone Residence</h3>
                 <p className={styles.cardCategory}>Residential Interior</p>
               </div>
             </div>
@@ -148,7 +147,6 @@ export default function Home() {
 
               </div>
               <div className={styles.cardContent}>
-                <h3 className={styles.cardTitle}>Olive Grove Villa</h3>
                 <p className={styles.cardCategory}>Architectural Design</p>
               </div>
             </div>
@@ -171,7 +169,6 @@ export default function Home() {
 
               </div>
               <div className={styles.cardContent}>
-                <h3 className={styles.cardTitle}>Urban Loft</h3>
                 <p className={styles.cardCategory}>Furniture & Styling</p>
               </div>
             </div>

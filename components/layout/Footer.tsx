@@ -70,7 +70,7 @@ export default function Footer() {
               📍 No.11/68/1, 2nd Floor, 59th Cross, 4th Block, Rajajinagar, Opp. MEI Polytechnic College, Bangalore - 560010, Karnataka
             </a>
             <p className={styles.link}>✉️ hello@arambha.com</p>
-            <p className={styles.link}>📞 +91 98765 43210</p>
+            <p className={styles.link}>📞 +91 91876 28243</p>
           </motion.div>
 
           <motion.div

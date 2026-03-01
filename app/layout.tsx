@@ -104,7 +104,7 @@ const jsonLd = {
   description:
     "Premium Interior Design, Furniture & Architectural Solutions in Bangalore with 35+ years of experience and 2000+ projects delivered.",
   url: BASE_URL,
-  telephone: "+91-98765-43210",
+  telephone: "+91-91876-28243",
   email: "hello@arambha.com",
   address: {
     "@type": "PostalAddress",

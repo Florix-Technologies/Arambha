@@ -119,6 +119,20 @@
   margin-bottom: 1.5rem;
 }
 
+.highlightedLink {
+  font-size: 1.6rem !important;
+  font-weight: 600 !important;
+  color: var(--color-accent) !important;
+  border-bottom: 2px solid var(--color-accent) !important;
+  padding-bottom: 4px !important;
+  margin-top: 1rem;
+}
+
+.highlightedLink:hover {
+  color: var(--color-text-primary) !important;
+  border-bottom-color: var(--color-text-primary) !important;
+}
+
 /* Featured Section */
 .featuredHeader {
   display: flex;

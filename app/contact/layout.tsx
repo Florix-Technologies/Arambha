@@ -34,7 +34,7 @@ const contactJsonLd = {
     mainEntity: {
         "@type": "LocalBusiness",
         name: "Arambha Design & Interior Studio",
-        telephone: "+91-98765-43210",
+        telephone: "+91-91876-28243",
         email: "hello@arambha.com",
         address: {
             "@type": "PostalAddress",

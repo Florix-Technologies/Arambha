@@ -41,8 +41,8 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    const whatsappNumber = '919876543210';
+
+    const whatsappNumber = '9187628243';
     const message = `Hi Arambha,
 
 I would like to request a consultation.
@@ -56,10 +56,10 @@ Please get back to me at your earliest convenience.
 
 Thank you!`;
 
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(message)}`;
+
     window.open(whatsappUrl, '_blank');
-    
+
     // Reset form
     setFormData({
       fullName: '',
@@ -121,7 +121,7 @@ Thank you!`;
                 </div>
                 <div>
                   <h3>Direct Inquiry</h3>
-                  <p>+91 98765 43210</p>
+                  <p>+91 91876 28243</p>
                   <p>concierge@arambha.com</p>
                 </div>
               </motion.div>
@@ -161,31 +161,31 @@ Thank you!`;
                 <div className={styles.inputRow}>
                   <div className={styles.formGroup}>
                     <label>Full Name</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleChange}
-                      placeholder="John Doe" 
-                      required 
+                      placeholder="John Doe"
+                      required
                     />
                   </div>
                   <div className={styles.formGroup}>
                     <label>Email Address</label>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="john@example.com" 
-                      required 
+                      placeholder="john@example.com"
+                      required
                     />
                   </div>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label>Subject</label>
-                  <select 
+                  <select
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
@@ -201,12 +201,12 @@ Thank you!`;
 
                 <div className={styles.formGroup}>
                   <label>Your Message</label>
-                  <textarea 
-                    rows={6} 
+                  <textarea
+                    rows={6}
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
-                    placeholder="Tell us more about what you're looking for..." 
+                    placeholder="Tell us more about what you're looking for..."
                     required
                   ></textarea>
                 </div>

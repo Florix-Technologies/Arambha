@@ -52,9 +52,9 @@ const Popup = () => {
         };
     }, [isOpen]);
 
-    const whatsappNumber = "919876543210"; // Using the number from contact page
+    const whatsappNumber = "+91 9187628243"; // Using the number from contact page
     const whatsappMessage = "Hi, I am interested in interior design services from Arambha.";
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(whatsappMessage)}`;
 
     return (
         <AnimatePresence>
