@@ -111,7 +111,7 @@ Thank you!`;
                 </div>
                 <div>
                   <h3>Studio Headquarters</h3>
-                  <p>123 Design Avenue, Indiranagar<br />Bangalore, KA 560038</p>
+                  <p>No.11/68/1, 2nd Floor, 59th Cross, 4th Block, Rajajinagar,Opp.<br />MEI Polytechnic College, Bangalore - 560010, Karnataka.</p>
                 </div>
               </motion.div>
 
@@ -122,7 +122,7 @@ Thank you!`;
                 <div>
                   <h3>Direct Inquiry</h3>
                   <p>+91 91876 28243</p>
-                  <p>concierge@arambha.com</p>
+                  <p>admin@arambhainteriorstudio.com</p>
                 </div>
               </motion.div>
 
@@ -141,7 +141,7 @@ Thank you!`;
             <motion.div className={styles.mapWrapper} variants={itemVariants}>
               <iframe
                 className={styles.mapFrame}
-                src="https://maps.google.com/maps?q=Florix%20Technologies%20Bangalore&output=embed"
+                src="https://maps.google.com/maps?q=No.11/68/1,+2nd+Floor,+59th+Cross,+4th+Block,+Rajajinagar,+Opp.+MEI+Polytechnic+College,+Bangalore+-+560010,+Karnataka&output=embed"
                 loading="lazy"
                 allowFullScreen
                 referrerPolicy="no-referrer-when-downgrade"

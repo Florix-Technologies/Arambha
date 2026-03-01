@@ -31,7 +31,7 @@ export default function Footer() {
               }}
             />
             <p className={styles.brandTagline}>
-              "From concept to comfort" - Crafting timeless interiors that reflect your unique story.
+              &quot;From concept to comfort&quot; - Crafting timeless interiors that reflect your unique story.
             </p>
             <div className={styles.socialLinks}>
               <a href="https://www.instagram.com/arambha_interior_studio?igsh=bWQ5dXI1ejdtdWpq" target="_blank" rel="noopener noreferrer" className={styles.socialLink} aria-label="Instagram">
@@ -67,9 +67,10 @@ export default function Footer() {
           >
             <h3>Contact</h3>
             <a href="https://maps.app.goo.gl/yfVj7naand2vRtcCA?g_st=ic" target="_blank" rel="noopener noreferrer" className={styles.link}>
-              📍 No.11/68/1, 2nd Floor, 59th Cross, 4th Block, Rajajinagar, Opp. MEI Polytechnic College, Bangalore - 560010, Karnataka
+              📍 No.11/68/1, 2nd Floor, 59th Cross, 4th Block, Rajajinagar,Opp.
+              MEI Polytechnic College, Bangalore - 560010, Karnataka.
             </a>
-            <p className={styles.link}>✉️ hello@arambha.com</p>
+            <p className={styles.link}>✉️ admin@arambhainteriorstudio.com</p>
             <p className={styles.link}>📞 +91 91876 28243</p>
           </motion.div>
 
