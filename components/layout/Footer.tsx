@@ -93,8 +93,7 @@ export default function Footer() {
         <div className={styles.bottomSection}>
           <p>&copy; {year} Arambha Design and Interior Studio. All rights reserved.</p>
           <div className={styles.bottomLinks}>
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/terms">Terms of Service</Link>
+            <a href="https://florixtechnologies.com/" target="_blank" rel="noopener noreferrer">Developed by Florix Technologies</a>
           </div>
         </div>
       </div>
