@@ -226,8 +226,9 @@ export default function Navbar() {
           }
           setDynamicGallery(groupedGallery);
         }
-      } catch (err) {
-        console.error('Error fetching navigation categories:', err);
+      } catch (err: any) {
+        const errorMsg = err?.message || JSON.stringify(err) || 'Unknown error';
+        console.error('Error fetching navigation categories:', errorMsg);
       }
     }
 

@@ -122,9 +122,10 @@ export default function AdminPage() {
 
       if (error) throw error;
       setCategories(data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      setMessage('Error fetching categories');
+    } catch (error: any) {
+      const errorMsg = error?.message || JSON.stringify(error) || 'Unknown error';
+      console.error('Error fetching categories:', errorMsg);
+      setMessage(`Error fetching categories: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -141,9 +142,10 @@ export default function AdminPage() {
 
       if (error) throw error;
       setProducts(data || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      setMessage('Error fetching products');
+    } catch (error: any) {
+      const errorMsg = error?.message || JSON.stringify(error) || 'Unknown error';
+      console.error('Error fetching products:', errorMsg);
+      setMessage(`Error fetching products: ${errorMsg}`);
     } finally {
       setLoading(false);
     }

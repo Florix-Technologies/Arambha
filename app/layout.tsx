@@ -198,7 +198,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${outfit.variable} ${cormorant.variable}`}>
+      <body className={`${outfit.variable} ${cormorant.variable}`} suppressHydrationWarning>
         <Navbar />
         <main>{children}</main>
         <Footer />
