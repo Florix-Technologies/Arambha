@@ -390,6 +390,27 @@ export default function AdminPage() {
     }
   };
 
+  // Handle password reset - Send recovery email
+  const handleResetPassword = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(userEmail, {
+        redirectTo: `${window.location.origin}/auth/callback`
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setMessage(`✅ Password recovery email sent to ${userEmail}. Please check your email.`);
+    } catch (error: any) {
+      console.error('Error sending reset email:', error);
+      setMessage(`Error sending reset email: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Show login modal if not authenticated
   if (!isAuthenticated) {
     return <LoginModal onLoginSuccess={() => setIsAuthenticated(true)} />;
@@ -408,24 +429,48 @@ export default function AdminPage() {
             <p style={{ fontSize: '0.95rem', color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>
               Logged in as: <strong>{userEmail}</strong>
             </p>
-            <button 
-              onClick={handleLogout}
-              style={{
-                padding: '0.6rem 1.2rem',
-                background: '#ef4444',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: 500,
-                transition: 'background 0.3s ease'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#dc2626')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#ef4444')}
-            >
-              Logout
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={handleResetPassword}
+                disabled={loading}
+                style={{
+                  padding: '0.6rem 1.2rem',
+                  background: '#3b82f6',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                  transition: 'background 0.3s ease',
+                  opacity: loading ? 0.6 : 1
+                }}
+                onMouseEnter={(e) => !loading && (e.currentTarget.style.background = '#2563eb')}
+                onMouseLeave={(e) => !loading && (e.currentTarget.style.background = '#3b82f6')}
+              >
+                Reset Password
+              </button>
+              <button 
+                onClick={handleLogout}
+                disabled={loading}
+                style={{
+                  padding: '0.6rem 1.2rem',
+                  background: '#ef4444',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                  transition: 'background 0.3s ease',
+                  opacity: loading ? 0.6 : 1
+                }}
+                onMouseEnter={(e) => !loading && (e.currentTarget.style.background = '#dc2626')}
+                onMouseLeave={(e) => !loading && (e.currentTarget.style.background = '#ef4444')}
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>
