@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { convertImageUrl, extractGoogleDriveFileId, detectImageService } from '@/lib/imageUtils';
 import LoginModal from '@/components/layout/LoginModal';
 import styles from './page.module.css';
 
@@ -222,21 +223,26 @@ export default function AdminPage() {
 
     try {
       setLoading(true);
+      
+      // Convert image URLs (handles Google Drive links, ImgBB links, etc.)
+      const convertedMainImage = convertImageUrl(prodImageUrl);
+      const convertedImages = prodImages.map(img => convertImageUrl(img));
+      
       const { data, error } = await supabase
         .from('products')
         .insert([{
           category_id: selectedCategory.id,
           name: prodName,
           description: prodDesc,
-          image_url: prodImageUrl,
-          images: prodImages // Include additional images array
+          image_url: convertedMainImage,
+          images: convertedImages // Include additional images array
         }]);
 
       if (error) {
         console.error('Insert error:', error);
         throw new Error(`${error.message} (Code: ${error.code})`);
       }
-      setMessage('Product added successfully!');
+      setMessage('✅ Product added successfully!');
       setProdName('');
       setProdDesc('');
       setProdImageUrl('');
@@ -588,13 +594,84 @@ export default function AdminPage() {
                   disabled={loading}
                 />
                 {prodImageUrl && (
-                  <img 
-                    src={prodImageUrl} 
-                    alt="Preview" 
-                    className={styles.imagePreview} 
-                    style={{ marginTop: 8, maxWidth: 120, maxHeight: 120, borderRadius: 8, border: '1px solid #eee' }} 
-                    onError={e => (e.currentTarget.style.display = 'none')} 
-                  />
+                  <div style={{ marginTop: '0.75rem' }}>
+                    {(prodImageUrl.includes('drive.google.com') || prodImageUrl.includes('ibb.co')) ? (
+                      <>
+                        <div style={{
+                          padding: '0.75rem',
+                          backgroundColor: '#fef3c7',
+                          border: '1px solid #fcd34d',
+                          borderRadius: '4px',
+                          marginBottom: '0.5rem',
+                          fontSize: '0.85rem',
+                          color: '#92400e'
+                        }}>
+                          <strong>📌 {detectImageService(prodImageUrl)} Link Detected</strong>
+                          {prodImageUrl.includes('ibb.co') && (
+                            <p style={{ margin: '0.5rem 0 0 0' }}>
+                              ✅ Converting ImgBB share link to direct image URL...
+                            </p>
+                          )}
+                          {prodImageUrl.includes('drive.google.com') && (
+                            <>
+                              <p style={{ margin: '0.5rem 0 0 0' }}>
+                                ⚠️ <strong>Google Drive has embedding restrictions</strong> - even publicly shared files may not load.
+                              </p>
+                              <p style={{ margin: '0.5rem 0 0 0' }}>
+                                💡 Try <strong>ImgBB</strong> or <strong>Imgur</strong> instead (they work reliably).
+                              </p>
+                            </>
+                          )}
+                        </div>
+                        <img 
+                          src={convertImageUrl(prodImageUrl)} 
+                          alt="Preview" 
+                          className={styles.imagePreview} 
+                          style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8, border: '2px solid #fcd34d' }} 
+                          onError={e => {
+                            (e.currentTarget as HTMLImageElement).style.display = 'none';
+                            const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                            if (parent) {
+                              const errorDiv = document.createElement('div');
+                              errorDiv.style.cssText = 'padding: 0.75rem; background: #fee2e2; border: 1px solid #fecaca; border-radius: 4px; color: #991b1b; font-size: 0.85rem; margin-top: 0.5rem;';
+                              
+                              if (prodImageUrl.includes('ibb.co')) {
+                                errorDiv.innerHTML = `
+                                  <strong>❌ ImgBB image failed to load</strong>
+                                  <p style="margin: 0.5rem 0 0 0;">You're using a <strong>share link</strong> (ibb.co), not the direct image URL.</p>
+                                  <p style="margin: 0.5rem 0 0 0;"><strong>How to get the direct URL:</strong></p>
+                                  <ol style="margin: 0.5rem 0 0 0; padding-left: 1rem;">
+                                    <li>On imgbb.com, right-click the image after upload</li>
+                                    <li>Select <strong>"Copy image link"</strong> (not "Copy page link")</li>
+                                    <li>Paste that URL here (should start with <strong>https://i.ibb.co/</strong>)</li>
+                                  </ol>
+                                `;
+                              } else {
+                                errorDiv.innerHTML = `
+                                  <strong>❌ Image failed to load from ${detectImageService(prodImageUrl)}</strong>
+                                  <p style="margin: 0.5rem 0 0 0;">Try using ImgBB or Imgur instead - they work more reliably.</p>
+                                `;
+                              }
+                              parent.appendChild(errorDiv);
+                            }
+                          }} 
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <img 
+                          src={prodImageUrl} 
+                          alt="Preview" 
+                          className={styles.imagePreview} 
+                          style={{ marginBottom: '0.5rem', maxWidth: 120, maxHeight: 120, borderRadius: 8, border: '1px solid #eee' }} 
+                          onError={e => {
+                            (e.currentTarget as HTMLImageElement).style.display = 'none';
+                          }} 
+                        />
+                        <p style={{ fontSize: '0.8rem', color: '#10b981' }}>✅ {detectImageService(prodImageUrl)}</p>
+                      </>
+                    )}
+                  </div>
                 )}
                 
                 {/* Extra Images Section */}
@@ -603,7 +680,7 @@ export default function AdminPage() {
                   <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
                     <input 
                       className={styles.input}
-                      placeholder="Image URL" 
+                      placeholder="Image URL (Google Drive links supported)" 
                       value={prodImageInput} 
                       onChange={e => setProdImageInput(e.target.value)} 
                       disabled={loading}
@@ -628,10 +705,13 @@ export default function AdminPage() {
                       {prodImages.map((img, idx) => (
                         <div key={idx} style={{ position: 'relative' }}>
                           <img 
-                            src={img} 
+                            src={convertImageUrl(img)} 
                             alt={`Extra ${idx}`} 
                             style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
-                            onError={e => (e.currentTarget.style.display = 'none')}
+                            onError={e => {
+                              (e.currentTarget as HTMLImageElement).style.opacity = '0.5';
+                              (e.currentTarget as HTMLImageElement).style.borderColor = '#fca5a5';
+                            }}
                           />
                           <button
                             type="button"
