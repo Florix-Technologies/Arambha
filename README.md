@@ -149,21 +149,11 @@ This is a full-stack platform for managing and showcasing furniture and interior
 
 ## Setup Instructions
 
-### 1. Backend (Flask)
-- Install dependencies:
-  ```bash
-  pip install -r requirements.txt
+### 1. Frontend (Next.js) - CURRENT SETUP
+- Set up Supabase credentials in `.env.local`:
   ```
-- Set up Firebase and place `key.json` in the project root
-- Start Flask server:
-  ```bash
-  python app.py
-  ```
-
-### 2. Frontend (Next.js)
-- Set environment variable in `.env.local`:
-  ```
-  NEXT_PUBLIC_API_URL=http://localhost:5000
+  NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
   ```
 - Install dependencies:
   ```bash
@@ -174,21 +164,104 @@ This is a full-stack platform for managing and showcasing furniture and interior
   npm run dev
   ```
 
-### 3. Admin Panel
+### 2. Admin Panel
 - Go to `/admin` route in your browser
-- Add/manage categories and products for both furniture and interiors
-- When adding a product, paste an image URL (see live preview)
+- Login with your Supabase admin credentials
+- Add/manage categories and products
+- Product images are referenced by URL (no file uploads needed)
 
-### 4. Data Flow
+### 3. Data Flow
 ```
-Admin Panel → Flask Backend → Firestore → Frontend fetches dynamically
+Admin Panel → Supabase (PostgreSQL) → Frontend fetches dynamically
 ```
 
-### 5. User Experience
-- All product images are loaded from URLs (no upload required)
-- On product pages, users see a "Place Order on WhatsApp" button below each product
-- Clicking the button opens WhatsApp with a pre-filled message containing product details
+### 4. User Experience
+- All product images are loaded from external URLs
+- On product pages, users see a "Place Order on WhatsApp" button
+- Clicking opens WhatsApp with pre-filled product details
 
-## API Reference
+---
 
-See `README_backend.md` for full API and database structure details.
+## 📸 Image Hosting & URL Guide
+
+### ✅ Supported Image Services
+
+Your system automatically handles multiple image hosting services:
+
+| Service | Status | Notes |
+|---------|--------|-------|
+| **ImgBB** | ✅ Auto-converted | Share links converted to direct URLs |
+| **Imgur** | ✅ Direct URLs | Works reliably |
+| **Cloudinary** | ✅ Direct URLs | Professional CDN option |
+| **Google Drive** | ⚠️ Limited | Blocks embedding; not recommended |
+
+### 📌 **IMPORTANT: Using ImgBB (Recommended - Free & Easy)**
+
+**Problem:** ImgBB gives you multiple URLs, and using the wrong one causes images to not load.
+
+**Solution:** Get the **Direct Image URL** (not the share page link)
+
+#### Step 1: Upload Image
+1. Go to [imgbb.com](https://imgbb.com)
+2. Upload your image (drag & drop or click)
+
+#### Step 2: Copy the CORRECT URL
+- After upload, you'll see the image preview
+- **RIGHT-CLICK** on the image
+- Select **"Copy image link"** (NOT "Copy page link")
+- The correct URL looks like: `https://i.ibb.co/XXXXX/image.jpg`
+
+#### Step 3: Paste in Admin Panel
+1. Go to `/admin` 
+2. Select category and click "Add Product"
+3. Paste the image URL in "Main Image URL" field
+4. You should see a preview ✅
+
+**Wrong URL format (won't work):**
+```
+https://ibb.co/0yWDVpY  ❌ (This is a share page, not the image)
+```
+
+**Correct URL format (will work):**
+```
+https://i.ibb.co/0yWDVpY/image.jpg  ✅ (This is the direct image)
+```
+
+### 🎯 Quick Imgur Alternative
+
+If ImgBB doesn't work, try **Imgur**:
+1. Go to [imgur.com](https://imgur.com)
+2. Click **"New Post"** and upload image
+3. Right-click image → **Copy image address**
+4. Paste in admin panel
+5. Image loads immediately ✅
+
+### 🚀 Pro Tip: Cloudinary (For Production)
+
+For serious projects, use **Cloudinary**:
+1. Sign up at [cloudinary.com](https://cloudinary.com) (free tier available)
+2. Upload images to your Cloudinary account
+3. Use the generated image URLs
+4. Reliable CDN with 99.9% uptime ✅
+
+### ⚠️ Why Google Drive Doesn't Work?
+
+Google Drive blocks web embedding for security reasons:
+- Even if files are "publicly shared", Google Drive prevents direct embedding
+- This is by design to protect copyright and privacy
+- **Solution:** Use ImgBB, Imgur, or Cloudinary instead
+
+### 🔄 Automatic URL Conversion
+
+Your admin panel automatically detects and converts:
+- **ImgBB share links** → Direct image URLs
+- **Google Drive links** → Attempted conversion (may fail due to restrictions)
+- **Other URLs** → Used as-is
+
+Example:
+```
+Input:  https://ibb.co/0yWDVpY
+Auto-converts to: https://i.ibb.co/0yWDVpY/image.jpg
+```
+
+---
