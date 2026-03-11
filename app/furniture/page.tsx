@@ -59,7 +59,7 @@ export default function FurniturePage() {
                 <div key={prod.id} className={styles.card}>
                   <div className={styles.imagePlaceholder}>
                     {prod.image_url ? (
-                      <img src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : prod.name}
                   </div>
                   <div className={styles.cardContent}>
