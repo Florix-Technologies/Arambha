@@ -39,7 +39,7 @@ export default function InteriorsPage() {
         for (const cat of cats) {
           const { data: prodData, error: prodError } = await supabase
             .from('products')
-            .select('*')
+            .select('id, name, description, image_url, price, category_id, images')
             .eq('category_id', cat.id);
 
           if (prodError) throw prodError;

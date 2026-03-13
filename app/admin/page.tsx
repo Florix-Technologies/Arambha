@@ -7,7 +7,7 @@ import LoginModal from '@/components/layout/LoginModal';
 import styles from './page.module.css';
 
 type Category = { id: string; name: string; slug: string; collection: string };
-type Product = { id: string; category_id: string; name: string; description: string; image_url: string; images?: string[] };
+type Product = { id: string; category_id: string; name: string; description: string; image_url: string; price?: number; images?: string[] };
 
 const collections = [
   { key: 'furniture', label: 'Furniture' },
@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [showAddCat, setShowAddCat] = useState(false);
   const [prodName, setProdName] = useState('');
   const [prodDesc, setProdDesc] = useState('');
+  const [prodPrice, setProdPrice] = useState('');
   const [prodImageUrl, setProdImageUrl] = useState('');
   const [prodImages, setProdImages] = useState<string[]>([]);
   const [prodImageInput, setProdImageInput] = useState('');
@@ -234,6 +235,7 @@ export default function AdminPage() {
           category_id: selectedCategory.id,
           name: prodName,
           description: prodDesc,
+          price: prodPrice ? parseFloat(prodPrice) : null,
           image_url: convertedMainImage,
           images: convertedImages // Include additional images array
         }]);
@@ -245,6 +247,7 @@ export default function AdminPage() {
       setMessage('✅ Product added successfully!');
       setProdName('');
       setProdDesc('');
+      setProdPrice('');
       setProdImageUrl('');
       setProdImages([]);
       setProdImageInput('');
@@ -587,6 +590,15 @@ export default function AdminPage() {
                 />
                 <input 
                   className={styles.input} 
+                  placeholder="Price (Optional)" 
+                  type="number" 
+                  step="0.01"
+                  value={prodPrice} 
+                  onChange={e => setProdPrice(e.target.value)} 
+                  disabled={loading}
+                />
+                <input 
+                  className={styles.input} 
                   placeholder="Main Image URL" 
                   value={prodImageUrl} 
                   onChange={e => setProdImageUrl(e.target.value)} 
@@ -755,6 +767,11 @@ export default function AdminPage() {
                     <div className={styles.cardContent}>
                       <h3>{prod.name}</h3>
                       <p>{prod.description}</p>
+                      {prod.price && (
+                        <p style={{ fontSize: '0.95rem', color: 'var(--color-accent)', fontWeight: 600, marginTop: '0.25rem' }}>
+                          Price: ₹ {prod.price.toLocaleString('en-IN')}
+                        </p>
+                      )}
                       {prod.images && prod.images.length > 0 && (
                         <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.5rem' }}>
                           📸 {prod.images.length} extra image{prod.images.length !== 1 ? 's' : ''}

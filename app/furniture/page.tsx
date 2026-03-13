@@ -29,7 +29,7 @@ export default function FurniturePage() {
         for (const cat of cats) {
           const { data: prodData, error: prodError } = await supabase
             .from('products')
-            .select('*')
+            .select('id, name, description, image_url, price, category_id, images')
             .eq('category_id', cat.id);
 
           if (prodError) throw prodError;
@@ -65,6 +65,11 @@ export default function FurniturePage() {
                   <div className={styles.cardContent}>
                     <h3 className={styles.productName}>{prod.name}</h3>
                     <p className={styles.productDesc}>{prod.description}</p>
+                    {prod.price && (
+                      <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-accent)', marginTop: '0.5rem' }}>
+                        ₹ {prod.price.toLocaleString('en-IN')}
+                      </p>
+                    )}
                     <a
                       href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
                         `Hello, I am interested in buying the following product from your Furniture collection:%0A%0A` +
