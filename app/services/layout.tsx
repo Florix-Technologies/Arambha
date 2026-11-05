@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
     title: "Our Services – Modular Kitchens, Wardrobes, Living Rooms & More",
@@ -23,11 +24,11 @@ export const metadata: Metadata = {
         title: "Our Services | Arambha Design & Interior Studio",
         description:
             "Complete range of interior design services – kitchens, wardrobes, living rooms, false ceilings, furniture & more. Premium quality, affordable pricing.",
-        url: "https://arambhainteriors.com/services",
+        url: `${SITE_URL}/services`,
         type: "website",
     },
     alternates: {
-        canonical: "https://arambhainteriors.com/services",
+        canonical: `${SITE_URL}/services`,
     },
 };
 

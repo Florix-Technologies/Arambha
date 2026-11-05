@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SITE_URL } from '@/lib/site';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
 import styles from './page.module.css';
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   description:
     'Crafting Spaces, Defining Lifestyles. Premium interior design & architectural solutions in Bangalore with 35+ years of experience. Modular kitchens, wardrobes, living rooms, custom furniture & complete home interiors. 2000+ projects delivered.',
   alternates: {
-    canonical: 'https://arambhainteriors.com',
+    canonical: SITE_URL,
   },
 };
 
@@ -24,11 +25,11 @@ const homeJsonLd = {
   '@type': 'WebPage',
   name: 'Arambha Design & Interior Studio - Home',
   description: 'Premium Interior Design & Architectural Solutions in Bangalore.',
-  url: 'https://arambhainteriors.com',
+  url: SITE_URL,
   mainEntity: {
     '@type': 'LocalBusiness',
     name: 'Arambha Design & Interior Studio',
-    url: 'https://arambhainteriors.com',
+    url: SITE_URL,
   },
 };
 

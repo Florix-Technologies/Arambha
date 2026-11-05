@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL } from '@/lib/site';
 import { Outfit, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 
@@ -15,10 +16,8 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
-const BASE_URL = "https://arambhainteriors.com";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Arambha Design & Interior Studio | Premium Interior Design in Bangalore",
     template: "%s | Arambha Design & Interior Studio",
@@ -56,7 +55,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: BASE_URL,
+    url: SITE_URL,
     siteName: "Arambha Design & Interior Studio",
     title: "Arambha Design & Interior Studio | Premium Interior Design in Bangalore",
     description:
@@ -89,7 +88,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: BASE_URL,
+    canonical: SITE_URL,
   },
   category: "Interior Design",
 };
@@ -98,12 +97,12 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "@id": `${BASE_URL}/#business`,
+  "@id": `${SITE_URL}/#business`,
   name: "Arambha Design & Interior Studio",
-  image: `${BASE_URL}/logo1.png`,
+  image: `${SITE_URL}/logo1.png`,
   description:
     "Premium Interior Design, Furniture & Architectural Solutions in Bangalore with 35+ years of experience and 2000+ projects delivered.",
-  url: BASE_URL,
+  url: SITE_URL,
   telephone: "+91-91876-28243",
   email: "hello@arambha.com",
   address: {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
     title: "Contact Us – Get a Free Interior Design Consultation",
@@ -16,11 +17,11 @@ export const metadata: Metadata = {
         title: "Contact Us | Arambha Design & Interior Studio",
         description:
             "Get a free interior design consultation. Visit our studio in Rajajinagar, Bangalore or reach us via phone, email, or WhatsApp.",
-        url: "https://arambhainteriors.com/contact",
+        url: `${SITE_URL}/contact`,
         type: "website",
     },
     alternates: {
-        canonical: "https://arambhainteriors.com/contact",
+        canonical: `${SITE_URL}/contact`,
     },
 };
 
@@ -30,7 +31,7 @@ const contactJsonLd = {
     "@type": "ContactPage",
     name: "Contact Arambha Design & Interior Studio",
     description: "Get in touch for a free interior design consultation in Bangalore.",
-    url: "https://arambhainteriors.com/contact",
+    url: `${SITE_URL}/contact`,
     mainEntity: {
         "@type": "LocalBusiness",
         name: "Arambha Design & Interior Studio",

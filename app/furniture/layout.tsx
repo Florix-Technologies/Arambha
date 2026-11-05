@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
     title: "Furniture Collection – Handcrafted & Custom Furniture",
@@ -19,11 +20,11 @@ export const metadata: Metadata = {
         title: "Furniture Collection | Arambha Design & Interior Studio",
         description:
             "Handcrafted furniture that blends form, function, and timeless aesthetics. Custom designs available.",
-        url: "https://arambhainteriors.com/furniture",
+        url: `${SITE_URL}/furniture`,
         type: "website",
     },
     alternates: {
-        canonical: "https://arambhainteriors.com/furniture",
+        canonical: `${SITE_URL}/furniture`,
     },
 };
 
