@@ -130,6 +130,20 @@
   background: var(--color-accent);
   color: #fff;
 }
+.categoryActions {
+  display: inline-flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+.renameButton {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
 .deleteButton {
   background: #e74c3c;
   color: #fff;

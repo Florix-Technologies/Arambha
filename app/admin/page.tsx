@@ -52,6 +52,9 @@ export default function AdminPage() {
   const [catName, setCatName] = useState('');
   const [catError, setCatError] = useState('');
   const [showAddCat, setShowAddCat] = useState(false);
+  const [renamingCategory, setRenamingCategory] = useState<Category | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameError, setRenameError] = useState('');
   const [prodName, setProdName] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodPrice, setProdPrice] = useState('');
@@ -263,6 +266,57 @@ export default function AdminPage() {
     } catch (error: unknown) {
       console.error('Error adding category:', error);
       setCatError(`Error adding category: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRenameCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renamingCategory) return;
+    setRenameError('');
+    const name = normalizeCategoryName(renameValue);
+    if (!name) {
+      setRenameError('Category name is required');
+      return;
+    }
+    const slug = slugify(name);
+    if (!slug) {
+      setRenameError('Use at least one letter or number in the category name.');
+      return;
+    }
+    if (name === renamingCategory.name && slug === renamingCategory.slug) {
+      setRenamingCategory(null);
+      return;
+    }
+
+    const { id, collection } = renamingCategory;
+    try {
+      setLoading(true);
+      const { data: rows, error: queryError } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .eq('collection', collection);
+      if (queryError) throw new Error(queryError.message);
+      const conflict = findCategoryConflict(rows || [], name, slug, renamingCategory.id);
+      if (conflict) {
+        const collectionLabel = collections.find(item => item.key === collection)?.label || collection;
+        setRenameError(`A category called "${conflict.name}" already exists in ${collectionLabel}.`);
+        return;
+      }
+
+      const { data, error } = await supabase.from('categories').update({ name, slug }).eq('id', id).select('id');
+      if (error) throw new Error(error.message);
+      if (!data?.length) {
+        setRenameError(UPDATE_BLOCKED_MESSAGE);
+        return;
+      }
+      setRenamingCategory(null);
+      setMessage('Category renamed successfully!');
+      await fetchCategories();
+      setSelectedCategory(current => current?.id === id ? { ...current, name, slug } : current);
+    } catch (error: unknown) {
+      setRenameError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -743,6 +797,21 @@ export default function AdminPage() {
                 onClick={() => setSelectedCategory(cat)}
               >
                 <span>{cat.name}</span>
+                <span className={styles.categoryActions}>
+                  <button
+                    type="button"
+                    className={styles.renameButton}
+                    aria-label={`Rename ${cat.name}`}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setRenamingCategory(cat);
+                      setRenameValue(cat.name);
+                      setRenameError('');
+                    }}
+                    disabled={loading}
+                  >
+                    ✏️
+                  </button>
                 <button 
                   className={styles.deleteButton} 
                   onClick={e => { e.stopPropagation(); handleDeleteCategory(cat); }}
@@ -750,6 +819,7 @@ export default function AdminPage() {
                 >
                   🗑
                 </button>
+                </span>
               </li>
             ))}
           </ul>
@@ -770,6 +840,29 @@ export default function AdminPage() {
                   <div className={styles.modalActions}>
                     <button className={styles.button} type="submit" disabled={loading}>Create</button>
                     <button className={styles.button} type="button" onClick={() => { setCatError(''); setShowAddCat(false); }} disabled={loading}>Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+          {renamingCategory && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="rename-category-title">
+                <h3 id="rename-category-title">Rename category</h3>
+                <form onSubmit={handleRenameCategory}>
+                  <label htmlFor="rename-category-name">Name</label>
+                  <input
+                    id="rename-category-name"
+                    className={styles.input}
+                    value={renameValue}
+                    onChange={e => { setRenameValue(e.target.value); setRenameError(''); }}
+                    disabled={loading}
+                  />
+                  <p>Link: /{renamingCategory.collection}?filter={slugify(renameValue)}</p>
+                  {renameError && <p className={styles.fieldError} role="alert">{renameError}</p>}
+                  <div className={styles.modalActions}>
+                    <button className={styles.button} type="submit" disabled={loading}>Save</button>
+                    <button className={styles.button} type="button" onClick={() => { setRenameError(''); setRenamingCategory(null); }} disabled={loading}>Cancel</button>
                   </div>
                 </form>
               </div>
