@@ -2,9 +2,9 @@
 import type { CSSProperties } from 'react';
 import CatalogMedia from '@/components/ui/CatalogMedia';
 import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
-import interiorsStyles from '@/app/interiors/page.module.css';
-import furnitureStyles from '@/app/furniture/page.module.css';
-import galleryStyles from '@/app/gallery/page.module.css';
+import interiorsStyles from '@/app/(site)/interiors/page.module.css';
+import furnitureStyles from '@/app/(site)/furniture/page.module.css';
+import galleryStyles from '@/app/(site)/gallery/page.module.css';
 
 export type ItemCardData = {
   name: string;
