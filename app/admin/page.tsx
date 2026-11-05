@@ -212,10 +212,21 @@ export default function AdminPage() {
 
   // Delete category
   const handleDeleteCategory = async (cat: Category) => {
-    if (!window.confirm(`Delete category "${cat.name}"?`)) return;
-
     try {
       setLoading(true);
+      // products.category_id is ON DELETE CASCADE, so the database removes these items with the category.
+      const { count, error: countError } = await supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', cat.id);
+      if (countError) throw new Error(`Could not count this category's items: ${countError.message}`);
+
+      const items = count ?? 0;
+      const consequence = items === 0
+        ? 'It has no items.'
+        : `This also permanently deletes ${items} item${items === 1 ? '' : 's'} in it. This cannot be undone.`;
+      if (!window.confirm(`Delete category "${cat.name}"?\n\n${consequence}`)) return;
+
       const { error } = await supabase
         .from('categories')
         .delete()
