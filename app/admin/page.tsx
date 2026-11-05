@@ -508,9 +508,15 @@ export default function AdminPage() {
               <li
                 key={cat.id}
                 className={selectedCategory?.id === cat.id ? styles.selectedCategory : styles.categoryRow}
-                onClick={() => setSelectedCategory(cat)}
               >
-                <span>{cat.name}</span>
+                <button
+                  type="button"
+                  className={styles.categoryName}
+                  aria-pressed={selectedCategory?.id === cat.id}
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  {cat.name}
+                </button>
                 <span className={styles.categoryActions}>
                   <button
                     type="button"

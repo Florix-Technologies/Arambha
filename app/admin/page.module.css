@@ -130,6 +130,15 @@
   background: #75664f;
   color: #fff;
 }
+.categoryName {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
 .categoryActions {
   display: inline-flex;
   gap: 0.25rem;
