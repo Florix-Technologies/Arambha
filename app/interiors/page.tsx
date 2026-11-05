@@ -3,7 +3,7 @@ import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { fetchCatalog, filterCatalog, type Catalog } from '@/lib/catalog';
-import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
+import { InteriorsItemCard } from '@/components/catalog/ItemCard';
 import CatalogMedia from '@/components/ui/CatalogMedia';
 import styles from './page.module.css';
 
@@ -42,80 +42,14 @@ function InteriorsContent() {
           <h2 className={styles.sectionTitle}>{cat.name}</h2>
 
           <div className={styles.categoryGrid}>
-            {cat.products?.map(prod => {
-
-              const isSelected =
-                selectedProduct?.categoryId === cat.id &&
-                selectedProduct?.productId === prod.id;
-
-              return (
-                <div
-                  className={styles.card}
-                  key={prod.id}
-                  onClick={() =>
-                    setSelectedProduct({
-                      categoryId: cat.id,
-                      productId: prod.id,
-                    })
-                  }
-                  style={{
-                    cursor: "pointer",
-                    border: isSelected
-                      ? "2px solid var(--color-accent)"
-                      : undefined,
-                  }}
-                >
-                  <div className={styles.imagePlaceholder}>
-                    {prod.image_url ? (
-                      <CatalogMedia
-                        src={prod.image_url}
-                        alt={prod.name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                        }}
-                      />
-                    ) : (
-                      prod.name
-                    )}
-                  </div>
-
-                  <div className={styles.cardContent}>
-                    <h3>{prod.name}</h3>
-                    <p>{prod.description}</p>
-                    {prod.price != null && (
-                      <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-accent)', marginTop: '0.5rem' }}>
-                        ₹ {prod.price.toLocaleString('en-IN')}
-                      </p>
-                    )}
-
-                    <a
-                      href={whatsappUrl(productInquiryMessage('Hello, I am interested in buying the following product:', {
-                        name: prod.name,
-                        description: prod.description,
-                        price: prod.price,
-                      }))}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: "inline-block",
-                        marginTop: "0.75rem",
-                        padding: "0.5rem 1.2rem",
-                        background: "var(--color-text-secondary)",
-                        color: "#fff",
-                        borderRadius: "0.5rem",
-                        fontWeight: 500,
-                        textDecoration: "none",
-                        fontSize: "1rem",
-                      }}
-                    >
-                      Place Order on WhatsApp
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
+            {cat.products?.map(prod => (
+              <InteriorsItemCard
+                key={prod.id}
+                item={prod}
+                selected={selectedProduct?.categoryId === cat.id && selectedProduct?.productId === prod.id}
+                onOpen={() => setSelectedProduct({ categoryId: cat.id, productId: prod.id })}
+              />
+            ))}
           </div>
 
           {/* ✅ IMAGE EXPANSION BELOW CATEGORY */}

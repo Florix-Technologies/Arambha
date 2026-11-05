@@ -253,14 +253,16 @@
     background: #f8f8f8;
 }
 
-.imagePlaceholder img {
+.imagePlaceholder img,
+.imagePlaceholder video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-.card:hover .imagePlaceholder img {
+.card:hover .imagePlaceholder img,
+.card:hover .imagePlaceholder video {
     transform: scale(1.08);
 }
 

@@ -2,6 +2,7 @@
 import { motion, Variants } from 'framer-motion';
 import { useState } from 'react';
 import { whatsappUrl } from '@/lib/whatsapp';
+import SmartVideo from '@/components/ui/SmartVideo';
 import styles from './page.module.css';
 
 export default function ContactPage() {
@@ -71,15 +72,7 @@ Thank you!`;
     <main className={styles.main}>
       {/* Immersive Video Background */}
       <div className={styles.videoWrapper}>
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className={styles.backgroundVideo}
-        >
-          <source src="/v5.mp4" type="video/mp4" />
-        </video>
+        <SmartVideo src="/v5.mp4" className={styles.backgroundVideo} />
         <div className={styles.videoOverlay}></div>
       </div>
 

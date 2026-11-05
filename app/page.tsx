@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/site';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
+import SmartVideo from '@/components/ui/SmartVideo';
+import SectionBoundary from '@/components/ui/SectionBoundary';
 import styles from './page.module.css';
 import BudgetSlider from '@/components/ui/BudgetSlider';
 import DesignCategories from '@/components/ui/DesignCategories';
@@ -63,16 +65,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroBackground}>
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className={styles.heroVideo}
-          >
-            <source src="/v3.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          <SmartVideo src="/v3.mp4" className={styles.heroVideo} />
         </div>
         <div className={styles.heroOverlay}></div>
 
@@ -112,17 +105,7 @@ export default function Home() {
             <div className={styles.card}>
               <div className={styles.cardImageWrapper}>
 
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className={styles.cardImage}
-                  style={{ zIndex: 1 }}
-                >
-                  <source src="/SR.MP4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                <SmartVideo src="/SR.MP4" className={styles.cardImage} style={{ zIndex: 1 }} />
 
               </div>
               <div className={styles.cardContent}>
@@ -134,17 +117,7 @@ export default function Home() {
             <div className={styles.card}>
               <div className={styles.cardImageWrapper}>
 
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className={styles.cardImage}
-                  style={{ zIndex: 1 }}
-                >
-                  <source src="/v6.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                <SmartVideo src="/v6.mp4" className={styles.cardImage} style={{ zIndex: 1 }} />
 
               </div>
               <div className={styles.cardContent}>
@@ -156,17 +129,7 @@ export default function Home() {
             <div className={styles.card}>
               <div className={styles.cardImageWrapper}>
 
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className={styles.cardImage}
-                  style={{ zIndex: 1 }}
-                >
-                  <source src="/v10.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                <SmartVideo src="/v10.mp4" className={styles.cardImage} style={{ zIndex: 1 }} />
 
               </div>
               <div className={styles.cardContent}>
@@ -190,20 +153,20 @@ export default function Home() {
           {/* ===================== */}
           {/* Budget Cards – Slider */}
           {/* ===================== */}
-          <BudgetSlider />
+          <SectionBoundary name="BudgetSlider"><BudgetSlider /></SectionBoundary>
 
         </div>
       </section>
 
       {/* Design Categories Section */}
-      <DesignCategories categories={designCategories} />
+      <SectionBoundary name="DesignCategories"><DesignCategories categories={designCategories} /></SectionBoundary>
 
 
-      <ProcessSection />
-      <StatsSection />
-      <WhatYouGet />
-      <WhyArambha />
-      <CTASection />
+      <SectionBoundary name="ProcessSection"><ProcessSection /></SectionBoundary>
+      <SectionBoundary name="StatsSection"><StatsSection /></SectionBoundary>
+      <SectionBoundary name="WhatYouGet"><WhatYouGet /></SectionBoundary>
+      <SectionBoundary name="WhyArambha"><WhyArambha /></SectionBoundary>
+      <SectionBoundary name="CTASection"><CTASection /></SectionBoundary>
     </div>
   );
 }

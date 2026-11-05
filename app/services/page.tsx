@@ -65,7 +65,7 @@ function MediaGrid({ items }: { items: MediaItem[] }) {
               {item.type === "image" ? (
                 <img src={item.src} alt={`Service ${i + 1}`} />
               ) : (
-                <video src={item.src} muted loop playsInline />
+                <SmartVideo src={item.src} />
               )}
               <div className={styles.overlay}>
                 <span className={styles.viewIcon}>
@@ -147,6 +147,7 @@ function MediaGrid({ items }: { items: MediaItem[] }) {
 }
 
 import { Suspense } from "react";
+import SmartVideo from '@/components/ui/SmartVideo';
 
 function ServicesContent() {
   const searchParams = useSearchParams();
