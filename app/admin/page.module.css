@@ -153,7 +153,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 1100;
 }
 .modal {
   background: #fff;
@@ -379,4 +379,8 @@
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
+}
+.idleWarningText {
+  margin-top: 0.75rem;
+  line-height: 1.5;
 }

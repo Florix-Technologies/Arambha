@@ -6,10 +6,29 @@ import { findCategoryConflict, normalizeCategoryName, slugify } from '@/lib/slug
 import { GOOGLE_DRIVE_WARNING, isGoogleDriveLink, normalizeMediaUrl } from '@/lib/imageUtils';
 import LoginModal from '@/components/layout/LoginModal';
 import MediaPreview from './MediaPreview';
+import { useInactivityLogout } from './useInactivityLogout';
 import styles from './page.module.css';
 
 type Category = { id: string; name: string; slug: string; collection: string };
 type Product = { id: string; category_id: string; name: string; description: string; image_url: string; price?: number; images?: string[] };
+
+const IDLE_LIMIT_MS = 30 * 60 * 1000;
+const IDLE_WARNING_MS = 60 * 1000;
+const DRAFT_KEY = 'admin-unsaved-form';
+
+type FormDraft = {
+  email: string;
+  collection: string;
+  categoryId: string | null;
+  catName: string;
+  prodName: string;
+  prodDesc: string;
+  prodPrice: string;
+  prodImageUrl: string;
+  prodImages: string[];
+  prodImageInput: string;
+  editingProduct: Product | null;
+};
 
 const collections = [
   { key: 'furniture', label: 'Furniture' },
@@ -40,7 +59,8 @@ export default function AdminPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [sessionTimeout, setSessionTimeout] = useState<NodeJS.Timeout | null>(null); // Session timeout
+  const [logoutNotice, setLogoutNotice] = useState('');
+  const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -54,8 +74,6 @@ export default function AdminPage() {
         if (session?.user) {
           setIsAuthenticated(true);
           setUserEmail(session.user.email || '');
-          // Start a 30-minute inactivity timeout
-          startSessionTimeout();
         } else {
           setIsAuthenticated(false);
           setUserEmail('');
@@ -83,25 +101,57 @@ export default function AdminPage() {
         console.log('User signed out detected');
         setIsAuthenticated(false);
         setUserEmail('');
-        clearSessionTimeout();
       } else if (session?.user) {
         console.log('User signed in/session exists');
         setIsAuthenticated(true);
         setUserEmail(session.user.email || '');
-        startSessionTimeout();
       } else {
         setIsAuthenticated(false);
         setUserEmail('');
-        clearSessionTimeout();
       }
     });
 
     return () => {
       console.log('Cleaning up auth subscription');
       subscription?.unsubscribe();
-      clearSessionTimeout();
     };
   }, [isLoggingOut]);
+
+  // Restore a form that was open when the inactivity logout happened in this tab.
+  useEffect(() => {
+    if (!isAuthenticated || !userEmail) return;
+    let draft: FormDraft | null = null;
+    try {
+      const saved = sessionStorage.getItem(DRAFT_KEY);
+      if (!saved) return;
+      sessionStorage.removeItem(DRAFT_KEY);
+      draft = JSON.parse(saved);
+    } catch {
+      return;
+    }
+    if (!draft || draft.email !== userEmail) return;
+    setSelectedCollection(draft.collection);
+    setPendingCategoryId(draft.categoryId);
+    setCatName(draft.catName);
+    setProdName(draft.prodName);
+    setProdDesc(draft.prodDesc);
+    setProdPrice(draft.prodPrice);
+    setProdImageUrl(draft.prodImageUrl);
+    setProdImages(draft.prodImages);
+    setProdImageInput(draft.prodImageInput);
+    setEditingProduct(draft.editingProduct);
+    setLogoutNotice('');
+    setMessage('Your unsaved form from before you were logged out has been restored. Check it, then save.');
+  }, [isAuthenticated, userEmail]);
+
+  useEffect(() => {
+    if (!pendingCategoryId) return;
+    const category = categories.find(cat => cat.id === pendingCategoryId);
+    if (category) {
+      setPendingCategoryId(null);
+      setSelectedCategory(category);
+    }
+  }, [categories, pendingCategoryId]);
 
   // Fetch categories when collection changes
   useEffect(() => {
@@ -408,23 +458,6 @@ export default function AdminPage() {
     setEditingProduct({ ...editingProduct, images: newImages });
   };
 
-  // Session timeout - auto logout after 30 minutes of inactivity
-  const startSessionTimeout = () => {
-    clearSessionTimeout(); // Clear any existing timeout
-    const timeout = setTimeout(() => {
-      console.log('Session timeout - auto logging out');
-      handleLogout();
-    }, 30 * 60 * 1000); // 30 minutes
-    setSessionTimeout(timeout);
-  };
-
-  const clearSessionTimeout = () => {
-    if (sessionTimeout) {
-      clearTimeout(sessionTimeout);
-      setSessionTimeout(null);
-    }
-  };
-
   // Handle logout - END SESSION PROPERLY
   const handleLogout = async () => {
     console.log('🔴 LOGOUT STARTED');
@@ -462,7 +495,6 @@ export default function AdminPage() {
       setProdImageInput('');
       setEditingProduct(null);
       setSelectedCollection(collections[0].key);
-      clearSessionTimeout();
 
       console.log('✅ All state cleared - Login modal should now be visible');
       console.log('🔴 LOGOUT COMPLETE');
@@ -472,7 +504,6 @@ export default function AdminPage() {
       // Force logout anyway
       setIsAuthenticated(false);
       setUserEmail('');
-      clearSessionTimeout();
     } finally {
       setIsLoggingOut(false); // Unset flag
     }
@@ -499,9 +530,37 @@ export default function AdminPage() {
     }
   };
 
+  const hasUnsavedForm = !!(catName || prodName || prodDesc || prodPrice || prodImageUrl || prodImages.length || prodImageInput || editingProduct);
+
+  const handleInactivityLogout = async () => {
+    const draft: FormDraft = {
+      email: userEmail, collection: selectedCollection, categoryId: selectedCategory?.id ?? null, catName,
+      prodName, prodDesc, prodPrice, prodImageUrl, prodImages, prodImageInput, editingProduct,
+    };
+    const keepDraft = hasUnsavedForm;
+    await handleLogout();
+    if (keepDraft) {
+      try {
+        sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      } catch (error) {
+        console.error('Could not keep the unsaved form:', error);
+      }
+    }
+    setLogoutNotice(keepDraft
+      ? 'You were logged out after 30 minutes without activity. Log in again here and your unsaved form will come back.'
+      : 'You were logged out after 30 minutes without activity.');
+  };
+
+  const { secondsLeft: idleSecondsLeft, stayLoggedIn } = useInactivityLogout({
+    enabled: isAuthenticated,
+    idleLimitMs: IDLE_LIMIT_MS,
+    warningMs: IDLE_WARNING_MS,
+    onTimeout: handleInactivityLogout,
+  });
+
   // Show login modal if not authenticated
   if (!isAuthenticated) {
-    return <LoginModal onLoginSuccess={() => setIsAuthenticated(true)} />;
+    return <LoginModal notice={logoutNotice} onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
   return (
@@ -887,6 +946,21 @@ export default function AdminPage() {
           )}
         </main>
       </div>
+
+      {idleSecondsLeft !== null && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal} role="alertdialog" aria-modal="true" aria-labelledby="idle-warning-title">
+            <h3 id="idle-warning-title">Still there?</h3>
+            <p className={styles.idleWarningText}>
+              You will be logged out in {idleSecondsLeft} second{idleSecondsLeft === 1 ? '' : 's'} because of inactivity.
+              {hasUnsavedForm && ' Your unsaved form will be kept and restored when you log in again.'}
+            </p>
+            <div className={styles.modalActions}>
+              <button className={styles.button} onClick={stayLoggedIn}>Stay logged in</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className={styles.footer}>Admin Panel &copy; {new Date().getFullYear()}</footer>

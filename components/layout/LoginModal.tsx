@@ -5,9 +5,10 @@ import styles from './LoginModal.module.css';
 
 interface LoginModalProps {
   onLoginSuccess: () => void;
+  notice?: string;
 }
 
-export default function LoginModal({ onLoginSuccess }: LoginModalProps) {
+export default function LoginModal({ onLoginSuccess, notice }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -89,6 +90,8 @@ export default function LoginModal({ onLoginSuccess }: LoginModalProps) {
           <>
             <h2 className={styles.title}>Admin Login</h2>
             <p className={styles.subtitle}>Secure access to admin panel</p>
+
+            {notice && <div className={styles.noticeBox} role="status">{notice}</div>}
 
             {error && (
               <div className={styles.errorBox}>
