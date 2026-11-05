@@ -112,20 +112,20 @@
 
 .dropdownItem:hover {
     background: rgba(140, 124, 98, 0.06);
-    color: var(--color-accent);
+    color: var(--brand-text);
     padding-left: 1.2rem;
 }
 
 .selected {
     background: rgba(140, 124, 98, 0.1) !important;
-    color: var(--color-accent) !important;
+    color: var(--brand-text) !important;
     font-weight: 600;
 }
 
 .dot {
     width: 6px;
     height: 6px;
-    background: var(--color-accent);
+    background: var(--brand-btn);
     border-radius: 50%;
     margin-left: auto;
     box-shadow: 0 0 10px rgba(140, 124, 98, 0.4);
@@ -146,7 +146,7 @@
     display: inline-block;
     font-family: var(--font-outfit);
     font-size: 1rem;
-    color: var(--color-accent);
+    color: var(--brand-text);
     border: 1px solid var(--color-accent);
     padding: 0.75rem 2rem;
     border-radius: 4px;
@@ -154,7 +154,7 @@
 }
 
 .cta:hover {
-    background: var(--color-accent);
+    background: var(--brand-btn);
     color: white;
     transform: translateY(-2px);
 }
@@ -195,7 +195,7 @@
 }
 
 .navButton:hover {
-    background: var(--color-accent);
+    background: var(--brand-btn);
     border-color: var(--color-accent);
     color: white;
 }
@@ -264,7 +264,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-accent);
+    color: var(--brand-text);
 }
 
 .cardContent {
@@ -460,7 +460,7 @@
 }
 
 .orderButton:hover {
-    background: var(--color-accent);
+    background: var(--brand-btn);
     color: #fff;
     transform: translateY(-3px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
@@ -575,7 +575,7 @@
 }
 
 .contactBtn:hover {
-    background: var(--color-accent);
+    background: var(--brand-btn);
     transform: translateY(-5px);
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
 }
@@ -640,7 +640,7 @@
 
 .closeLightbox:hover {
     transform: rotate(90deg) scale(1.1);
-    background: var(--color-accent);
+    background: var(--brand-btn);
     color: #fff;
 }
 
@@ -750,7 +750,7 @@
     position: relative;
     display: inline-flex;
     margin-bottom: 2.5rem;
-    color: var(--color-accent);
+    color: var(--brand-text);
 }
 
 .iconPulse {
@@ -760,7 +760,7 @@
     transform: translate(-50%, -50%);
     width: 120%;
     height: 120%;
-    background: var(--color-accent);
+    background: var(--brand-btn);
     opacity: 0.1;
     border-radius: 50%;
     animation: iconPulse 3s infinite;
@@ -820,7 +820,7 @@
 }
 
 .primaryBtn:hover {
-    background: var(--color-accent);
+    background: var(--brand-btn);
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
 }
@@ -841,6 +841,11 @@
 
 .secondaryBtn:hover {
     border-color: var(--color-accent);
-    color: var(--color-accent);
+    color: var(--brand-text);
     background: rgba(140, 124, 98, 0.05);
+}
+.cardContent p { color: #66625e; opacity: 1; }
+@media (max-width: 767px) {
+ .cardContent p { font-size: 16px; }
+ .cardContent a { display: inline-flex !important; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
 }

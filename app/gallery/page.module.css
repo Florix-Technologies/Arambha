@@ -96,13 +96,13 @@
 
 .filterButton:hover {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--brand-text);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .activeFilter {
-  background: var(--color-accent);
+  background: var(--brand-btn);
   color: white;
   border-color: var(--color-accent);
   box-shadow: 0 4px 15px rgba(184, 153, 94, 0.3);
@@ -232,7 +232,7 @@
   transform: translateX(-50%);
   width: 80px;
   height: 2px;
-  background: var(--color-accent);
+  background: var(--brand-btn);
 }
 
 .grid {
@@ -471,7 +471,7 @@
   position: relative;
   display: inline-flex;
   margin-bottom: 2.5rem;
-  color: var(--color-accent);
+  color: var(--brand-text);
 }
 
 .iconPulse {
@@ -481,7 +481,7 @@
   transform: translate(-50%, -50%);
   width: 120%;
   height: 120%;
-  background: var(--color-accent);
+  background: var(--brand-btn);
   opacity: 0.1;
   border-radius: 50%;
   animation: iconPulse 3s infinite;
@@ -543,7 +543,7 @@
 }
 
 .primaryBtn:hover {
-  background: var(--color-accent);
+  background: var(--brand-btn);
   transform: translateY(-3px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
 }
@@ -565,7 +565,7 @@
 
 .secondaryBtn:hover {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--brand-text);
   background: rgba(140, 124, 98, 0.05);
 }
 
@@ -621,7 +621,7 @@
 .loadingContainer p {
   font-family: var(--font-cormorant);
   font-size: 1.5rem;
-  color: var(--color-accent);
+  color: var(--brand-text);
   letter-spacing: 0.1em;
   animation: textFade 2s ease-in-out infinite;
 }
@@ -637,3 +637,4 @@
     opacity: 1;
   }
 }
+@media (max-width: 767px) { .filterButton { min-width: 44px; min-height: 44px; font-size: 14px; } }
