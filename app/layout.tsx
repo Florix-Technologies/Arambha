@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | Arambha Design & Interior Studio",
   },
   description:
-    "Transform your home with Arambha – Bangalore's premier interior design studio with 35+ years of expertise. Modular kitchens, wardrobes, living rooms, furniture & complete home interiors. 2000+ projects delivered.",
+    "Transform your home with Arambha, Bangalore's interior design studio. 35+ years, 2000+ projects: kitchens, wardrobes, furniture and complete interiors.",
   keywords: [
     "interior design Bangalore",
     "home interiors Bangalore",
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     siteName: "Arambha Design & Interior Studio",
     title: "Arambha Design & Interior Studio | Premium Interior Design in Bangalore",
     description:
-      "Transform your home with Arambha – Bangalore's premier interior design studio. Modular kitchens, wardrobes, living rooms, furniture & complete home interiors. 35+ years, 2000+ projects.",
+      "Transform your home with Arambha, Bangalore's interior design studio. 35+ years, 2000+ projects: kitchens, wardrobes, furniture and complete interiors.",
     images: [
       {
         url: "/logo1.png",
@@ -191,14 +191,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${outfit.variable} ${cormorant.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${outfit.variable} ${cormorant.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <SectionBoundary name="Navigation"><Navbar /></SectionBoundary>
         <main>{children}</main>
         <SectionBoundary name="Footer"><Footer /></SectionBoundary>

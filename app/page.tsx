@@ -16,7 +16,7 @@ import CTASection from '@/components/ui/CTASection';
 export const metadata: Metadata = {
   title: 'Arambha Design & Interior Studio | Premium Interior Design in Bangalore',
   description:
-    'Crafting Spaces, Defining Lifestyles. Premium interior design & architectural solutions in Bangalore with 35+ years of experience. Modular kitchens, wardrobes, living rooms, custom furniture & complete home interiors. 2000+ projects delivered.',
+    'Premium interiors in Bangalore by Arambha. 35+ years, 2000+ projects: modular kitchens, wardrobes, living rooms, custom furniture and complete homes.',
   alternates: {
     canonical: SITE_URL,
   },

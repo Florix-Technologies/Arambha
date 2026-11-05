@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata: Metadata = {
     title: "Gallery – Our Interior Design Projects & Portfolio",
     description:
-        "Browse Arambha's stunning portfolio of completed interior design projects in Bangalore. See our work in modular interiors, luxury homes, kitchens, living rooms, and more.",
+        "Browse Arambha's completed interior projects in Bangalore, from luxury homes and modular kitchens to living rooms and more.",
     keywords: [
         "interior design portfolio Bangalore",
         "home interior gallery",
@@ -21,6 +21,12 @@ export const metadata: Metadata = {
             "Browse our stunning portfolio of completed interior design projects. Luxury homes, modular kitchens, living rooms & more.",
         url: `${SITE_URL}/gallery`,
         type: "website",
+        images: [{
+            url: "/logo1.png",
+            width: 1200,
+            height: 630,
+            alt: "Arambha Design & Interior Studio - Premium Interior Design",
+        }],
     },
     alternates: {
         canonical: `${SITE_URL}/gallery`,
