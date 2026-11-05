@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { fetchCatalog, filterCatalog, type Catalog, type Product } from '@/lib/catalog';
 import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
+import { FurnitureItemCard } from '@/components/catalog/ItemCard';
 import CatalogMedia from '@/components/ui/CatalogMedia';
 import styles from './page.module.css';
 
@@ -40,45 +41,7 @@ function FurnitureContent() {
             <h2 className={styles.categoryTitle}>{cat.name}</h2>
             <div className={styles.grid}>
               {cat.products?.map(prod => (
-                <div 
-                  key={prod.id} 
-                  className={styles.card}
-                  onClick={() => setSelectedProduct(prod)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className={styles.imagePlaceholder}>
-                    {prod.image_url ? (
-                      <CatalogMedia src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                    ) : prod.name}
-                  </div>
-                  <div className={styles.cardContent}>
-                    <h3 className={styles.productName}>{prod.name}</h3>
-                    <p className={styles.productDesc}>{prod.description}</p>
-                    {prod.price && (
-                      <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-accent)', marginTop: '0.5rem' }}>
-                        ₹ {prod.price.toLocaleString('en-IN')}
-                      </p>
-                    )}
-                    <a
-                      href={whatsappUrl(productInquiryMessage('Hello, I am interested in buying the following product from your Furniture collection:', prod))}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'inline-block',
-                        marginTop: '0.75rem',
-                        padding: '0.5rem 1.2rem',
-                        background: 'var(--color-text-secondary)',
-                        color: '#fff',
-                        borderRadius: '0.5rem',
-                        fontWeight: 500,
-                        textDecoration: 'none',
-                        fontSize: '1rem',
-                      }}
-                    >
-                      Place Order on WhatsApp
-                    </a>
-                  </div>
-                </div>
+                <FurnitureItemCard key={prod.id} item={prod} onOpen={() => setSelectedProduct(prod)} />
               ))}
             </div>
           </section>

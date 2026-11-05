@@ -8,6 +8,7 @@ import { isVideoUrl } from '@/lib/imageUtils';
 import styles from "./page.module.css";
 
 import { Suspense } from "react";
+import { GalleryItemMedia } from '@/components/catalog/ItemCard';
 
 function GalleryContent() {
   const searchParams = useSearchParams();
@@ -50,15 +51,6 @@ function GalleryContent() {
       document.body.style.overflow = "unset";
     };
   }, [selectedMedia]);
-
-  // Helper to handle video play/pause on hover
-  const handleVideoMouseEnter = (e: React.MouseEvent<HTMLVideoElement>) => {
-    e.currentTarget.play();
-  };
-  const handleVideoMouseLeave = (e: React.MouseEvent<HTMLVideoElement>) => {
-    e.currentTarget.pause();
-    e.currentTarget.currentTime = 0;
-  };
 
   const openLightbox = (src: string) => {
     setSelectedMedia(src);
@@ -169,22 +161,8 @@ function GalleryContent() {
                   onClick={() => src && openLightbox(src)}
                   style={{ cursor: src ? "pointer" : "default" }}
                 >
-                  {src && isVideoUrl(src) ? (
-                    <video
-                      src={src}
-                      muted
-                      loop
-                      playsInline
-                      className={styles.media}
-                      onMouseEnter={handleVideoMouseEnter}
-                      onMouseLeave={handleVideoMouseLeave}
-                    />
-                  ) : src ? (
-                    <img
-                      src={src}
-                      alt={`${section.title} ${i + 1}`}
-                      className={styles.media}
-                    />
+                  {src ? (
+                    <GalleryItemMedia src={src} alt={`${section.title} ${i + 1}`} />
                   ) : (
                     <div className={styles.noImage}>
                       <span>{section.title} {i + 1}</span>
