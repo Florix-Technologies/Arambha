@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { fetchCatalog, filterCatalog, type Catalog } from '@/lib/catalog';
 import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
+import CatalogMedia from '@/components/ui/CatalogMedia';
 import styles from './page.module.css';
 
 function InteriorsContent() {
@@ -66,7 +67,7 @@ function InteriorsContent() {
                 >
                   <div className={styles.imagePlaceholder}>
                     {prod.image_url ? (
-                      <img
+                      <CatalogMedia
                         src={prod.image_url}
                         alt={prod.name}
                         style={{
@@ -129,9 +130,10 @@ function InteriorsContent() {
                     ?.find(p => p.id === selectedProduct.productId)
                     ?.images?.map((img, i) => (
                       <div key={i} className={styles.expandedImageItem}>
-                        <img
+                        <CatalogMedia
                           src={img}
                           alt="Product"
+                          controls
                         />
                       </div>
                     ))}

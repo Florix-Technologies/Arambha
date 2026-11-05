@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { fetchCatalog, filterCatalog, type Catalog, type Product } from '@/lib/catalog';
 import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
+import CatalogMedia from '@/components/ui/CatalogMedia';
 import styles from './page.module.css';
 
 function FurnitureContent() {
@@ -47,7 +48,7 @@ function FurnitureContent() {
                 >
                   <div className={styles.imagePlaceholder}>
                     {prod.image_url ? (
-                      <img src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      <CatalogMedia src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : prod.name}
                   </div>
                   <div className={styles.cardContent}>
@@ -134,7 +135,7 @@ function FurnitureContent() {
               onClick={() => setFullscreenImage(selectedProduct.image_url)}
             >
               {selectedProduct.image_url ? (
-                <img 
+                <CatalogMedia 
                   src={selectedProduct.image_url} 
                   alt={selectedProduct.name}
                   style={{
@@ -239,9 +240,10 @@ function FurnitureContent() {
           }}
           onClick={() => setFullscreenImage(null)}
         >
-          <img
+          <CatalogMedia
             src={fullscreenImage}
             alt="Fullscreen view"
+            controls
             style={{
               width: '90vw',
               height: '90vh',
