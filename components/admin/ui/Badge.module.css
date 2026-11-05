@@ -1,0 +1,22 @@
+.badge {
+  display:inline-flex;
+  padding:calc(var(--space-1)/2) var(--space-1);
+  border-radius:var(--radius);
+  font-weight:600;
+  overflow-wrap:anywhere}
+
+.neutral {
+  background:var(--primary-soft);
+  color:var(--text-muted)}
+
+.success {
+  background:var(--success-soft);
+  color:var(--success)}
+
+.warning {
+  background:var(--warning-soft);
+  color:var(--warning)}
+
+.danger {
+  background:var(--danger-soft);
+  color:var(--danger)}

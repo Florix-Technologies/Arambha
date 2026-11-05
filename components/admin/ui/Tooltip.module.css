@@ -1,0 +1,14 @@
+.content.content {
+  min-height:0;
+  max-width:calc(100vw - var(--space-4));
+  padding:var(--space-1) var(--space-2);
+  border-radius:var(--radius);
+  background:var(--text);
+  color:var(--surface);
+  box-shadow:var(--shadow);
+  z-index:100}
+
+.arrow {
+  fill:var(--text)}
+
+.trigger { min-width:44px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; }

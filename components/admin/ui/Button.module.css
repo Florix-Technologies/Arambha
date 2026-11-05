@@ -1,0 +1,65 @@
+.button {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:var(--space-1);
+  min-height:44px;
+  min-width:44px;
+  padding:var(--space-1) var(--space-2);
+  border:1px solid transparent;
+  border-radius:var(--radius);
+  font:inherit;
+  font-weight:600;
+  cursor:pointer;
+  text-align:center;
+  text-decoration:none!important}
+
+.primary {
+  background:var(--primary);
+  color:var(--surface)!important}
+
+.primary:hover {
+  background:var(--primary-hover)}
+
+.secondary {
+  background:var(--surface);
+  border-color:var(--border);
+  color:var(--text)}
+
+.secondary:hover,.plain:hover {
+  background:var(--primary-soft)}
+
+.plain {
+  background:transparent;
+  color:var(--primary)}
+
+.destructive {
+  background:var(--danger);
+  color:var(--surface)!important}
+
+.destructive:hover {
+  background:var(--danger-hover)}
+
+.button:disabled,.button[aria-disabled=true] {
+  opacity:.5;
+  cursor:not-allowed}
+
+.spinner {
+  width:var(--space-2);
+  height:var(--space-2);
+  border:2px solid currentColor;
+  border-right-color:transparent;
+  border-radius:50%;
+  animation:spin 1s linear infinite}
+
+@keyframes spin {
+  to {
+    transform:rotate(360deg)  }
+
+}
+
+@media(prefers-reduced-motion:reduce) {
+  .spinner {
+    animation:none  }
+
+}
