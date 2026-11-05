@@ -57,8 +57,6 @@
   margin-bottom: 1.5rem;
   line-height: 1.2;
   letter-spacing: 0.05em;
-  opacity: 0;
-  animation: fadeInUp 1s ease forwards 0.5s;
   color: #fff;
   /* Ensure text is white over video */
 }
@@ -68,8 +66,6 @@
   margin-bottom: 2.5rem;
   font-weight: 300;
   letter-spacing: 0.1em;
-  opacity: 0;
-  animation: fadeInUp 1s ease forwards 0.8s;
 }
 
 .heroCta {
