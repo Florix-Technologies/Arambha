@@ -1,6 +1,6 @@
 
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { findCategoryConflict, normalizeCategoryName, slugify } from '@/lib/slug';
 import { GOOGLE_DRIVE_WARNING, isGoogleDriveLink, normalizeMediaUrl } from '@/lib/imageUtils';
@@ -76,6 +76,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [logoutNotice, setLogoutNotice] = useState('');
+  // An ImgBB lookup can finish after its link was edited or its modal closed; each field only trusts its latest lookup.
+  const mainLookup = useRef(0);
+  const extraLookup = useRef(0);
+  const itemLookup = useRef(0);
   const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null);
 
   // Check if user is authenticated on mount
@@ -534,9 +538,11 @@ export default function AdminPage() {
   const checkItemImage = async () => {
     if (!editingItem) return;
     const { id, imageUrl } = editingItem;
+    const lookup = ++itemLookup.current;
     try {
       setResolvingImage(true);
       const result = await normalizeMediaUrl(imageUrl);
+      if (lookup !== itemLookup.current) return;
       if (!result.ok) {
         setItemError(result.error);
         return;
@@ -555,18 +561,22 @@ export default function AdminPage() {
       setMainImageError('');
       return;
     }
+    const lookup = ++mainLookup.current;
     setResolvingImage(true);
     const result = await normalizeMediaUrl(prodImageUrl);
     setResolvingImage(false);
+    if (lookup !== mainLookup.current) return;
     setMainImageError(result.ok ? '' : result.error);
     if (result.ok) setProdImageUrl(result.url);
   };
 
   // Returns the checked link, or null after showing why it cannot be used.
   const checkExtraImage = async (): Promise<string | null> => {
+    const lookup = ++extraLookup.current;
     setResolvingImage(true);
     const result = await normalizeMediaUrl(prodImageInput);
     setResolvingImage(false);
+    if (lookup !== extraLookup.current) return null;
     setExtraImageError(result.ok ? '' : result.error);
     return result.ok ? result.url : null;
   };
@@ -581,9 +591,12 @@ export default function AdminPage() {
   // Add image to editing product
   const handleAddImageToProduct = async () => {
     if (!editingProduct) return;
+    const productId = editingProduct.id;
     const url = await checkExtraImage();
     if (!url) return;
-    setEditingProduct({ ...editingProduct, images: [...(editingProduct.images || []), url] });
+    setEditingProduct(current => (current?.id === productId
+      ? { ...current, images: [...(current.images || []), url] }
+      : current));
     setProdImageInput('');
   };
 
@@ -913,7 +926,7 @@ export default function AdminPage() {
                   className={styles.input} 
                   placeholder="Main Image URL" 
                   value={prodImageUrl} 
-                  onChange={e => { setProdImageUrl(e.target.value); setMainImageError(''); }} 
+                  onChange={e => { mainLookup.current++; setProdImageUrl(e.target.value); setMainImageError(''); }} 
                   onBlur={checkMainImage}
                   required 
                   disabled={loading}
@@ -937,7 +950,7 @@ export default function AdminPage() {
                       className={styles.input}
                       placeholder="Image URL" 
                       value={prodImageInput} 
-                      onChange={e => { setProdImageInput(e.target.value); setExtraImageError(''); }} 
+                      onChange={e => { extraLookup.current++; setProdImageInput(e.target.value); setExtraImageError(''); }} 
                       disabled={loading}
                       style={{ margin: 0 }}
                     />
@@ -1064,7 +1077,7 @@ export default function AdminPage() {
                       <div className={styles.modalActions}>
                         <button className={styles.button} type="submit" disabled={loading || resolvingImage}>Save item</button>
                         <button className={styles.button} type="button" disabled={loading || resolvingImage}
-                          onClick={() => { setEditingItem(null); setItemError(''); }}>Cancel</button>
+                          onClick={() => { itemLookup.current++; setEditingItem(null); setItemError(''); }}>Cancel</button>
                       </div>
                     </form>
                   </div>
@@ -1084,7 +1097,7 @@ export default function AdminPage() {
                         className={styles.input}
                         placeholder="Image URL" 
                         value={prodImageInput} 
-                        onChange={e => { setProdImageInput(e.target.value); setExtraImageError(''); }} 
+                        onChange={e => { extraLookup.current++; setProdImageInput(e.target.value); setExtraImageError(''); }} 
                         disabled={loading}
                         style={{ margin: 0 }}
                       />
@@ -1144,6 +1157,7 @@ export default function AdminPage() {
                       <button 
                         className={styles.button} 
                         onClick={() => {
+                          extraLookup.current++;
                           setEditingProduct(null);
                           setProdImageInput('');
                           setExtraImageError('');
