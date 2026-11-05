@@ -12,6 +12,8 @@ import styles from './page.module.css';
 type Category = { id: string; name: string; slug: string; collection: string };
 type Product = { id: string; category_id: string; name: string; description: string; image_url: string; price?: number; images?: string[] };
 
+// With row level security, an update the policies do not allow matches no rows and returns no error.
+const UPDATE_BLOCKED_MESSAGE = 'Not saved: the database does not allow edits yet. Ask your developer to add the UPDATE policy in Supabase.';
 const IDLE_LIMIT_MS = 30 * 60 * 1000;
 const IDLE_WARNING_MS = 60 * 1000;
 const DRAFT_KEY = 'admin-unsaved-form';
@@ -392,15 +394,17 @@ export default function AdminPage() {
   const handleUpdateProduct = async (prod: Product) => {
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('products')
         .update({ images: prod.images || [] })
-        .eq('id', prod.id);
+        .eq('id', prod.id)
+        .select('id');
 
       if (error) {
         console.error('Update error:', error);
         throw new Error(`${error.message} (Code: ${error.code})`);
       }
+      if (!data?.length) throw new Error(UPDATE_BLOCKED_MESSAGE);
       setMessage('Product images updated successfully!');
       setEditingProduct(null);
       if (selectedCategory) {
@@ -408,7 +412,7 @@ export default function AdminPage() {
       }
     } catch (error: any) {
       console.error('Error updating product:', error);
-      setMessage(`Error updating product: ${error.message}`);
+      setExtraImageError(`Error updating product: ${error.message}`);
     } finally {
       setLoading(false);
     }
