@@ -114,7 +114,7 @@ const Popup = () => {
                             </h2>
 
                             <p className={styles.description}>
-                                Get a free consultation and customized quote for your dream home. Let's build something beautiful together.
+                                Get a free consultation and customized quote for your dream home. Let&apos;s build something beautiful together.
                             </p>
 
                             <a

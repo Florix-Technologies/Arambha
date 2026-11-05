@@ -9,6 +9,12 @@ import MediaPreview from './MediaPreview';
 import { useInactivityLogout } from './useInactivityLogout';
 import styles from './page.module.css';
 
+const errorObjectMessage = (error: unknown) =>
+  typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string'
+    ? error.message
+    : undefined;
+const errorMessage = (error: unknown) => errorObjectMessage(error) ?? String(error);
+
 type Category = { id: string; name: string; slug: string; collection: string };
 type Product = { id: string; category_id: string; name: string; description: string; image_url: string; price?: number; images?: string[] };
 
@@ -191,8 +197,8 @@ export default function AdminPage() {
 
       if (error) throw error;
       setCategories(data || []);
-    } catch (error: any) {
-      const errorMsg = error?.message || JSON.stringify(error) || 'Unknown error';
+    } catch (error: unknown) {
+      const errorMsg = errorObjectMessage(error) || JSON.stringify(error) || 'Unknown error';
       console.error('Error fetching categories:', errorMsg);
       setMessage(`Error fetching categories: ${errorMsg}`);
     } finally {
@@ -211,8 +217,8 @@ export default function AdminPage() {
 
       if (error) throw error;
       setProducts(data || []);
-    } catch (error: any) {
-      const errorMsg = error?.message || JSON.stringify(error) || 'Unknown error';
+    } catch (error: unknown) {
+      const errorMsg = errorObjectMessage(error) || JSON.stringify(error) || 'Unknown error';
       console.error('Error fetching products:', errorMsg);
       setMessage(`Error fetching products: ${errorMsg}`);
     } finally {
@@ -351,9 +357,9 @@ export default function AdminPage() {
       setMessage('Category deleted successfully!');
       setSelectedCategory(null);
       await fetchCategories();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting category:', error);
-      setMessage(`Error deleting category: ${error.message}`);
+      setMessage(`Error deleting category: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -415,9 +421,9 @@ export default function AdminPage() {
       setMainImageError('');
       setExtraImageError('');
       await fetchProducts(selectedCategory.id);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding product:', error);
-      setMessage(`Error adding product: ${error.message}`);
+      setMessage(`Error adding product: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -442,9 +448,9 @@ export default function AdminPage() {
       if (selectedCategory) {
         await fetchProducts(selectedCategory.id);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting product:', error);
-      setMessage(`Error deleting product: ${error.message}`);
+      setMessage(`Error deleting product: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -470,9 +476,9 @@ export default function AdminPage() {
       if (selectedCategory) {
         await fetchProducts(selectedCategory.id);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating product:', error);
-      setExtraImageError(`Error updating product: ${error.message}`);
+      setExtraImageError(`Error updating product: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -630,7 +636,7 @@ export default function AdminPage() {
       console.log('✅ All state cleared - Login modal should now be visible');
       console.log('🔴 LOGOUT COMPLETE');
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Logout error:', error);
       // Force logout anyway
       setIsAuthenticated(false);
@@ -653,9 +659,9 @@ export default function AdminPage() {
       }
 
       setMessage(`✅ Password recovery email sent to ${userEmail}. Please check your email.`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending reset email:', error);
-      setMessage(`Error sending reset email: ${error.message}`);
+      setMessage(`Error sending reset email: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
