@@ -147,6 +147,24 @@ export default function FurnitureClient({ catalog, filter }: { catalog: Catalog;
                     ₹ {selectedProduct.price.toLocaleString('en-IN')}
                   </p>
                 )}
+                {!!selectedProduct.images?.length && (
+                  <section>
+                    <h4>Product Gallery</h4>
+                    <div className={styles.expandedImagesGrid}>
+                      {selectedProduct.images.map((img, i) => (
+                        <button
+                          key={`${img}-${i}`}
+                          type="button"
+                          className={styles.expandedImageItem}
+                          aria-label={`View ${selectedProduct.name} photo ${i + 1}`}
+                          onClick={() => setFullscreenImage(img)}
+                        >
+                          <CatalogMedia src={img} alt={`${selectedProduct.name} photo ${i + 1}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
               </div>
 
               {/* WhatsApp Button */}
