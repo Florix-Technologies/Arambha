@@ -18,8 +18,13 @@ const errorMessage = (error: unknown) => errorObjectMessage(error) ?? String(err
 type Category = { id: string; name: string; slug: string; collection: string };
 type Product = { id: string; category_id: string; name: string; description: string; image_url: string; price?: number; images?: string[] };
 
-// With row level security, an update the policies do not allow matches no rows and returns no error.
-const UPDATE_BLOCKED_MESSAGE = 'Not saved: the database does not allow edits yet. Ask your developer to add the UPDATE policy in Supabase.';
+// With row level security, an update or delete the policies do not allow matches no rows and returns no error.
+const NOT_ALLOWED_MESSAGE = 'This account is not allowed to make changes. Log in with the admin account.';
+const RLS_VIOLATION_CODE = '42501';
+
+function databaseErrorMessage(error: { message: string; code?: string }) {
+  return error.code === RLS_VIOLATION_CODE ? NOT_ALLOWED_MESSAGE : `${error.message} (Code: ${error.code})`;
+}
 const IDLE_LIMIT_MS = 30 * 60 * 1000;
 const IDLE_WARNING_MS = 60 * 1000;
 const DRAFT_KEY = 'admin-unsaved-form';
@@ -266,7 +271,7 @@ export default function AdminPage() {
 
       if (error) {
         console.error('Insert error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
       setMessage('Category added successfully!');
       setCatName('');
@@ -318,7 +323,7 @@ export default function AdminPage() {
       const { data, error } = await supabase.from('categories').update({ name, slug }).eq('id', id).select('id');
       if (error) throw new Error(error.message);
       if (!data?.length) {
-        setRenameError(UPDATE_BLOCKED_MESSAGE);
+        setRenameError(NOT_ALLOWED_MESSAGE);
         return;
       }
       setRenamingCategory(null);
@@ -349,15 +354,17 @@ export default function AdminPage() {
         : `This also permanently deletes ${items} item${items === 1 ? '' : 's'} in it. This cannot be undone.`;
       if (!window.confirm(`Delete category "${cat.name}"?\n\n${consequence}`)) return;
 
-      const { error } = await supabase
+      const { data: deleted, error } = await supabase
         .from('categories')
         .delete()
-        .eq('id', cat.id);
+        .eq('id', cat.id)
+        .select('id');
 
       if (error) {
         console.error('Delete error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
+      if (!deleted?.length) throw new Error(NOT_ALLOWED_MESSAGE);
       setMessage('Category deleted successfully!');
       setSelectedCategory(null);
       await fetchCategories();
@@ -413,7 +420,7 @@ export default function AdminPage() {
 
       if (error) {
         console.error('Insert error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
       setMessage('✅ Product added successfully!');
       setProdName('');
@@ -439,15 +446,17 @@ export default function AdminPage() {
 
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { data: deleted, error } = await supabase
         .from('products')
         .delete()
-        .eq('id', prod.id);
+        .eq('id', prod.id)
+        .select('id');
 
       if (error) {
         console.error('Delete error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
+      if (!deleted?.length) throw new Error(NOT_ALLOWED_MESSAGE);
       setMessage('Product deleted successfully!');
       if (selectedCategory) {
         await fetchProducts(selectedCategory.id);
@@ -472,9 +481,9 @@ export default function AdminPage() {
 
       if (error) {
         console.error('Update error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
-      if (!data?.length) throw new Error(UPDATE_BLOCKED_MESSAGE);
+      if (!data?.length) throw new Error(NOT_ALLOWED_MESSAGE);
       setMessage('Product images updated successfully!');
       setEditingProduct(null);
       if (selectedCategory) {
@@ -521,7 +530,7 @@ export default function AdminPage() {
         return;
       }
       if (!data?.length) {
-        setItemError(UPDATE_BLOCKED_MESSAGE);
+        setItemError(NOT_ALLOWED_MESSAGE);
         return;
       }
       setEditingItem(null);
