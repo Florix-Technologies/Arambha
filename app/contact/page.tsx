@@ -151,9 +151,10 @@ Thank you!`;
               <form className={styles.form} onSubmit={handleSubmit}>
                 <div className={styles.inputRow}>
                   <div className={styles.formGroup}>
-                    <label>Full Name</label>
+                    <label className="visuallyHidden" htmlFor="contact-fullName">Full Name</label>
                     <input
                       type="text"
+                      id="contact-fullName"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleChange}
@@ -162,9 +163,10 @@ Thank you!`;
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>Email Address</label>
+                    <label className="visuallyHidden" htmlFor="contact-email">Email Address</label>
                     <input
                       type="email"
+                      id="contact-email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
@@ -191,10 +193,11 @@ Thank you!`;
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Your Message</label>
+                  <label className="visuallyHidden" htmlFor="contact-message">Your Message</label>
                   <textarea
                     rows={6}
-                    name="message"
+                    id="contact-message"
+                      name="message"
                     value={formData.message}
                     onChange={handleChange}
                     placeholder="Tell us more about what you're looking for..."

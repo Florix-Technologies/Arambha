@@ -145,7 +145,7 @@ export default function Navbar() {
                   <div className={`${styles.megaMenuContent} ${link.size === 'large' ? styles.largeContent : link.size === 'medium' ? styles.mediumContent : styles.smallContent}`}>
                     {link.dropdownContent?.map((section, idx) => (
                       <div key={idx} className={styles.megaMenuColumn}>
-                        <h4 className={styles.columnTitle}>{section.title}</h4>
+                        <p className={styles.columnTitle}>{section.title}</p>
                         <ul className={styles.columnList}>
                           {section.links.map((sLink, sIdx) => (
                             <li key={sIdx}>
@@ -178,6 +178,8 @@ export default function Navbar() {
           className={styles.mobileToggle}
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle menu"
+          aria-expanded={isOpen}
+          aria-controls="mobile-menu"
         >
           <span className={`${styles.bar} ${isOpen ? styles.open : ''}`}></span>
           <span className={`${styles.bar} ${isOpen ? styles.open : ''}`}></span>
@@ -185,7 +187,7 @@ export default function Navbar() {
         </button>
 
         {/* Mobile Menu */}
-        <div className={`${styles.mobileMenu} ${isOpen ? styles.open : ''}`}>
+        <div id="mobile-menu" className={`${styles.mobileMenu} ${isOpen ? styles.open : ''}`}>
           {navLinks.map((link) => (
             <Link
               key={link.name}
