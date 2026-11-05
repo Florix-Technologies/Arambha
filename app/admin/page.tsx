@@ -431,16 +431,16 @@ export default function AdminPage() {
     <div className={styles.main}>
       {/* Header */}
       <header className={styles.header}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '2rem' }}>
-          <div>
+        <div className={styles.headerContent}>
+          <div className={styles.titleBlock}>
             <h1 className={styles.title}>Admin Panel</h1>
             <p className={styles.subtitle}>Manage collections, categories, and products</p>
           </div>
-          <div style={{ textAlign: 'right' }}>
+          <div className={styles.accountBlock}>
             <p style={{ fontSize: '0.95rem', color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>
               Logged in as: <strong>{userEmail}</strong>
             </p>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+            <div className={styles.accountActions}>
               <button 
                 onClick={handleResetPassword}
                 disabled={loading}
@@ -606,7 +606,7 @@ export default function AdminPage() {
                   disabled={loading}
                 />
                 {prodImageUrl && (
-                  <div style={{ marginTop: '0.75rem' }}>
+                  <div className={styles.previewBlock}>
                     {(prodImageUrl.includes('drive.google.com') || prodImageUrl.includes('ibb.co')) ? (
                       <>
                         <div style={{
@@ -687,9 +687,9 @@ export default function AdminPage() {
                 )}
                 
                 {/* Extra Images Section */}
-                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                <div className={styles.extraImages}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Extra Images (Optional)</label>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <div className={styles.extraImagesRow}>
                     <input 
                       className={styles.input}
                       placeholder="Image URL (Google Drive links supported)" 
@@ -751,7 +751,7 @@ export default function AdminPage() {
                   )}
                 </div>
                 
-                <button className={styles.button} type="submit" disabled={loading}>Save</button>
+                <button className={`${styles.button} ${styles.saveButton}`} type="submit" disabled={loading}>Save</button>
               </form>
               {/* Product Grid */}
               <div className={styles.productGrid}>
@@ -802,12 +802,12 @@ export default function AdminPage() {
               {/* Edit Product Modal */}
               {editingProduct && (
                 <div className={styles.modalOverlay}>
-                  <div className={styles.modal} style={{ maxWidth: '600px' }}>
+                  <div className={styles.modal}>
                     <h3>Edit Images for: {editingProduct.name}</h3>
-                    <p style={{ color: '#666', marginBottom: '1rem' }}>Main Image: {editingProduct.image_url}</p>
+                    <p className={styles.mainImageUrl}>Main Image: {editingProduct.image_url}</p>
                     
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Add More Images</label>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <div className={styles.editImagesRow}>
                       <input 
                         className={styles.input}
                         placeholder="Image URL" 

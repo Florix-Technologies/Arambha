@@ -11,6 +11,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const isDarkText = pathname !== '/';
   const isContactPage = pathname === '/contact';
+  const isAdminPage = pathname.startsWith('/admin');
 
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -245,7 +246,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light} ${!isVisible ? styles.hidden : ''} ${isContactPage ? styles.contactNav : ''}`}>
+    <nav className={`${styles.navbar} ${scrolled || isAdminPage ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light} ${!isVisible ? styles.hidden : ''} ${isContactPage ? styles.contactNav : ''}`}>
       <div className={`container ${styles.navContainer}`}>
         <Link href="/" className={styles.logo}>
           <img src="/logo2.png" alt="Logo" />
