@@ -249,7 +249,8 @@
 .formGroup input:focus,
 .formGroup select:focus,
 .formGroup textarea:focus {
-    outline: none;
+    outline: 2px solid var(--brand-text);
+    outline-offset: 2px;
     border-color: var(--color-accent);
     background: #fff;
     box-shadow: 0 10px 30px rgba(var(--color-accent-rgb), 0.1);

@@ -92,7 +92,7 @@
   transform: translateY(-3px);
 }
 
-.footerSection h3 {
+.footerSection h2 {
   font-family: var(--font-cormorant);
   font-size: 1.4rem;
   color: var(--color-accent);
@@ -102,7 +102,7 @@
   display: inline-block;
 }
 
-.footerSection h3::after {
+.footerSection h2::after {
   content: '';
   position: absolute;
   bottom: -8px;
@@ -229,7 +229,7 @@
     gap: 0.5rem;
   }
 }
-.footerSection h3, .contactInfo a:hover, .sitemap a:hover, .bottomLinks a:hover { color: var(--brand-text-on-dark); }
+.footerSection h2, .contactInfo a:hover, .sitemap a:hover, .bottomLinks a:hover { color: var(--brand-text-on-dark); }
 .bottomSection p, .bottomLinks a { color: rgba(255, 255, 255, 0.7); }
 @media (max-width: 767px) {
  .footer p, .footer a { font-size: 16px; }

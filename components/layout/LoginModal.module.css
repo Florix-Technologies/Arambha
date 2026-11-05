@@ -99,7 +99,6 @@
 }
 
 .input:focus {
-  outline: none;
   border-color: var(--color-accent, #8b4513);
   box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
 }

@@ -218,6 +218,7 @@
 }
 
 .cardCategory {
+  font-family: var(--font-body);
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;

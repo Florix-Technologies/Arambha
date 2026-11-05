@@ -64,7 +64,7 @@ export default function SmartVideo({ src, className, style, label, onClick, user
     <video
       ref={ref}
       className={className}
-      style={style}
+      style={{ backgroundColor: '#e8e4dc', ...style }}
       aria-label={label}
       onClick={onClick}
       autoPlay

@@ -849,3 +849,11 @@
  .cardContent p { font-size: 16px; }
  .cardContent a { display: inline-flex !important; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
 }
+
+@media (max-width: 767px) {
+    .subtitle a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}
