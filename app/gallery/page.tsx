@@ -3,11 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { supabase } from '@/lib/supabase';
+import { fetchCatalog, filterCatalog, type Catalog } from '@/lib/catalog';
 import styles from "./page.module.css";
-
-type Category = { id: string; name: string; slug: string };
-type Product = { id: string; name: string; description: string; image_url: string };
 
 import { Suspense } from "react";
 
@@ -16,91 +13,21 @@ function GalleryContent() {
   const router = useRouter();
   const filter = searchParams.get("filter") || "all";
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
-  const [gallerySections, setGallerySections] = useState<Array<{ id: string; title: string; items: string[] }>>([]);
-  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [catalog, setCatalog] = useState<Catalog>([]);
   const [loading, setLoading] = useState(true);
+  const allCategories = catalog;
+  const gallerySections = filterCatalog(catalog, filter).map(category => ({
+    id: category.id,
+    title: category.name,
+    items: category.products.map(product => product.image_url),
+  }));
 
-  // Fetch categories once
   useEffect(() => {
-    async function fetchCategories() {
-      const { data } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('collection', 'gallery')
-        .order('created_at', { ascending: true });
-      if (data) setAllCategories(data);
-    }
-    fetchCategories();
+    fetchCatalog('gallery')
+      .then(setCatalog)
+      .catch(error => console.error('Error fetching gallery data:', error))
+      .finally(() => setLoading(false));
   }, []);
-
-  // Fetch gallery data from Supabase
-  useEffect(() => {
-    async function fetchGalleryData() {
-      try {
-        setLoading(true);
-
-        // Fetch categories for gallery collection
-        let query = supabase
-          .from('categories')
-          .select('*')
-          .eq('collection', 'gallery')
-          .order('created_at', { ascending: true });
-
-        // If a filter is present and not 'all', try to match it against slug
-        if (filter && filter !== "all") {
-          query = query.eq('slug', filter);
-        }
-
-        const { data: cats, error: catsError } = await query;
-
-        if (catsError) throw catsError;
-
-        // If filtering returned nothing, try matching loosely or just show everything if no filter
-        let finalCats = cats || [];
-        if (filter && filter !== "all" && finalCats.length === 0) {
-          // Fallback: search by name loosely if slug filter failed
-          const { data: fallbackCats } = await supabase
-            .from('categories')
-            .select('*')
-            .eq('collection', 'gallery')
-            .ilike('name', `%${filter.replace('-', ' ')}%`);
-          if (fallbackCats) finalCats = fallbackCats;
-        }
-
-        if (finalCats.length === 0) {
-          setGallerySections([]);
-          return;
-        }
-
-        // Fetch products for each category
-        const sections = [];
-        for (const cat of finalCats) {
-          const { data: prodData, error: prodError } = await supabase
-            .from('products')
-            .select('*')
-            .eq('category_id', cat.id)
-            .order('created_at', { ascending: true });
-
-          if (prodError) throw prodError;
-
-          const items = (prodData || []).map((prod: Product) => prod.image_url);
-          sections.push({
-            id: cat.id,
-            title: cat.name,
-            items
-          });
-        }
-
-        setGallerySections(sections);
-      } catch (error) {
-        console.error('Error fetching gallery data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchGalleryData();
-  }, [filter]);
 
   // Close modal on Escape key
   useEffect(() => {
@@ -191,7 +118,7 @@ function GalleryContent() {
               <div className={styles.iconPulse}></div>
             </div>
             <h3>Gallery Under Curation</h3>
-            <p>We're currently selecting our finest captures to showcase here. Every project tells a story of elegance and precision.</p>
+            <p>We&apos;re currently selecting our finest captures to showcase here. Every project tells a story of elegance and precision.</p>
             <div className={styles.emptyActions}>
               <button onClick={() => router.push('/gallery')} className={styles.secondaryBtn}>
                 Reset Filter
