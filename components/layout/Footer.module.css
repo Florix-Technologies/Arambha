@@ -229,3 +229,10 @@
     gap: 0.5rem;
   }
 }
+.footerSection h3, .contactInfo a:hover, .sitemap a:hover, .bottomLinks a:hover { color: var(--brand-text-on-dark); }
+.bottomSection p, .bottomLinks a { color: rgba(255, 255, 255, 0.7); }
+@media (max-width: 767px) {
+ .footer p, .footer a { font-size: 16px; }
+ .footer a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+ .socialLink { width: 44px; height: 44px; }
+}

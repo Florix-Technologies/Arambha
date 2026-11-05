@@ -27,7 +27,7 @@
 .subtitle {
     font-family: var(--font-outfit);
     font-size: 1rem;
-    color: var(--color-accent);
+    color: var(--brand-text);
     text-transform: uppercase;
     letter-spacing: 4px;
 }

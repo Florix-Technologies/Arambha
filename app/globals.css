@@ -1,4 +1,8 @@
 :root {
+  --brand-text: #6b5d47;
+  --brand-text-on-dark: #c9b89a;
+  --brand-btn: #75664f;
+  --accent-btn: #b55656;
   /* Earthy Tones Palette */
   /* Warm Greige / Stone Beige Foundation */
   --color-bg-primary: #F2F0EB;

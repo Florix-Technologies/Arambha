@@ -147,7 +147,7 @@
 
 .navLink:hover,
 .active {
-  color: var(--color-accent) !important;
+  color: var(--brand-text) !important;
 }
 
 .navLink::after {
@@ -157,7 +157,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background-color: var(--color-accent);
+  background-color: var(--brand-btn);
   transition: width 0.3s ease;
 }
 
@@ -238,7 +238,7 @@
 .columnTitle {
   font-size: 0.65rem;
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--brand-text);
   margin-bottom: 0.8rem;
   font-family: var(--font-heading);
   text-transform: uppercase;
@@ -268,7 +268,7 @@
 }
 
 .megaMenuLink:hover {
-  color: var(--color-accent);
+  color: var(--brand-text);
   transform: translateX(3px);
   /* Reduced from 5px */
 }
@@ -288,7 +288,7 @@
   align-items: center;
   gap: 0.4rem;
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--brand-text);
   font-size: 0.85rem;
   /* Reduced from 0.95rem */
   text-transform: uppercase;
@@ -399,3 +399,8 @@
 .contactNav:not(.scrolled) .mobileToggle .bar {
   background-color: #f2f0eb;
 }
+@media (max-width: 767px) { .mobileToggle { width: 44px; height: 44px; padding: 13px 10px; } }
+
+.navbar:not(.scrolled):not(.dark) .navLink:hover,
+.navbar:not(.scrolled):not(.dark) .active,
+.contactNav:not(.scrolled) .active { color: var(--brand-text-on-dark) !important; }

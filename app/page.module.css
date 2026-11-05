@@ -122,7 +122,7 @@
 .highlightedLink {
   font-size: 1.6rem !important;
   font-weight: 600 !important;
-  color: var(--color-accent) !important;
+  color: var(--brand-text) !important;
   border-bottom: 2px solid var(--color-accent) !important;
   padding-bottom: 4px !important;
   margin-top: 1rem;
@@ -221,5 +221,6 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--color-text-light);
+  color: var(--brand-text);
 }
+@media (max-width: 767px) { .cardCategory { font-size: 16px; } }

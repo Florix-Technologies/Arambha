@@ -22,8 +22,8 @@
 }
 
 .primary:hover {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
+  background-color: var(--brand-btn);
+  border-color: var(--brand-text);
   color: #fff;
 }
 
@@ -51,5 +51,7 @@
 }
 
 .text:hover {
-  color: var(--color-accent);
+  color: var(--brand-text);
 }
+
+@media (max-width: 767px) { .button { min-width: 44px; min-height: 44px; font-size: 14px; } }
