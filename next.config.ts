@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: '/:path*', headers: [
+      { key: 'Strict-Transport-Security', value: 'max-age=31536000' },
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+      { key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'" },
+    ] }];
+  },
+  async rewrites() {
+    return [{ source: '/favicon.ico', destination: '/logo2.png' }];
+  },
 };
 
 export default nextConfig;
