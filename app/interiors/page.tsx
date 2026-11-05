@@ -82,6 +82,11 @@ function InteriorsContent() {
                   <div className={styles.cardContent}>
                     <h3>{prod.name}</h3>
                     <p>{prod.description}</p>
+                    {prod.price != null && (
+                      <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-accent)', marginTop: '0.5rem' }}>
+                        ₹ {prod.price.toLocaleString('en-IN')}
+                      </p>
+                    )}
 
                     <a
                       href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
