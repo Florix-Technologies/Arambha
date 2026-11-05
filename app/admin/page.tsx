@@ -745,7 +745,7 @@ export default function AdminPage() {
                   <div className={styles.card} key={prod.id}>
                     <div className={styles.imagePlaceholder}>
                       {prod.image_url ? (
-                        <img src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <MediaPreview url={prod.image_url} alt={prod.name} className={styles.cardMedia} />
                       ) : (
                         <span>{prod.name[0]}</span>
                       )}

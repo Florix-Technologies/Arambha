@@ -11,6 +11,16 @@ const IMGBB_SHARE_HOSTS = new Set(['ibb.co', 'www.ibb.co']);
 const IMGBB_IMAGE_HOST = 'i.ibb.co';
 const IMGBB_PLACEHOLDER_SIZE = 180;
 
+export function isVideoUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url, 'https://placeholder.invalid');
+    return parsed.protocol !== 'data:' && /\.(mp4|webm|mov)$/i.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
 function parseAbsoluteUrl(url: string): URL | null {
   try {
     const parsed = new URL(url.trim());

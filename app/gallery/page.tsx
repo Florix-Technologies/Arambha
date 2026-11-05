@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { fetchCatalog, filterCatalog, type Catalog } from '@/lib/catalog';
+import { isVideoUrl } from '@/lib/imageUtils';
 import styles from "./page.module.css";
 
 import { Suspense } from "react";
@@ -168,7 +169,7 @@ function GalleryContent() {
                   onClick={() => src && openLightbox(src)}
                   style={{ cursor: src ? "pointer" : "default" }}
                 >
-                  {src && src.endsWith(".mp4") ? (
+                  {src && isVideoUrl(src) ? (
                     <video
                       src={src}
                       muted
@@ -238,7 +239,7 @@ function GalleryContent() {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {selectedMedia.endsWith(".mp4") ? (
+              {isVideoUrl(selectedMedia) ? (
                 <video
                   src={selectedMedia}
                   autoPlay
