@@ -2,8 +2,9 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { convertImageUrl, extractGoogleDriveFileId, detectImageService } from '@/lib/imageUtils';
+import { GOOGLE_DRIVE_WARNING, isGoogleDriveLink, normalizeMediaUrl } from '@/lib/imageUtils';
 import LoginModal from '@/components/layout/LoginModal';
+import MediaPreview from './MediaPreview';
 import styles from './page.module.css';
 
 type Category = { id: string; name: string; slug: string; collection: string };
@@ -31,6 +32,9 @@ export default function AdminPage() {
   const [prodImageUrl, setProdImageUrl] = useState('');
   const [prodImages, setProdImages] = useState<string[]>([]);
   const [prodImageInput, setProdImageInput] = useState('');
+  const [mainImageError, setMainImageError] = useState('');
+  const [extraImageError, setExtraImageError] = useState('');
+  const [resolvingImage, setResolvingImage] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -225,10 +229,22 @@ export default function AdminPage() {
     try {
       setLoading(true);
       
-      // Convert image URLs (handles Google Drive links, ImgBB links, etc.)
-      const convertedMainImage = convertImageUrl(prodImageUrl);
-      const convertedImages = prodImages.map(img => convertImageUrl(img));
-      
+      setResolvingImage(true);
+      const mainResult = await normalizeMediaUrl(prodImageUrl);
+      const extraResults = await Promise.all(prodImages.map(normalizeMediaUrl));
+      setResolvingImage(false);
+      if (!mainResult.ok) {
+        setMainImageError(mainResult.error);
+        return;
+      }
+      const failedExtra = extraResults.find(result => !result.ok);
+      if (failedExtra && !failedExtra.ok) {
+        setExtraImageError(failedExtra.error);
+        return;
+      }
+      setProdImageUrl(mainResult.url);
+      const savedImages = extraResults.flatMap(result => (result.ok ? [result.url] : []));
+
       const { data, error } = await supabase
         .from('products')
         .insert([{
@@ -236,8 +252,8 @@ export default function AdminPage() {
           name: prodName,
           description: prodDesc,
           price: prodPrice ? parseFloat(prodPrice) : null,
-          image_url: convertedMainImage,
-          images: convertedImages // Include additional images array
+          image_url: mainResult.url,
+          images: savedImages
         }]);
 
       if (error) {
@@ -251,6 +267,8 @@ export default function AdminPage() {
       setProdImageUrl('');
       setProdImages([]);
       setProdImageInput('');
+      setMainImageError('');
+      setExtraImageError('');
       await fetchProducts(selectedCategory.id);
     } catch (error: any) {
       console.error('Error adding product:', error);
@@ -313,14 +331,40 @@ export default function AdminPage() {
     }
   };
 
-  // Add image to editing product
-  const handleAddImageToProduct = () => {
-    if (!editingProduct || !prodImageInput.trim()) {
-      setMessage('Please enter an image URL');
+  const checkMainImage = async () => {
+    if (!prodImageUrl.trim()) {
+      setMainImageError('');
       return;
     }
-    const newImages = [...(editingProduct.images || []), prodImageInput];
-    setEditingProduct({ ...editingProduct, images: newImages });
+    setResolvingImage(true);
+    const result = await normalizeMediaUrl(prodImageUrl);
+    setResolvingImage(false);
+    setMainImageError(result.ok ? '' : result.error);
+    if (result.ok) setProdImageUrl(result.url);
+  };
+
+  // Returns the checked link, or null after showing why it cannot be used.
+  const checkExtraImage = async (): Promise<string | null> => {
+    setResolvingImage(true);
+    const result = await normalizeMediaUrl(prodImageInput);
+    setResolvingImage(false);
+    setExtraImageError(result.ok ? '' : result.error);
+    return result.ok ? result.url : null;
+  };
+
+  const handleAddExtraImage = async () => {
+    const url = await checkExtraImage();
+    if (!url) return;
+    setProdImages(images => [...images, url]);
+    setProdImageInput('');
+  };
+
+  // Add image to editing product
+  const handleAddImageToProduct = async () => {
+    if (!editingProduct) return;
+    const url = await checkExtraImage();
+    if (!url) return;
+    setEditingProduct({ ...editingProduct, images: [...(editingProduct.images || []), url] });
     setProdImageInput('');
   };
 
@@ -601,130 +645,50 @@ export default function AdminPage() {
                   className={styles.input} 
                   placeholder="Main Image URL" 
                   value={prodImageUrl} 
-                  onChange={e => setProdImageUrl(e.target.value)} 
+                  onChange={e => { setProdImageUrl(e.target.value); setMainImageError(''); }} 
+                  onBlur={checkMainImage}
                   required 
                   disabled={loading}
                 />
                 {prodImageUrl && (
                   <div className={styles.previewBlock}>
-                    {(prodImageUrl.includes('drive.google.com') || prodImageUrl.includes('ibb.co')) ? (
-                      <>
-                        <div style={{
-                          padding: '0.75rem',
-                          backgroundColor: '#fef3c7',
-                          border: '1px solid #fcd34d',
-                          borderRadius: '4px',
-                          marginBottom: '0.5rem',
-                          fontSize: '0.85rem',
-                          color: '#92400e'
-                        }}>
-                          <strong>📌 {detectImageService(prodImageUrl)} Link Detected</strong>
-                          {prodImageUrl.includes('ibb.co') && (
-                            <p style={{ margin: '0.5rem 0 0 0' }}>
-                              ✅ Converting ImgBB share link to direct image URL...
-                            </p>
-                          )}
-                          {prodImageUrl.includes('drive.google.com') && (
-                            <>
-                              <p style={{ margin: '0.5rem 0 0 0' }}>
-                                ⚠️ <strong>Google Drive has embedding restrictions</strong> - even publicly shared files may not load.
-                              </p>
-                              <p style={{ margin: '0.5rem 0 0 0' }}>
-                                💡 Try <strong>ImgBB</strong> or <strong>Imgur</strong> instead (they work reliably).
-                              </p>
-                            </>
-                          )}
-                        </div>
-                        <img 
-                          src={convertImageUrl(prodImageUrl)} 
-                          alt="Preview" 
-                          className={styles.imagePreview} 
-                          style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8, border: '2px solid #fcd34d' }} 
-                          onError={e => {
-                            (e.currentTarget as HTMLImageElement).style.display = 'none';
-                            const parent = (e.currentTarget as HTMLImageElement).parentElement;
-                            if (parent) {
-                              const errorDiv = document.createElement('div');
-                              errorDiv.style.cssText = 'padding: 0.75rem; background: #fee2e2; border: 1px solid #fecaca; border-radius: 4px; color: #991b1b; font-size: 0.85rem; margin-top: 0.5rem;';
-                              
-                              if (prodImageUrl.includes('ibb.co')) {
-                                errorDiv.innerHTML = `
-                                  <strong>❌ ImgBB image failed to load</strong>
-                                  <p style="margin: 0.5rem 0 0 0;">You're using a <strong>share link</strong> (ibb.co), not the direct image URL.</p>
-                                  <p style="margin: 0.5rem 0 0 0;"><strong>How to get the direct URL:</strong></p>
-                                  <ol style="margin: 0.5rem 0 0 0; padding-left: 1rem;">
-                                    <li>On imgbb.com, right-click the image after upload</li>
-                                    <li>Select <strong>"Copy image link"</strong> (not "Copy page link")</li>
-                                    <li>Paste that URL here (should start with <strong>https://i.ibb.co/</strong>)</li>
-                                  </ol>
-                                `;
-                              } else {
-                                errorDiv.innerHTML = `
-                                  <strong>❌ Image failed to load from ${detectImageService(prodImageUrl)}</strong>
-                                  <p style="margin: 0.5rem 0 0 0;">Try using ImgBB or Imgur instead - they work more reliably.</p>
-                                `;
-                              }
-                              parent.appendChild(errorDiv);
-                            }
-                          }} 
-                        />
-                      </>
+                    {mainImageError ? (
+                      <p className={styles.fieldError} role="alert">{mainImageError}</p>
                     ) : (
-                      <>
-                        <img 
-                          src={prodImageUrl} 
-                          alt="Preview" 
-                          className={styles.imagePreview} 
-                          style={{ marginBottom: '0.5rem', maxWidth: 120, maxHeight: 120, borderRadius: 8, border: '1px solid #eee' }} 
-                          onError={e => {
-                            (e.currentTarget as HTMLImageElement).style.display = 'none';
-                          }} 
-                        />
-                        <p style={{ fontSize: '0.8rem', color: '#10b981' }}>✅ {detectImageService(prodImageUrl)}</p>
-                      </>
+                      <MediaPreview url={prodImageUrl} alt="Main image preview" className={styles.imagePreview} />
                     )}
+                    {isGoogleDriveLink(prodImageUrl) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
                   </div>
                 )}
-                
+
                 {/* Extra Images Section */}
                 <div className={styles.extraImages}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Extra Images (Optional)</label>
                   <div className={styles.extraImagesRow}>
                     <input 
                       className={styles.input}
-                      placeholder="Image URL (Google Drive links supported)" 
+                      placeholder="Image URL" 
                       value={prodImageInput} 
-                      onChange={e => setProdImageInput(e.target.value)} 
+                      onChange={e => { setProdImageInput(e.target.value); setExtraImageError(''); }} 
                       disabled={loading}
                       style={{ margin: 0 }}
                     />
                     <button 
                       type="button"
                       className={styles.button}
-                      onClick={() => {
-                        if (prodImageInput.trim()) {
-                          setProdImages([...prodImages, prodImageInput]);
-                          setProdImageInput('');
-                        }
-                      }}
-                      disabled={loading}
+                      onClick={handleAddExtraImage}
+                      disabled={loading || resolvingImage}
                     >
                       Add
                     </button>
                   </div>
+                  {extraImageError && <p className={styles.fieldError} role="alert">{extraImageError}</p>}
+                  {isGoogleDriveLink(prodImageInput) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
                   {prodImages.length > 0 && (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       {prodImages.map((img, idx) => (
                         <div key={idx} style={{ position: 'relative' }}>
-                          <img 
-                            src={convertImageUrl(img)} 
-                            alt={`Extra ${idx}`} 
-                            style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
-                            onError={e => {
-                              (e.currentTarget as HTMLImageElement).style.opacity = '0.5';
-                              (e.currentTarget as HTMLImageElement).style.borderColor = '#fca5a5';
-                            }}
-                          />
+                          <MediaPreview url={img} alt={`Extra ${idx + 1}`} className={styles.extraThumb} />
                           <button
                             type="button"
                             onClick={() => setProdImages(prodImages.filter((_, i) => i !== idx))}
@@ -751,7 +715,7 @@ export default function AdminPage() {
                   )}
                 </div>
                 
-                <button className={`${styles.button} ${styles.saveButton}`} type="submit" disabled={loading}>Save</button>
+                <button className={`${styles.button} ${styles.saveButton}`} type="submit" disabled={loading || resolvingImage}>{resolvingImage ? 'Checking link…' : 'Save'}</button>
               </form>
               {/* Product Grid */}
               <div className={styles.productGrid}>
@@ -812,7 +776,7 @@ export default function AdminPage() {
                         className={styles.input}
                         placeholder="Image URL" 
                         value={prodImageInput} 
-                        onChange={e => setProdImageInput(e.target.value)} 
+                        onChange={e => { setProdImageInput(e.target.value); setExtraImageError(''); }} 
                         disabled={loading}
                         style={{ margin: 0 }}
                       />
@@ -820,11 +784,13 @@ export default function AdminPage() {
                         type="button"
                         className={styles.button}
                         onClick={handleAddImageToProduct}
-                        disabled={loading}
+                        disabled={loading || resolvingImage}
                       >
                         Add
                       </button>
                     </div>
+                    {extraImageError && <p className={styles.fieldError} role="alert">{extraImageError}</p>}
+                    {isGoogleDriveLink(prodImageInput) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
 
                     {editingProduct.images && editingProduct.images.length > 0 && (
                       <div>
@@ -832,12 +798,7 @@ export default function AdminPage() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                           {editingProduct.images.map((img, idx) => (
                             <div key={idx} style={{ position: 'relative' }}>
-                              <img 
-                                src={img} 
-                                alt={`Extra ${idx}`} 
-                                style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
-                                onError={e => (e.currentTarget.style.display = 'none')}
-                              />
+                              <MediaPreview url={img} alt={`Extra ${idx + 1}`} className={styles.editThumb} />
                               <button
                                 type="button"
                                 onClick={() => handleRemoveImageFromProduct(idx)}
@@ -877,6 +838,7 @@ export default function AdminPage() {
                         onClick={() => {
                           setEditingProduct(null);
                           setProdImageInput('');
+                          setExtraImageError('');
                         }}
                         disabled={loading}
                       >

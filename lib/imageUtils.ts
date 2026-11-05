@@ -1,132 +1,86 @@
-/**
- * Convert Google Drive share links to direct image access URLs
- * Google Drive has strict embedding policies, so we provide multiple format options
- */
-export function convertGoogleDriveLink(url: string): string {
+export type MediaUrlResult = { ok: true; url: string } | { ok: false; error: string };
+
+export const IMGBB_DIRECT_LINK_HELP =
+  'Could not read this ImgBB link. On ImgBB, copy the image\'s "Direct link" (it starts with https://i.ibb.co/) and paste that instead.';
+
+export const GOOGLE_DRIVE_WARNING =
+  'Google Drive restricts embedding, so even a publicly shared file may not load on the site. ImgBB or Imgur are more reliable.';
+
+const DIRECT_MEDIA_PATH = /\.(jpe?g|png|gif|webp|avif|svg|bmp|mp4|webm|mov)$/i;
+const IMGBB_SHARE_HOSTS = new Set(['ibb.co', 'www.ibb.co']);
+const IMGBB_IMAGE_HOST = 'i.ibb.co';
+const IMGBB_PLACEHOLDER_SIZE = 180;
+
+function parseAbsoluteUrl(url: string): URL | null {
   try {
-    // Check if it's a Google Drive link
-    if (!url.includes('drive.google.com')) {
-      return url; // Return as-is if not a Drive link
-    }
-
-    // Extract file ID from the URL
-    // Pattern: /file/d/{FILE_ID}/
-    const fileIdMatch = url.match(/\/file\/d\/([^/?]+)/);
-    if (!fileIdMatch || !fileIdMatch[1]) {
-      console.warn('Could not extract Google Drive file ID from URL:', url);
-      return url; // Return as-is if can't extract ID
-    }
-
-    const fileId = fileIdMatch[1];
-    console.log('Converted Google Drive link - File ID:', fileId);
-    
-    // Return the direct view URL for images
-    // This format works for publicly shared files
-    return `https://drive.google.com/uc?id=${fileId}&export=view`;
-  } catch (error) {
-    console.error('Error converting Google Drive link:', error);
-    return url; // Return original URL if conversion fails
-  }
-}
-
-/**
- * Convert ImgBB share links to direct image URLs
- * ImgBB gives you share pages (ibb.co) but we need direct image URLs (i.ibb.co)
- */
-export function convertImgBBLink(url: string): string {
-  try {
-    // Check if it's an ImgBB link
-    if (!url.includes('ibb.co')) {
-      return url;
-    }
-
-    // Pattern: https://ibb.co/IMAGEID or https://ibb.co/IMAGEID/SLUG
-    const imageIdMatch = url.match(/ibb\.co\/([a-zA-Z0-9]+)/);
-    if (!imageIdMatch || !imageIdMatch[1]) {
-      return url;
-    }
-
-    const imageId = imageIdMatch[1];
-    console.log('Detected ImgBB image ID:', imageId);
-    
-    // Return the direct image URL
-    // Format: https://i.ibb.co/IMAGEID/image.jpg
-    return `https://i.ibb.co/${imageId}/image.jpg`;
-  } catch (error) {
-    console.error('Error converting ImgBB link:', error);
-    return url;
-  }
-}
-
-/**
- * Smart URL converter - handles multiple image hosting services
- */
-export function convertImageUrl(url: string): string {
-  if (url.includes('ibb.co')) {
-    return convertImgBBLink(url);
-  }
-  if (url.includes('drive.google.com')) {
-    return convertGoogleDriveLink(url);
-  }
-  return url;
-}
-
-/**
- * Get alternative Google Drive embed URL (sometimes works when export=view fails)
- */
-export function getAlternativeGoogleDriveUrl(url: string): string {
-  try {
-    const fileIdMatch = url.match(/\/file\/d\/([^/?]+)/);
-    if (!fileIdMatch || !fileIdMatch[1]) {
-      return url;
-    }
-    const fileId = fileIdMatch[1];
-    // Alternative format with download parameter
-    return `https://drive.google.com/uc?id=${fileId}&export=download`;
-  } catch {
-    return url;
-  }
-}
-
-/**
- * Validate if a URL is accessible as an image
- */
-export function isValidImageUrl(url: string): boolean {
-  try {
-    new URL(url); // Check if it's a valid URL
-    return url.toLowerCase().includes('http://') || url.toLowerCase().includes('https://');
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Extract Google Drive file ID for instructions
- */
-export function extractGoogleDriveFileId(url: string): string | null {
-  try {
-    const match = url.match(/\/file\/d\/([^/?]+)/);
-    return match ? match[1] : null;
+    const parsed = new URL(url.trim());
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed : null;
   } catch {
     return null;
   }
 }
 
+export function isImgbbShareLink(url: string): boolean {
+  const parsed = parseAbsoluteUrl(url);
+  return !!parsed && IMGBB_SHARE_HOSTS.has(parsed.hostname);
+}
+
+export function isImgbbDirectLink(url: string): boolean {
+  return parseAbsoluteUrl(url)?.hostname === IMGBB_IMAGE_HOST;
+}
+
+export function isGoogleDriveLink(url: string): boolean {
+  return parseAbsoluteUrl(url)?.hostname === 'drive.google.com';
+}
+
+/** ImgBB answers a missing image with a 180x180 placeholder and no load error. */
+export function isImgbbPlaceholder(url: string, width: number, height: number): boolean {
+  return isImgbbDirectLink(url) && width === IMGBB_PLACEHOLDER_SIZE && height === IMGBB_PLACEHOLDER_SIZE;
+}
+
+function convertGoogleDriveLink(url: string): string {
+  const fileId = url.match(/\/file\/d\/([^/?]+)/)?.[1];
+  return fileId ? `https://drive.google.com/uc?id=${fileId}&export=view` : url;
+}
+
+/** The og:image of an ImgBB share page, only when it points at ImgBB's image host. */
+export function extractImgbbImage(html: string): string | null {
+  for (const tag of html.match(/<meta\b[^>]*>/gi) ?? []) {
+    if (!/\bproperty\s*=\s*["']og:image["']/i.test(tag)) continue;
+    const content = tag.match(/\bcontent\s*=\s*["']([^"']+)["']/i)?.[1];
+    const parsed = content ? parseAbsoluteUrl(content) : null;
+    if (parsed?.protocol === 'https:' && parsed.hostname === IMGBB_IMAGE_HOST && DIRECT_MEDIA_PATH.test(parsed.pathname)) {
+      return parsed.href;
+    }
+  }
+  return null;
+}
+
+async function resolveImgbbShareLink(url: string): Promise<MediaUrlResult> {
+  try {
+    const response = await fetch(`/api/resolve-image?url=${encodeURIComponent(url)}`);
+    const body: { url?: string } = await response.json();
+    if (response.ok && body.url) return { ok: true, url: body.url };
+  } catch (error) {
+    console.error('Could not resolve the ImgBB link:', error);
+  }
+  return { ok: false, error: IMGBB_DIRECT_LINK_HELP };
+}
+
 /**
- * Detect image hosting service
+ * The one place a pasted media link is checked before it is previewed or saved. Direct links and paths are never
+ * rewritten; ImgBB share links are resolved to the real image, because the share ID is not the image ID.
  */
-export function detectImageService(url: string): string {
-  if (url.includes('ibb.co') || url.includes('i.ibb.co')) {
-    return 'ImgBB';
-  }
-  if (url.includes('drive.google.com')) {
-    return 'Google Drive';
-  }
-  if (url.includes('imgur')) {
-    return 'Imgur';
-  }
-  if (url.includes('cloudinary')) {
-    return 'Cloudinary';
-  }
-  return 'Other';
+export async function normalizeMediaUrl(raw: string): Promise<MediaUrlResult> {
+  const url = raw.trim();
+  if (!url) return { ok: false, error: 'Enter an image link.' };
+  if (url.startsWith('/') || url.startsWith('data:image/')) return { ok: true, url };
+
+  const parsed = parseAbsoluteUrl(url);
+  if (!parsed) return { ok: false, error: 'Enter a full link starting with https://' };
+  if (parsed.hostname === IMGBB_IMAGE_HOST || DIRECT_MEDIA_PATH.test(parsed.pathname)) return { ok: true, url };
+  if (IMGBB_SHARE_HOSTS.has(parsed.hostname)) return resolveImgbbShareLink(url);
+  if (parsed.hostname === 'imgbb.com' || parsed.hostname.endsWith('.imgbb.com')) return { ok: false, error: IMGBB_DIRECT_LINK_HELP };
+  if (isGoogleDriveLink(url)) return { ok: true, url: convertGoogleDriveLink(url) };
+  return { ok: true, url };
 }
