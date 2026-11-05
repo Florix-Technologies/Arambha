@@ -6,6 +6,7 @@ import { findCategoryConflict, normalizeCategoryName, slugify } from '@/lib/slug
 import { GOOGLE_DRIVE_WARNING, isGoogleDriveLink, normalizeMediaUrl } from '@/lib/imageUtils';
 import LoginModal from '@/components/layout/LoginModal';
 import MediaPreview from './MediaPreview';
+import MediaUploadButton from './MediaUploadButton';
 import { useInactivityLogout } from './useInactivityLogout';
 import styles from './page.module.css';
 
@@ -75,6 +76,8 @@ export default function AdminPage() {
   const [mainImageError, setMainImageError] = useState('');
   const [extraImageError, setExtraImageError] = useState('');
   const [resolvingImage, setResolvingImage] = useState(false);
+  const [uploadsInProgress, setUploadsInProgress] = useState(0);
+  const trackUpload = (busy: boolean) => setUploadsInProgress(count => count + (busy ? 1 : -1));
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingItem, setEditingItem] = useState<ItemDraft | null>(null);
   const [itemError, setItemError] = useState('');
@@ -940,6 +943,8 @@ export default function AdminPage() {
                   required 
                   disabled={loading}
                 />
+                <MediaUploadButton label="Upload main image" disabled={loading} onBusyChange={trackUpload}
+                  onUploaded={url => { mainLookup.current++; setProdImageUrl(url); setMainImageError(''); }} />
                 {prodImageUrl && (
                   <div className={styles.previewBlock}>
                     {mainImageError ? (
@@ -971,6 +976,8 @@ export default function AdminPage() {
                     >
                       Add
                     </button>
+                    <MediaUploadButton label="Upload extra image" disabled={loading} onBusyChange={trackUpload}
+                      onUploaded={url => setProdImages(current => [...current, url])} />
                   </div>
                   {extraImageError && <p className={styles.fieldError} role="alert">{extraImageError}</p>}
                   {isGoogleDriveLink(prodImageInput) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
@@ -1005,7 +1012,7 @@ export default function AdminPage() {
                   )}
                 </div>
                 
-                <button className={`${styles.button} ${styles.saveButton}`} type="submit" disabled={loading || resolvingImage}>{resolvingImage ? 'Checking link…' : 'Save'}</button>
+                <button className={`${styles.button} ${styles.saveButton}`} type="submit" disabled={loading || resolvingImage || uploadsInProgress > 0}>{resolvingImage ? 'Checking link…' : 'Save'}</button>
               </form>
               {/* Product Grid */}
               <div className={styles.productGrid}>
@@ -1080,11 +1087,17 @@ export default function AdminPage() {
                       <label htmlFor="edit-item-image">Main image link</label>
                       <input id="edit-item-image" className={styles.input} value={editingItem.imageUrl}
                         onChange={e => { setEditingItem({ ...editingItem, imageUrl: e.target.value }); setItemError(''); }} onBlur={checkItemImage} disabled={loading || resolvingImage} />
+                      <MediaUploadButton key={editingItem.id} label="Upload main image" disabled={loading} onBusyChange={trackUpload}
+                        onUploaded={url => {
+                          itemLookup.current++;
+                          setEditingItem(current => current?.id === editingItem.id ? { ...current, imageUrl: url } : current);
+                          setItemError('');
+                        }} />
                       {editingItem.imageUrl && <MediaPreview url={editingItem.imageUrl} alt="Main image preview" className={styles.imagePreview} />}
                       {isGoogleDriveLink(editingItem.imageUrl) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
                       {itemError && <p className={styles.fieldError} role="alert">{itemError}</p>}
                       <div className={styles.modalActions}>
-                        <button className={styles.button} type="submit" disabled={loading || resolvingImage}>Save item</button>
+                        <button className={styles.button} type="submit" disabled={loading || resolvingImage || uploadsInProgress > 0}>Save item</button>
                         <button className={styles.button} type="button" disabled={loading || resolvingImage}
                           onClick={() => { itemLookup.current++; setEditingItem(null); setItemError(''); }}>Cancel</button>
                       </div>
@@ -1119,6 +1132,9 @@ export default function AdminPage() {
                         Add
                       </button>
                     </div>
+                    <MediaUploadButton key={editingProduct.id} label="Upload image" disabled={loading} onBusyChange={trackUpload}
+                      onUploaded={url => setEditingProduct(current => current?.id === editingProduct.id
+                        ? { ...current, images: [...(current.images ?? []), url] } : current)} />
                     {extraImageError && <p className={styles.fieldError} role="alert">{extraImageError}</p>}
                     {isGoogleDriveLink(prodImageInput) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
 
@@ -1159,7 +1175,7 @@ export default function AdminPage() {
                       <button 
                         className={styles.button} 
                         onClick={() => handleUpdateProduct(editingProduct)}
-                        disabled={loading}
+                        disabled={loading || uploadsInProgress > 0}
                       >
                         Save Changes
                       </button>

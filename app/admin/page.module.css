@@ -398,3 +398,55 @@
   margin-top: 0.75rem;
   line-height: 1.5;
 }
+
+.uploadRow {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.uploadButton {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-block;
+  transition: background 0.2s;
+}
+.uploadButton:hover {
+  background: #444;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.visuallyHidden:focus-visible + .uploadButton {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.visuallyHidden:disabled + .uploadButton {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.uploadProgress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  min-width: 0;
+}
+.uploadProgress progress {
+  width: min(240px, 100%);
+}
