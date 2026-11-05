@@ -3,6 +3,7 @@ import { motion, Variants } from 'framer-motion';
 import { useState } from 'react';
 import { whatsappUrl } from '@/lib/whatsapp';
 import SmartVideo from '@/components/ui/SmartVideo';
+import LazyMap from '@/components/ui/LazyMap';
 import styles from './page.module.css';
 
 export default function ContactPage() {
@@ -14,9 +15,8 @@ export default function ContactPage() {
   });
 
   const containerVariants: Variants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
-      opacity: 1,
       transition: {
         staggerChildren: 0.1,
         delayChildren: 0.1
@@ -85,12 +85,12 @@ Thank you!`;
         >
           {/* Main Centered Heading */}
           <div className={styles.centeredHeader}>
-            <motion.div variants={itemVariants}>
+            <div>
               <h1 className={styles.title}>Let&apos;s Create Something <br /><span>Extraordinary</span></h1>
-              <p className={styles.subtitle}>
+              <motion.p className={styles.subtitle} variants={itemVariants}>
                 From bespoke furniture to complete home transformations, we are here to bring your vision to life.
-              </p>
-            </motion.div>
+              </motion.p>
+            </div>
           </div>
 
           {/* Left Side: Detail Cards */}
@@ -130,13 +130,10 @@ Thank you!`;
             </div>
 
             <motion.div className={styles.mapWrapper} variants={itemVariants}>
-              <iframe title="Arambha studio location"
+              <LazyMap title="Arambha studio location"
                 className={styles.mapFrame}
                 src="https://maps.google.com/maps?q=No.11/68/1,+2nd+Floor,+59th+Cross,+4th+Block,+Rajajinagar,+Opp.+MEI+Polytechnic+College,+Bangalore+-+560010,+Karnataka&output=embed"
-                loading="lazy"
-                allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+              />
             </motion.div>
           </div>
 
