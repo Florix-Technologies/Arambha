@@ -1,15 +1,12 @@
 "use client";
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { filterCatalog, type Catalog } from '@/lib/catalog';
 import { InteriorsItemCard } from '@/components/catalog/ItemCard';
 import CatalogMedia from '@/components/ui/CatalogMedia';
 import styles from './page.module.css';
 
-function InteriorsContent({ catalog }: { catalog: Catalog }) {
-  const filter = useSearchParams().get('filter');
-  const loading = false;
+export default function InteriorsClient({ catalog, filter }: { catalog: Catalog; filter?: string }) {
   const categories = filterCatalog(catalog, filter);
   const [selectedProduct, setSelectedProduct] = useState<{
     categoryId: string;
@@ -23,7 +20,7 @@ function InteriorsContent({ catalog }: { catalog: Catalog }) {
         <h1 className={styles.title}>Interior Solutions</h1>
         <p className={styles.subtitle}>Bespoke craft for modern living spaces.</p>
       </header>
-      {!loading && categories.length === 0 && (
+      {categories.length === 0 && (
         <p className={styles.subtitle}>
           New pieces are on the way. Tell us what you are looking for and we will help.{' '}<Link href="/contact">Get in touch</Link>{' '}
           {filter && filter !== 'all' && <Link href="/interiors">View all interiors</Link>}
@@ -80,8 +77,4 @@ function InteriorsContent({ catalog }: { catalog: Catalog }) {
       </div>
     </div>
   );
-}
-
-export default function InteriorsClient({ catalog }: { catalog: Catalog }) {
-  return <Suspense fallback={null}><InteriorsContent catalog={catalog} /></Suspense>;
 }

@@ -1,16 +1,13 @@
 "use client";
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { filterCatalog, type Catalog, type Product } from '@/lib/catalog';
 import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
 import { FurnitureItemCard } from '@/components/catalog/ItemCard';
 import CatalogMedia from '@/components/ui/CatalogMedia';
 import styles from './page.module.css';
 
-function FurnitureContent({ catalog }: { catalog: Catalog }) {
-  const filter = useSearchParams().get('filter');
-  const loading = false;
+export default function FurnitureClient({ catalog, filter }: { catalog: Catalog; filter?: string }) {
   const categories = filterCatalog(catalog, filter);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -22,7 +19,7 @@ function FurnitureContent({ catalog }: { catalog: Catalog }) {
         <h1 className={styles.title}>Furniture Collection</h1>
         <p className={styles.subtitle}>Handcrafted pieces that blend form, function, and timeless aesthetics.</p>
       </header>
-      {!loading && categories.length === 0 && (
+      {categories.length === 0 && (
         <p className={styles.subtitle}>
           New pieces are on the way. Tell us what you are looking for and we will help.{' '}<Link href="/contact">Get in touch</Link>{' '}
           {filter && filter !== 'all' && <Link href="/furniture">View all furniture</Link>}
@@ -232,8 +229,4 @@ function FurnitureContent({ catalog }: { catalog: Catalog }) {
       )}
     </div>
   );
-}
-
-export default function FurnitureClient({ catalog }: { catalog: Catalog }) {
-  return <Suspense fallback={null}><FurnitureContent catalog={catalog} /></Suspense>;
 }

@@ -2,20 +2,17 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { filterCatalog, type Catalog } from '@/lib/catalog';
 import { isVideoUrl } from '@/lib/imageUtils';
 import styles from "./page.module.css";
 
-import { Suspense } from "react";
 import { GalleryItemMedia } from '@/components/catalog/ItemCard';
 
-function GalleryContent({ catalog }: { catalog: Catalog }) {
-  const searchParams = useSearchParams();
+export default function GalleryClient({ catalog, filter: initialFilter }: { catalog: Catalog; filter?: string }) {
   const router = useRouter();
-  const filter = searchParams.get("filter") || "all";
+  const filter = initialFilter || "all";
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
-  const loading = false;
   const allCategories = catalog;
   const gallerySections = filterCatalog(catalog, filter).map(category => ({
     id: category.id,
@@ -81,12 +78,7 @@ function GalleryContent({ catalog }: { catalog: Catalog }) {
         </div>
       </header>
 
-      {loading ? (
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingPulse}></div>
-          <p>Capturing Perfection...</p>
-        </div>
-      ) : gallerySections.length === 0 ? (
+      {gallerySections.length === 0 ? (
         <motion.div
           className={styles.emptyState}
           initial={{ opacity: 0, y: 30 }}
@@ -231,8 +223,4 @@ function GalleryContent({ catalog }: { catalog: Catalog }) {
       </AnimatePresence>
     </div>
   );
-}
-
-export default function GalleryClient({ catalog }: { catalog: Catalog }) {
-  return <Suspense fallback={null}><GalleryContent catalog={catalog} /></Suspense>;
 }
