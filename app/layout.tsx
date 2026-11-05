@@ -183,6 +183,7 @@ const jsonLd = {
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import InquiryPopup from "@/components/layout/InquiryPopup";
+import SectionBoundary from "@/components/ui/SectionBoundary";
 
 export default function RootLayout({
   children,
@@ -198,10 +199,10 @@ export default function RootLayout({
         />
       </head>
       <body className={`${outfit.variable} ${cormorant.variable}`} suppressHydrationWarning>
-        <Navbar />
+        <SectionBoundary name="Navigation"><Navbar /></SectionBoundary>
         <main>{children}</main>
-        <Footer />
-        <InquiryPopup />
+        <SectionBoundary name="Footer"><Footer /></SectionBoundary>
+        <SectionBoundary name="Inquiry popup"><InquiryPopup /></SectionBoundary>
       </body>
     </html>
   );
