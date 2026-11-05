@@ -1,12 +1,13 @@
 
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { findCategoryConflict, normalizeCategoryName, slugify } from '@/lib/slug';
-import { GOOGLE_DRIVE_WARNING, isGoogleDriveLink, normalizeMediaUrl } from '@/lib/imageUtils';
 import LoginModal from '@/components/layout/LoginModal';
 import MediaPreview from './MediaPreview';
-import MediaUploadButton from './MediaUploadButton';
+import ItemWizard from './ItemWizard';
+import HelpPanel from './HelpPanel';
+import AdminTour from './AdminTour';
 import { useInactivityLogout } from './useInactivityLogout';
 import styles from './page.module.css';
 
@@ -28,25 +29,6 @@ function databaseErrorMessage(error: { message: string; code?: string }) {
 }
 const IDLE_LIMIT_MS = 30 * 60 * 1000;
 const IDLE_WARNING_MS = 60 * 1000;
-const DRAFT_KEY = 'admin-unsaved-form';
-
-type ItemDraft = { id: string; name: string; description: string; price: string; imageUrl: string };
-
-type FormDraft = {
-  email: string;
-  collection: string;
-  categoryId: string | null;
-  catName: string;
-  prodName: string;
-  prodDesc: string;
-  prodPrice: string;
-  prodImageUrl: string;
-  prodImages: string[];
-  prodImageInput: string;
-  editingProduct: Product | null;
-  editingItem: ItemDraft | null;
-};
-
 const collections = [
   { key: 'furniture', label: 'Furniture' },
   { key: 'interiors', label: 'Interiors' },
@@ -67,29 +49,12 @@ export default function AdminPage() {
   const [renamingCategory, setRenamingCategory] = useState<Category | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [renameError, setRenameError] = useState('');
-  const [prodName, setProdName] = useState('');
-  const [prodDesc, setProdDesc] = useState('');
-  const [prodPrice, setProdPrice] = useState('');
-  const [prodImageUrl, setProdImageUrl] = useState('');
-  const [prodImages, setProdImages] = useState<string[]>([]);
-  const [prodImageInput, setProdImageInput] = useState('');
-  const [mainImageError, setMainImageError] = useState('');
-  const [extraImageError, setExtraImageError] = useState('');
-  const [resolvingImage, setResolvingImage] = useState(false);
-  const [uploadsInProgress, setUploadsInProgress] = useState(0);
-  const trackUpload = (busy: boolean) => setUploadsInProgress(count => count + (busy ? 1 : -1));
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [editingItem, setEditingItem] = useState<ItemDraft | null>(null);
-  const [itemError, setItemError] = useState('');
+  const [wizard, setWizard] = useState<{ product?: Product } | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [tourRestart, setTourRestart] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [logoutNotice, setLogoutNotice] = useState('');
-  // An ImgBB lookup can finish after its link was edited or its modal closed; each field only trusts its latest lookup.
-  const mainLookup = useRef(0);
-  const extraLookup = useRef(0);
-  const itemLookup = useRef(0);
-  const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null);
-
   // Check if user is authenticated on mount
   useEffect(() => {
     console.log('Auth useEffect running...');
@@ -144,43 +109,6 @@ export default function AdminPage() {
       subscription?.unsubscribe();
     };
   }, [isLoggingOut]);
-
-  // Restore a form that was open when the inactivity logout happened in this tab.
-  useEffect(() => {
-    if (!isAuthenticated || !userEmail) return;
-    let draft: FormDraft | null = null;
-    try {
-      const saved = sessionStorage.getItem(DRAFT_KEY);
-      if (!saved) return;
-      sessionStorage.removeItem(DRAFT_KEY);
-      draft = JSON.parse(saved);
-    } catch {
-      return;
-    }
-    if (!draft || draft.email !== userEmail) return;
-    setSelectedCollection(draft.collection);
-    setPendingCategoryId(draft.categoryId);
-    setCatName(draft.catName);
-    setProdName(draft.prodName);
-    setProdDesc(draft.prodDesc);
-    setProdPrice(draft.prodPrice);
-    setProdImageUrl(draft.prodImageUrl);
-    setProdImages(draft.prodImages);
-    setProdImageInput(draft.prodImageInput);
-    setEditingProduct(draft.editingProduct);
-    setEditingItem(draft.editingItem ?? null);
-    setLogoutNotice('');
-    setMessage('Your unsaved form from before you were logged out has been restored. Check it, then save.');
-  }, [isAuthenticated, userEmail]);
-
-  useEffect(() => {
-    if (!pendingCategoryId) return;
-    const category = categories.find(cat => cat.id === pendingCategoryId);
-    if (category) {
-      setPendingCategoryId(null);
-      setSelectedCategory(category);
-    }
-  }, [categories, pendingCategoryId]);
 
   // Fetch categories when collection changes
   useEffect(() => {
@@ -379,70 +307,6 @@ export default function AdminPage() {
     }
   };
 
-  // Add product
-  const handleAddProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCategory) {
-      setMessage('Please select a category');
-      return;
-    }
-    if (!prodName.trim() || !prodImageUrl.trim()) {
-      setMessage('Product name and image URL are required');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      setResolvingImage(true);
-      const mainResult = await normalizeMediaUrl(prodImageUrl);
-      const extraResults = await Promise.all(prodImages.map(normalizeMediaUrl));
-      setResolvingImage(false);
-      if (!mainResult.ok) {
-        setMainImageError(mainResult.error);
-        return;
-      }
-      const failedExtra = extraResults.find(result => !result.ok);
-      if (failedExtra && !failedExtra.ok) {
-        setExtraImageError(failedExtra.error);
-        return;
-      }
-      setProdImageUrl(mainResult.url);
-      const savedImages = extraResults.flatMap(result => (result.ok ? [result.url] : []));
-
-      const { data, error } = await supabase
-        .from('products')
-        .insert([{
-          category_id: selectedCategory.id,
-          name: prodName,
-          description: prodDesc,
-          price: prodPrice ? parseFloat(prodPrice) : null,
-          image_url: mainResult.url,
-          images: savedImages
-        }]);
-
-      if (error) {
-        console.error('Insert error:', error);
-        throw new Error(databaseErrorMessage(error));
-      }
-      setMessage('✅ Product added successfully!');
-      setProdName('');
-      setProdDesc('');
-      setProdPrice('');
-      setProdImageUrl('');
-      setProdImages([]);
-      setProdImageInput('');
-      setMainImageError('');
-      setExtraImageError('');
-      await fetchProducts(selectedCategory.id);
-    } catch (error: unknown) {
-      console.error('Error adding product:', error);
-      setMessage(`Error adding product: ${errorMessage(error)}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Delete product
   const handleDeleteProduct = async (prod: Product) => {
     if (!window.confirm(`Delete product "${prod.name}"?`)) return;
@@ -472,153 +336,6 @@ export default function AdminPage() {
     }
   };
 
-  // Update product images
-  const handleUpdateProduct = async (prod: Product) => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .update({ images: prod.images || [] })
-        .eq('id', prod.id)
-        .select('id');
-
-      if (error) {
-        console.error('Update error:', error);
-        throw new Error(databaseErrorMessage(error));
-      }
-      if (!data?.length) throw new Error(NOT_ALLOWED_MESSAGE);
-      setMessage('Product images updated successfully!');
-      setEditingProduct(null);
-      if (selectedCategory) {
-        await fetchProducts(selectedCategory.id);
-      }
-    } catch (error: unknown) {
-      console.error('Error updating product:', error);
-      setExtraImageError(`Error updating product: ${errorMessage(error)}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingItem || !selectedCategory || loading || resolvingImage) return;
-    setItemError('');
-    const { id, imageUrl: link } = editingItem;
-    const name = editingItem.name.trim();
-    if (!name) {
-      setItemError('Item name is required');
-      return;
-    }
-    const price = editingItem.price.trim() === '' ? null : Number(editingItem.price);
-    if (price !== null && (!Number.isFinite(price) || price < 0)) {
-      setItemError('Price must be a positive number or empty');
-      return;
-    }
-    const description = editingItem.description.trim();
-    try {
-      setLoading(true);
-      setResolvingImage(true);
-      const result = await normalizeMediaUrl(link);
-      setResolvingImage(false);
-      if (!result.ok) {
-        setItemError(result.error);
-        return;
-      }
-      const image_url = result.url;
-      const { data, error } = await supabase.from('products')
-        .update({ name, description, price, image_url }).eq('id', id).select('id');
-      if (error) {
-        setItemError(error.message);
-        return;
-      }
-      if (!data?.length) {
-        setItemError(NOT_ALLOWED_MESSAGE);
-        return;
-      }
-      setEditingItem(null);
-      setMessage('Item updated successfully!');
-      await fetchProducts(selectedCategory.id);
-    } catch (error: unknown) {
-      setItemError(error instanceof Error ? error.message : 'Could not save item');
-    } finally {
-      setResolvingImage(false);
-      setLoading(false);
-    }
-  };
-
-  const checkItemImage = async () => {
-    if (!editingItem) return;
-    const { id, imageUrl } = editingItem;
-    const lookup = ++itemLookup.current;
-    try {
-      setResolvingImage(true);
-      const result = await normalizeMediaUrl(imageUrl);
-      if (lookup !== itemLookup.current) return;
-      if (!result.ok) {
-        setItemError(result.error);
-        return;
-      }
-      setEditingItem(current => current?.id === id && current.imageUrl === imageUrl
-        ? { ...current, imageUrl: result.url } : current);
-    } catch (error: unknown) {
-      setItemError(error instanceof Error ? error.message : 'Could not check image link');
-    } finally {
-      setResolvingImage(false);
-    }
-  };
-
-  const checkMainImage = async () => {
-    if (!prodImageUrl.trim()) {
-      setMainImageError('');
-      return;
-    }
-    const lookup = ++mainLookup.current;
-    setResolvingImage(true);
-    const result = await normalizeMediaUrl(prodImageUrl);
-    setResolvingImage(false);
-    if (lookup !== mainLookup.current) return;
-    setMainImageError(result.ok ? '' : result.error);
-    if (result.ok) setProdImageUrl(result.url);
-  };
-
-  // Returns the checked link, or null after showing why it cannot be used.
-  const checkExtraImage = async (): Promise<string | null> => {
-    const lookup = ++extraLookup.current;
-    setResolvingImage(true);
-    const result = await normalizeMediaUrl(prodImageInput);
-    setResolvingImage(false);
-    if (lookup !== extraLookup.current) return null;
-    setExtraImageError(result.ok ? '' : result.error);
-    return result.ok ? result.url : null;
-  };
-
-  const handleAddExtraImage = async () => {
-    const url = await checkExtraImage();
-    if (!url) return;
-    setProdImages(images => [...images, url]);
-    setProdImageInput('');
-  };
-
-  // Add image to editing product
-  const handleAddImageToProduct = async () => {
-    if (!editingProduct) return;
-    const productId = editingProduct.id;
-    const url = await checkExtraImage();
-    if (!url) return;
-    setEditingProduct(current => (current?.id === productId
-      ? { ...current, images: [...(current.images || []), url] }
-      : current));
-    setProdImageInput('');
-  };
-
-  // Remove image from editing product
-  const handleRemoveImageFromProduct = (index: number) => {
-    if (!editingProduct) return;
-    const newImages = editingProduct.images?.filter((_, i) => i !== index) || [];
-    setEditingProduct({ ...editingProduct, images: newImages });
-  };
-
   // Handle logout - END SESSION PROPERLY
   const handleLogout = async () => {
     console.log('🔴 LOGOUT STARTED');
@@ -630,18 +347,6 @@ export default function AdminPage() {
       await supabase.auth.signOut();
       console.log('✅ Supabase session cleared');
 
-      // Clear all SessionStorage
-      if (typeof window !== 'undefined') {
-        sessionStorage.clear();
-        console.log('✅ SessionStorage cleared');
-      }
-
-      // Clear localStorage completely
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        console.log('✅ LocalStorage cleared');
-      }
-
       // IMMEDIATELY set authentication to false
       setIsAuthenticated(false);
       setUserEmail('');
@@ -649,13 +354,7 @@ export default function AdminPage() {
       setProducts([]);
       setCatName('');
       setMessage('');
-      setProdName('');
-      setProdDesc('');
-      setProdImageUrl('');
-      setProdImages([]);
-      setProdImageInput('');
-      setEditingProduct(null);
-      setEditingItem(null);
+      setWizard(null);
       setSelectedCollection(collections[0].key);
 
       console.log('✅ All state cleared - Login modal should now be visible');
@@ -692,25 +391,9 @@ export default function AdminPage() {
     }
   };
 
-  const hasUnsavedForm = !!(catName || prodName || prodDesc || prodPrice || prodImageUrl || prodImages.length || prodImageInput || editingProduct || editingItem);
-
   const handleInactivityLogout = async () => {
-    const draft: FormDraft = {
-      email: userEmail, collection: selectedCollection, categoryId: selectedCategory?.id ?? null, catName,
-      prodName, prodDesc, prodPrice, prodImageUrl, prodImages, prodImageInput, editingProduct, editingItem,
-    };
-    const keepDraft = hasUnsavedForm;
     await handleLogout();
-    if (keepDraft) {
-      try {
-        sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-      } catch (error) {
-        console.error('Could not keep the unsaved form:', error);
-      }
-    }
-    setLogoutNotice(keepDraft
-      ? 'You were logged out after 30 minutes without activity. Log in again here and your unsaved form will come back.'
-      : 'You were logged out after 30 minutes without activity.');
+    setLogoutNotice('You were logged out after 30 minutes without activity. Your item draft stays in this browser.');
   };
 
   const { secondsLeft: idleSecondsLeft, stayLoggedIn } = useInactivityLogout({
@@ -744,7 +427,7 @@ export default function AdminPage() {
                 disabled={loading}
                 style={{
                   padding: '0.6rem 1.2rem',
-                  background: '#3b82f6',
+                  background: '#75664f',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '4px',
@@ -754,8 +437,8 @@ export default function AdminPage() {
                   transition: 'background 0.3s ease',
                   opacity: loading ? 0.6 : 1
                 }}
-                onMouseEnter={(e) => !loading && (e.currentTarget.style.background = '#2563eb')}
-                onMouseLeave={(e) => !loading && (e.currentTarget.style.background = '#3b82f6')}
+                onMouseEnter={(e) => !loading && (e.currentTarget.style.background = '#594d3f')}
+                onMouseLeave={(e) => !loading && (e.currentTarget.style.background = '#75664f')}
               >
                 Reset Password
               </button>
@@ -764,7 +447,7 @@ export default function AdminPage() {
                 disabled={loading}
                 style={{
                   padding: '0.6rem 1.2rem',
-                  background: '#ef4444',
+                  background: '#b55656',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '4px',
@@ -774,8 +457,8 @@ export default function AdminPage() {
                   transition: 'background 0.3s ease',
                   opacity: loading ? 0.6 : 1
                 }}
-                onMouseEnter={(e) => !loading && (e.currentTarget.style.background = '#dc2626')}
-                onMouseLeave={(e) => !loading && (e.currentTarget.style.background = '#ef4444')}
+                onMouseEnter={(e) => !loading && (e.currentTarget.style.background = '#984343')}
+                onMouseLeave={(e) => !loading && (e.currentTarget.style.background = '#b55656')}
               >
                 Logout
               </button>
@@ -790,7 +473,7 @@ export default function AdminPage() {
           padding: '1rem',
           marginBottom: '1rem',
           backgroundColor: '#f0f9ff',
-          borderLeft: '4px solid #3b82f6',
+          borderLeft: '4px solid #75664f',
           borderRadius: '4px',
           color: '#1e40af'
         }}>
@@ -800,7 +483,7 @@ export default function AdminPage() {
 
       {/* Collection Selector */}
       <section className={styles.section}>
-        <div className={styles.collectionSelector}>
+        <div className={styles.collectionSelector} data-tour="collections">
           {collections.map(col => (
             <button
               key={col.key}
@@ -815,7 +498,7 @@ export default function AdminPage() {
 
       <div className={styles.adminGrid}>
         {/* Category Management Panel (Left) */}
-        <aside className={styles.categoryPanel}>
+        <aside className={styles.categoryPanel} data-tour="categories">
           <div className={styles.panelHeader}>
             <h2>Categories</h2>
             <button className={styles.addButton} onClick={() => { setCatError(''); setShowAddCat(true); }} disabled={loading}>+ Add</button>
@@ -902,119 +585,13 @@ export default function AdminPage() {
         </aside>
 
         {/* Product Management Panel (Right) */}
-        <main className={styles.productPanel}>
+        <div className={styles.productPanel}>
+          <div className={styles.panelHeader}>
+            <h2>{selectedCategory ? `Items under: ${selectedCategory.name}` : 'Items'}</h2>
+            <button className={styles.addButton} data-tour="add-item" onClick={() => setWizard({})}>Add item</button>
+          </div>
           {selectedCategory ? (
             <>
-              <div className={styles.panelHeader}>
-                <h2>Products under: {selectedCategory.name}</h2>
-              </div>
-              {/* Add Product Inline Card */}
-              <form className={styles.inputGroup} onSubmit={handleAddProduct}>
-                <input 
-                  className={styles.input} 
-                  placeholder="Product name" 
-                  value={prodName} 
-                  onChange={e => setProdName(e.target.value)} 
-                  required 
-                  disabled={loading}
-                />
-                <input 
-                  className={styles.input} 
-                  placeholder="Description" 
-                  value={prodDesc} 
-                  onChange={e => setProdDesc(e.target.value)} 
-                  disabled={loading}
-                />
-                <input 
-                  className={styles.input} 
-                  placeholder="Price (Optional)" 
-                  type="number" 
-                  step="0.01"
-                  value={prodPrice} 
-                  onChange={e => setProdPrice(e.target.value)} 
-                  disabled={loading}
-                />
-                <input 
-                  className={styles.input} 
-                  placeholder="Main Image URL" 
-                  value={prodImageUrl} 
-                  onChange={e => { mainLookup.current++; setProdImageUrl(e.target.value); setMainImageError(''); }} 
-                  onBlur={checkMainImage}
-                  required 
-                  disabled={loading}
-                />
-                <MediaUploadButton label="Upload main image" disabled={loading} onBusyChange={trackUpload}
-                  onUploaded={url => { mainLookup.current++; setProdImageUrl(url); setMainImageError(''); }} />
-                {prodImageUrl && (
-                  <div className={styles.previewBlock}>
-                    {mainImageError ? (
-                      <p className={styles.fieldError} role="alert">{mainImageError}</p>
-                    ) : (
-                      <MediaPreview url={prodImageUrl} alt="Main image preview" className={styles.imagePreview} />
-                    )}
-                    {isGoogleDriveLink(prodImageUrl) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
-                  </div>
-                )}
-
-                {/* Extra Images Section */}
-                <div className={styles.extraImages}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Extra Images (Optional)</label>
-                  <div className={styles.extraImagesRow}>
-                    <input 
-                      className={styles.input}
-                      placeholder="Image URL" 
-                      value={prodImageInput} 
-                      onChange={e => { extraLookup.current++; setProdImageInput(e.target.value); setExtraImageError(''); }} 
-                      disabled={loading}
-                      style={{ margin: 0 }}
-                    />
-                    <button 
-                      type="button"
-                      className={styles.button}
-                      onClick={handleAddExtraImage}
-                      disabled={loading || resolvingImage}
-                    >
-                      Add
-                    </button>
-                    <MediaUploadButton label="Upload extra image" disabled={loading} onBusyChange={trackUpload}
-                      onUploaded={url => setProdImages(current => [...current, url])} />
-                  </div>
-                  {extraImageError && <p className={styles.fieldError} role="alert">{extraImageError}</p>}
-                  {isGoogleDriveLink(prodImageInput) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
-                  {prodImages.length > 0 && (
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {prodImages.map((img, idx) => (
-                        <div key={idx} style={{ position: 'relative' }}>
-                          <MediaPreview url={img} alt={`Extra ${idx + 1}`} className={styles.extraThumb} />
-                          <button
-                            type="button"
-                            onClick={() => setProdImages(prodImages.filter((_, i) => i !== idx))}
-                            disabled={loading}
-                            style={{
-                              position: 'absolute',
-                              top: -8,
-                              right: -8,
-                              background: '#ef4444',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: 24,
-                              height: 24,
-                              cursor: 'pointer',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                
-                <button className={`${styles.button} ${styles.saveButton}`} type="submit" disabled={loading || resolvingImage || uploadsInProgress > 0}>{resolvingImage ? 'Checking link…' : 'Save'}</button>
-              </form>
-              {/* Product Grid */}
               <div className={styles.productGrid}>
                 {products.map(prod => (
                   <div className={styles.card} key={prod.id}>
@@ -1041,21 +618,10 @@ export default function AdminPage() {
                       <div className={styles.cardActions}>
                         <button
                           className={styles.button}
-                          onClick={() => {
-                            setItemError('');
-                            setEditingItem({ id: prod.id, name: prod.name, description: prod.description ?? '', price: prod.price == null ? '' : String(prod.price), imageUrl: prod.image_url ?? '' });
-                          }}
+                          onClick={() => setWizard({ product: prod })}
                           disabled={loading}
                         >
                           ✏️ Edit
-                        </button>
-                        <button 
-                          className={styles.button}
-                          onClick={() => setEditingProduct(prod)}
-                          disabled={loading}
-                          style={{ flex: 1, marginRight: '0.5rem' }}
-                        >
-                          📷 Edit Images
                         </button>
                         <button 
                           className={styles.deleteButton} 
@@ -1070,145 +636,20 @@ export default function AdminPage() {
                 ))}
               </div>
 
-              {editingItem && (
-                <div className={styles.modalOverlay}>
-                  <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="edit-item-title">
-                    <h3 id="edit-item-title">Edit item</h3>
-                    <form onSubmit={handleSaveItem} noValidate>
-                      <label htmlFor="edit-item-name">Name</label>
-                      <input id="edit-item-name" className={styles.input} required value={editingItem.name}
-                        onChange={e => { setEditingItem({ ...editingItem, name: e.target.value }); setItemError(''); }} disabled={loading} />
-                      <label htmlFor="edit-item-description">Description</label>
-                      <textarea id="edit-item-description" className={styles.input} value={editingItem.description}
-                        onChange={e => { setEditingItem({ ...editingItem, description: e.target.value }); setItemError(''); }} disabled={loading} />
-                      <label htmlFor="edit-item-price">Price (optional)</label>
-                      <input id="edit-item-price" className={styles.input} type="number" min="0" step="0.01" value={editingItem.price}
-                        onChange={e => { setEditingItem({ ...editingItem, price: e.target.value }); setItemError(''); }} disabled={loading} />
-                      <label htmlFor="edit-item-image">Main image link</label>
-                      <input id="edit-item-image" className={styles.input} value={editingItem.imageUrl}
-                        onChange={e => { setEditingItem({ ...editingItem, imageUrl: e.target.value }); setItemError(''); }} onBlur={checkItemImage} disabled={loading || resolvingImage} />
-                      <MediaUploadButton key={editingItem.id} label="Upload main image" disabled={loading} onBusyChange={trackUpload}
-                        onUploaded={url => {
-                          itemLookup.current++;
-                          setEditingItem(current => current?.id === editingItem.id ? { ...current, imageUrl: url } : current);
-                          setItemError('');
-                        }} />
-                      {editingItem.imageUrl && <MediaPreview url={editingItem.imageUrl} alt="Main image preview" className={styles.imagePreview} />}
-                      {isGoogleDriveLink(editingItem.imageUrl) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
-                      {itemError && <p className={styles.fieldError} role="alert">{itemError}</p>}
-                      <div className={styles.modalActions}>
-                        <button className={styles.button} type="submit" disabled={loading || resolvingImage || uploadsInProgress > 0}>Save item</button>
-                        <button className={styles.button} type="button" disabled={loading || resolvingImage}
-                          onClick={() => { itemLookup.current++; setEditingItem(null); setItemError(''); }}>Cancel</button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              )}
-
-              {/* Edit Product Modal */}
-              {editingProduct && (
-                <div className={styles.modalOverlay}>
-                  <div className={styles.modal}>
-                    <h3>Edit Images for: {editingProduct.name}</h3>
-                    <p className={styles.mainImageUrl}>Main Image: {editingProduct.image_url}</p>
-                    
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Add More Images</label>
-                    <div className={styles.editImagesRow}>
-                      <input 
-                        className={styles.input}
-                        placeholder="Image URL" 
-                        value={prodImageInput} 
-                        onChange={e => { extraLookup.current++; setProdImageInput(e.target.value); setExtraImageError(''); }} 
-                        disabled={loading}
-                        style={{ margin: 0 }}
-                      />
-                      <button 
-                        type="button"
-                        className={styles.button}
-                        onClick={handleAddImageToProduct}
-                        disabled={loading || resolvingImage}
-                      >
-                        Add
-                      </button>
-                    </div>
-                    <MediaUploadButton key={editingProduct.id} label="Upload image" disabled={loading} onBusyChange={trackUpload}
-                      onUploaded={url => setEditingProduct(current => current?.id === editingProduct.id
-                        ? { ...current, images: [...(current.images ?? []), url] } : current)} />
-                    {extraImageError && <p className={styles.fieldError} role="alert">{extraImageError}</p>}
-                    {isGoogleDriveLink(prodImageInput) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
-
-                    {editingProduct.images && editingProduct.images.length > 0 && (
-                      <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Extra Images ({editingProduct.images.length})</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                          {editingProduct.images.map((img, idx) => (
-                            <div key={idx} style={{ position: 'relative' }}>
-                              <MediaPreview url={img} alt={`Extra ${idx + 1}`} className={styles.editThumb} />
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveImageFromProduct(idx)}
-                                disabled={loading}
-                                style={{
-                                  position: 'absolute',
-                                  top: -8,
-                                  right: -8,
-                                  background: '#ef4444',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '50%',
-                                  width: 24,
-                                  height: 24,
-                                  cursor: 'pointer',
-                                  fontWeight: 'bold'
-                                }}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className={styles.modalActions}>
-                      <button 
-                        className={styles.button} 
-                        onClick={() => handleUpdateProduct(editingProduct)}
-                        disabled={loading || uploadsInProgress > 0}
-                      >
-                        Save Changes
-                      </button>
-                      <button 
-                        className={styles.button} 
-                        onClick={() => {
-                          extraLookup.current++;
-                          setEditingProduct(null);
-                          setProdImageInput('');
-                          setExtraImageError('');
-                        }}
-                        disabled={loading}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <div className={styles.emptyState}>Select a category to manage products.</div>
           )}
-        </main>
+        </div>
       </div>
 
       {idleSecondsLeft !== null && (
-        <div className={styles.modalOverlay}>
+        <div className={styles.modalOverlay} style={{ zIndex: 1300 }}>
           <div className={styles.modal} role="alertdialog" aria-modal="true" aria-labelledby="idle-warning-title">
             <h3 id="idle-warning-title">Still there?</h3>
             <p className={styles.idleWarningText}>
               You will be logged out in {idleSecondsLeft} second{idleSecondsLeft === 1 ? '' : 's'} because of inactivity.
-              {hasUnsavedForm && ' Your unsaved form will be kept and restored when you log in again.'}
+              Your item draft stays in this browser.
             </p>
             <div className={styles.modalActions}>
               <button className={styles.button} onClick={stayLoggedIn}>Stay logged in</button>
@@ -1216,6 +657,12 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      {wizard && <ItemWizard collection={selectedCollection} category={selectedCategory} product={wizard.product}
+        onClose={() => setWizard(null)} onSaved={() => { void fetchCategories(); if (selectedCategory) void fetchProducts(selectedCategory.id); }} />}
+
+      <HelpPanel open={helpOpen} onOpenChange={setHelpOpen} onRestart={() => { setHelpOpen(false); setTourRestart(value => value + 1); }} />
+      <AdminTour blocked={!!wizard || helpOpen} restart={tourRestart} />
 
       {/* Footer */}
       <footer className={styles.footer}>Admin Panel &copy; {new Date().getFullYear()}</footer>
