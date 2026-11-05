@@ -18,6 +18,8 @@ const IDLE_LIMIT_MS = 30 * 60 * 1000;
 const IDLE_WARNING_MS = 60 * 1000;
 const DRAFT_KEY = 'admin-unsaved-form';
 
+type ItemDraft = { id: string; name: string; description: string; price: string; imageUrl: string };
+
 type FormDraft = {
   email: string;
   collection: string;
@@ -30,6 +32,7 @@ type FormDraft = {
   prodImages: string[];
   prodImageInput: string;
   editingProduct: Product | null;
+  editingItem: ItemDraft | null;
 };
 
 const collections = [
@@ -59,6 +62,8 @@ export default function AdminPage() {
   const [extraImageError, setExtraImageError] = useState('');
   const [resolvingImage, setResolvingImage] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingItem, setEditingItem] = useState<ItemDraft | null>(null);
+  const [itemError, setItemError] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [logoutNotice, setLogoutNotice] = useState('');
@@ -142,6 +147,7 @@ export default function AdminPage() {
     setProdImages(draft.prodImages);
     setProdImageInput(draft.prodImageInput);
     setEditingProduct(draft.editingProduct);
+    setEditingItem(draft.editingItem ?? null);
     setLogoutNotice('');
     setMessage('Your unsaved form from before you were logged out has been restored. Check it, then save.');
   }, [isAuthenticated, userEmail]);
@@ -418,6 +424,72 @@ export default function AdminPage() {
     }
   };
 
+  const handleSaveItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem || !selectedCategory || loading || resolvingImage) return;
+    setItemError('');
+    const { id, imageUrl: link } = editingItem;
+    const name = editingItem.name.trim();
+    if (!name) {
+      setItemError('Item name is required');
+      return;
+    }
+    const price = editingItem.price.trim() === '' ? null : Number(editingItem.price);
+    if (price !== null && (!Number.isFinite(price) || price < 0)) {
+      setItemError('Price must be a positive number or empty');
+      return;
+    }
+    const description = editingItem.description.trim();
+    try {
+      setLoading(true);
+      setResolvingImage(true);
+      const result = await normalizeMediaUrl(link);
+      setResolvingImage(false);
+      if (!result.ok) {
+        setItemError(result.error);
+        return;
+      }
+      const image_url = result.url;
+      const { data, error } = await supabase.from('products')
+        .update({ name, description, price, image_url }).eq('id', id).select('id');
+      if (error) {
+        setItemError(error.message);
+        return;
+      }
+      if (!data?.length) {
+        setItemError(UPDATE_BLOCKED_MESSAGE);
+        return;
+      }
+      setEditingItem(null);
+      setMessage('Item updated successfully!');
+      await fetchProducts(selectedCategory.id);
+    } catch (error: unknown) {
+      setItemError(error instanceof Error ? error.message : 'Could not save item');
+    } finally {
+      setResolvingImage(false);
+      setLoading(false);
+    }
+  };
+
+  const checkItemImage = async () => {
+    if (!editingItem) return;
+    const { id, imageUrl } = editingItem;
+    try {
+      setResolvingImage(true);
+      const result = await normalizeMediaUrl(imageUrl);
+      if (!result.ok) {
+        setItemError(result.error);
+        return;
+      }
+      setEditingItem(current => current?.id === id && current.imageUrl === imageUrl
+        ? { ...current, imageUrl: result.url } : current);
+    } catch (error: unknown) {
+      setItemError(error instanceof Error ? error.message : 'Could not check image link');
+    } finally {
+      setResolvingImage(false);
+    }
+  };
+
   const checkMainImage = async () => {
     if (!prodImageUrl.trim()) {
       setMainImageError('');
@@ -498,6 +570,7 @@ export default function AdminPage() {
       setProdImages([]);
       setProdImageInput('');
       setEditingProduct(null);
+      setEditingItem(null);
       setSelectedCollection(collections[0].key);
 
       console.log('✅ All state cleared - Login modal should now be visible');
@@ -534,12 +607,12 @@ export default function AdminPage() {
     }
   };
 
-  const hasUnsavedForm = !!(catName || prodName || prodDesc || prodPrice || prodImageUrl || prodImages.length || prodImageInput || editingProduct);
+  const hasUnsavedForm = !!(catName || prodName || prodDesc || prodPrice || prodImageUrl || prodImages.length || prodImageInput || editingProduct || editingItem);
 
   const handleInactivityLogout = async () => {
     const draft: FormDraft = {
       email: userEmail, collection: selectedCollection, categoryId: selectedCategory?.id ?? null, catName,
-      prodName, prodDesc, prodPrice, prodImageUrl, prodImages, prodImageInput, editingProduct,
+      prodName, prodDesc, prodPrice, prodImageUrl, prodImages, prodImageInput, editingProduct, editingItem,
     };
     const keepDraft = hasUnsavedForm;
     await handleLogout();
@@ -838,6 +911,16 @@ export default function AdminPage() {
                         </p>
                       )}
                       <div className={styles.cardActions}>
+                        <button
+                          className={styles.button}
+                          onClick={() => {
+                            setItemError('');
+                            setEditingItem({ id: prod.id, name: prod.name, description: prod.description ?? '', price: prod.price == null ? '' : String(prod.price), imageUrl: prod.image_url ?? '' });
+                          }}
+                          disabled={loading}
+                        >
+                          ✏️ Edit
+                        </button>
                         <button 
                           className={styles.button}
                           onClick={() => setEditingProduct(prod)}
@@ -858,6 +941,36 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
+
+              {editingItem && (
+                <div className={styles.modalOverlay}>
+                  <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="edit-item-title">
+                    <h3 id="edit-item-title">Edit item</h3>
+                    <form onSubmit={handleSaveItem} noValidate>
+                      <label htmlFor="edit-item-name">Name</label>
+                      <input id="edit-item-name" className={styles.input} required value={editingItem.name}
+                        onChange={e => { setEditingItem({ ...editingItem, name: e.target.value }); setItemError(''); }} disabled={loading} />
+                      <label htmlFor="edit-item-description">Description</label>
+                      <textarea id="edit-item-description" className={styles.input} value={editingItem.description}
+                        onChange={e => { setEditingItem({ ...editingItem, description: e.target.value }); setItemError(''); }} disabled={loading} />
+                      <label htmlFor="edit-item-price">Price (optional)</label>
+                      <input id="edit-item-price" className={styles.input} type="number" min="0" step="0.01" value={editingItem.price}
+                        onChange={e => { setEditingItem({ ...editingItem, price: e.target.value }); setItemError(''); }} disabled={loading} />
+                      <label htmlFor="edit-item-image">Main image link</label>
+                      <input id="edit-item-image" className={styles.input} value={editingItem.imageUrl}
+                        onChange={e => { setEditingItem({ ...editingItem, imageUrl: e.target.value }); setItemError(''); }} onBlur={checkItemImage} disabled={loading || resolvingImage} />
+                      {editingItem.imageUrl && <MediaPreview url={editingItem.imageUrl} alt="Main image preview" className={styles.imagePreview} />}
+                      {isGoogleDriveLink(editingItem.imageUrl) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
+                      {itemError && <p className={styles.fieldError} role="alert">{itemError}</p>}
+                      <div className={styles.modalActions}>
+                        <button className={styles.button} type="submit" disabled={loading || resolvingImage}>Save item</button>
+                        <button className={styles.button} type="button" disabled={loading || resolvingImage}
+                          onClick={() => { setEditingItem(null); setItemError(''); }}>Cancel</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
 
               {/* Edit Product Modal */}
               {editingProduct && (
