@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata: Metadata = {
     title: "Our Services – Modular Kitchens, Wardrobes, Living Rooms & More",
     description:
-        "Explore Arambha's complete range of interior design services – modular kitchens, wardrobes, living room TV units, crockery units, false ceilings, lighting, pooja rooms, bathrooms, civil works, furniture & aluminum partitions in Bangalore.",
+        "Explore Arambha's interior design services in Bangalore: kitchens, wardrobes, living rooms, ceilings, lighting, furniture, civil works and partitions.",
     keywords: [
         "modular kitchen design Bangalore",
         "wardrobe design Bangalore",
@@ -26,6 +26,12 @@ export const metadata: Metadata = {
             "Complete range of interior design services – kitchens, wardrobes, living rooms, false ceilings, furniture & more. Premium quality, affordable pricing.",
         url: `${SITE_URL}/services`,
         type: "website",
+        images: [{
+            url: "/logo1.png",
+            width: 1200,
+            height: 630,
+            alt: "Arambha Design & Interior Studio - Premium Interior Design",
+        }],
     },
     alternates: {
         canonical: `${SITE_URL}/services`,

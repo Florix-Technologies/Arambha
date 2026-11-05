@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata: Metadata = {
     title: "Contact Us – Get a Free Interior Design Consultation",
     description:
-        "Get in touch with Arambha Design & Interior Studio for a free consultation. Visit our studio in Rajajinagar, Bangalore or reach us via phone, email, or WhatsApp. Mon-Sat 10AM-7PM.",
+        "Contact Arambha for a free interior consultation in Rajajinagar, Bangalore. Call, email or WhatsApp us, or visit Mon-Sat, 10AM-7PM.",
     keywords: [
         "interior design consultation Bangalore",
         "contact interior designer",
@@ -19,6 +19,12 @@ export const metadata: Metadata = {
             "Get a free interior design consultation. Visit our studio in Rajajinagar, Bangalore or reach us via phone, email, or WhatsApp.",
         url: `${SITE_URL}/contact`,
         type: "website",
+        images: [{
+            url: "/logo1.png",
+            width: 1200,
+            height: 630,
+            alt: "Arambha Design & Interior Studio - Premium Interior Design",
+        }],
     },
     alternates: {
         canonical: `${SITE_URL}/contact`,

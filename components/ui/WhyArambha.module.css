@@ -19,7 +19,7 @@
 .title {
     font-family: var(--font-cormorant);
     font-size: 3.5rem;
-    color: var(--color-accent);
+    color: var(--brand-text-on-dark);
     font-weight: 400;
     margin-bottom: 3rem;
 }
@@ -61,7 +61,7 @@
     position: absolute;
     bottom: 0;
     height: 3px;
-    background: var(--color-accent);
+    background: var(--brand-btn);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -114,8 +114,8 @@
     align-items: center;
     gap: 0.5rem;
     padding: 1rem 2.5rem;
-    background: var(--color-accent);
-    color: var(--color-text-primary);
+    background: var(--brand-btn);
+    color: #fff;
     font-family: var(--font-outfit);
     font-size: 1rem;
     font-weight: 500;

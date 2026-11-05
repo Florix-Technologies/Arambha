@@ -57,8 +57,6 @@
   margin-bottom: 1.5rem;
   line-height: 1.2;
   letter-spacing: 0.05em;
-  opacity: 0;
-  animation: fadeInUp 1s ease forwards 0.5s;
   color: #fff;
   /* Ensure text is white over video */
 }
@@ -68,8 +66,6 @@
   margin-bottom: 2.5rem;
   font-weight: 300;
   letter-spacing: 0.1em;
-  opacity: 0;
-  animation: fadeInUp 1s ease forwards 0.8s;
 }
 
 .heroCta {
@@ -122,7 +118,7 @@
 .highlightedLink {
   font-size: 1.6rem !important;
   font-weight: 600 !important;
-  color: var(--color-accent) !important;
+  color: var(--brand-text) !important;
   border-bottom: 2px solid var(--color-accent) !important;
   padding-bottom: 4px !important;
   margin-top: 1rem;
@@ -218,8 +214,10 @@
 }
 
 .cardCategory {
+  font-family: var(--font-body);
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--color-text-light);
+  color: var(--brand-text);
 }
+@media (max-width: 767px) { .cardCategory { font-size: 16px; } }

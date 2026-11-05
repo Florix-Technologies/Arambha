@@ -90,7 +90,7 @@
 
 .title span {
     font-style: italic;
-    color: var(--color-accent);
+    color: var(--brand-text-on-dark);
 }
 
 .subtitle {
@@ -129,7 +129,7 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 }
 
-.detailCard h3 {
+.detailCard h2 {
     font-family: var(--font-cormorant);
     font-size: 1.4rem;
     margin-bottom: 0.5rem;
@@ -249,7 +249,8 @@
 .formGroup input:focus,
 .formGroup select:focus,
 .formGroup textarea:focus {
-    outline: none;
+    outline: 2px solid var(--brand-text);
+    outline-offset: 2px;
     border-color: var(--color-accent);
     background: #fff;
     box-shadow: 0 10px 30px rgba(var(--color-accent-rgb), 0.1);
@@ -293,3 +294,17 @@
         padding: 2.5rem 1.5rem;
     }
 }
+.main { background: #24201c; }
+.title span { color: var(--brand-text-on-dark); }
+.iconBox { flex-shrink: 0; }
+@media (max-width: 767px) {
+  .overtitle, .formGroup label { font-size: 14px; }
+}
+
+.main { background: #24201c; }
+.title span { color: var(--brand-text-on-dark); }
+.iconBox { flex-shrink: 0; }
+@media (max-width: 767px) { .overtitle, .formGroup label { font-size: 14px; } }
+
+/* Keep detail copy legible even while the video is loading or changing frames. */
+.contactDetails { background: rgba(36, 32, 28, 0.9); padding: 1.5rem; border-radius: 12px; }

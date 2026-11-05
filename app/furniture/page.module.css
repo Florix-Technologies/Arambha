@@ -112,20 +112,20 @@
 
 .dropdownItem:hover {
     background: rgba(140, 124, 98, 0.06);
-    color: var(--color-accent);
+    color: var(--brand-text);
     padding-left: 1.2rem;
 }
 
 .selected {
     background: rgba(140, 124, 98, 0.1) !important;
-    color: var(--color-accent) !important;
+    color: var(--brand-text) !important;
     font-weight: 600;
 }
 
 .dot {
     width: 6px;
     height: 6px;
-    background: var(--color-accent);
+    background: var(--brand-btn);
     border-radius: 50%;
     margin-left: auto;
     box-shadow: 0 0 10px rgba(140, 124, 98, 0.4);
@@ -166,7 +166,7 @@
     transform: translateX(-50%);
     width: 80px;
     height: 2px;
-    background: var(--color-accent);
+    background: var(--brand-btn);
 }
 
 /* Empty State */
@@ -327,7 +327,7 @@
     display: inline-block;
     margin-top: 1.5rem;
     padding: 1rem 2rem;
-    background: #8c8683;
+    background: var(--brand-btn);
     color: #fff;
     border-radius: 12px;
     font-weight: 500;
@@ -342,7 +342,7 @@
 }
 
 .orderButton:hover {
-    background: var(--color-accent);
+    background: var(--brand-btn);
     color: #fff;
     transform: translateY(-3px);
     box-shadow: 0 10px 20px rgba(90, 62, 62, 0.647);
@@ -396,7 +396,7 @@
 }
 
 .inquireLink:hover {
-    background: var(--color-accent);
+    background: var(--brand-btn);
     transform: translateY(-5px);
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
 }
@@ -462,7 +462,7 @@
 
 .closeLightbox:hover {
     transform: rotate(90deg) scale(1.1);
-    background: var(--color-accent);
+    background: var(--brand-btn);
     color: #fff;
 }
 
@@ -561,7 +561,7 @@
     position: relative;
     display: inline-flex;
     margin-bottom: 2.5rem;
-    color: var(--color-accent);
+    color: var(--brand-text);
 }
 
 .iconPulse {
@@ -571,7 +571,7 @@
     transform: translate(-50%, -50%);
     width: 120%;
     height: 120%;
-    background: var(--color-accent);
+    background: var(--brand-btn);
     opacity: 0.1;
     border-radius: 50%;
     animation: iconPulse 3s infinite;
@@ -632,7 +632,7 @@
 }
 
 .primaryBtn:hover {
-    background: var(--color-accent);
+    background: var(--brand-btn);
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
 }
@@ -654,7 +654,7 @@
 
 .secondaryBtn:hover {
     border-color: var(--color-accent);
-    color: var(--color-accent);
+    color: var(--brand-text);
     background: rgba(140, 124, 98, 0.05);
 }
 
@@ -686,7 +686,7 @@
 .loadingContainer p {
     font-family: var(--font-cormorant);
     font-size: 1.5rem;
-    color: var(--color-accent);
+    color: var(--brand-text);
     letter-spacing: 0.1em;
     animation: textFade 2s ease-in-out infinite;
 }
@@ -701,4 +701,58 @@
     50% {
         opacity: 1;
     }
+}
+.cardContent p { color: #66625e; opacity: 1; }
+@media (max-width: 767px) {
+ .cardContent p { font-size: 16px; }
+ .cardContent a { display: inline-flex !important; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+}
+
+@media (max-width: 767px) {
+    .subtitle a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}
+
+/* Extra photos in the product detail view. */
+.expandedImagesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.expandedImageItem {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: zoom-in;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.expandedImageItem:hover {
+    transform: scale(1.03);
+}
+
+.expandedImageItem img,
+.expandedImageItem video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.expandedImageItem:hover img,
+.expandedImageItem:hover video {
+    transform: scale(1.1);
+}
+
+
+.expandedImageItem {
+    border: 0;
+    padding: 0;
 }

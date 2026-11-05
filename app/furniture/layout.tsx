@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata: Metadata = {
     title: "Furniture Collection – Handcrafted & Custom Furniture",
     description:
-        "Discover Arambha's handcrafted furniture collection – sofas, dining tables, beds, office furniture & bespoke custom designs. Premium quality crafted in Bangalore with 35+ years of expertise.",
+        "Discover Arambha's handcrafted sofas, dining tables, beds, office furniture and custom designs, made in Bangalore with 35+ years of expertise.",
     keywords: [
         "custom furniture Bangalore",
         "handcrafted furniture",
@@ -22,6 +22,12 @@ export const metadata: Metadata = {
             "Handcrafted furniture that blends form, function, and timeless aesthetics. Custom designs available.",
         url: `${SITE_URL}/furniture`,
         type: "website",
+        images: [{
+            url: "/logo1.png",
+            width: 1200,
+            height: 630,
+            alt: "Arambha Design & Interior Studio - Premium Interior Design",
+        }],
     },
     alternates: {
         canonical: `${SITE_URL}/furniture`,

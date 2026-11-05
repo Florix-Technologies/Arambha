@@ -67,7 +67,7 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h3>Contact</h3>
+            <h2>Contact</h2>
             <a href="https://maps.app.goo.gl/yfVj7naand2vRtcCA?g_st=ic" target="_blank" rel="noopener noreferrer" className={styles.link}>
               📍 No.11/68/1, 2nd Floor, 59th Cross, 4th Block, Rajajinagar,Opp.
               MEI Polytechnic College, Bangalore - 560010, Karnataka.
@@ -83,7 +83,7 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <h3>Explore</h3>
+            <h2>Explore</h2>
             <Link href="/gallery">Gallery</Link>
             <Link href="/services">Our Services</Link>
             <Link href="/interiors">Interiors</Link>
@@ -93,7 +93,7 @@ export default function Footer() {
         </div>
 
         <div className={styles.bottomSection}>
-          <p>&copy; {year} Arambha Design and Interior Studio. All rights reserved.</p>
+          <p>&copy; {year} Arambha Design &amp; Interior Studio. All rights reserved.</p>
           <div className={styles.bottomLinks}>
             <a href="https://florixtechnologies.com/" target="_blank" rel="noopener noreferrer">Developed by Florix Technologies</a>
           </div>

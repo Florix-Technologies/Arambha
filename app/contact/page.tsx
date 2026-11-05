@@ -3,6 +3,7 @@ import { motion, Variants } from 'framer-motion';
 import { useState } from 'react';
 import { whatsappUrl } from '@/lib/whatsapp';
 import SmartVideo from '@/components/ui/SmartVideo';
+import LazyMap from '@/components/ui/LazyMap';
 import styles from './page.module.css';
 
 export default function ContactPage() {
@@ -14,9 +15,8 @@ export default function ContactPage() {
   });
 
   const containerVariants: Variants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
-      opacity: 1,
       transition: {
         staggerChildren: 0.1,
         delayChildren: 0.1
@@ -69,7 +69,7 @@ Thank you!`;
   };
 
   return (
-    <main className={styles.main}>
+    <div className={styles.main}>
       {/* Immersive Video Background */}
       <div className={styles.videoWrapper}>
         <SmartVideo src="/v5.mp4" className={styles.backgroundVideo} />
@@ -85,12 +85,12 @@ Thank you!`;
         >
           {/* Main Centered Heading */}
           <div className={styles.centeredHeader}>
-            <motion.div variants={itemVariants}>
+            <div>
               <h1 className={styles.title}>Let&apos;s Create Something <br /><span>Extraordinary</span></h1>
-              <p className={styles.subtitle}>
+              <motion.p className={styles.subtitle} variants={itemVariants}>
                 From bespoke furniture to complete home transformations, we are here to bring your vision to life.
-              </p>
-            </motion.div>
+              </motion.p>
+            </div>
           </div>
 
           {/* Left Side: Detail Cards */}
@@ -101,7 +101,7 @@ Thank you!`;
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>
                 </div>
                 <div>
-                  <h3>Studio Headquarters</h3>
+                  <h2>Studio Headquarters</h2>
                   <p>No.11/68/1, 2nd Floor, 59th Cross, 4th Block, Rajajinagar,Opp.<br />MEI Polytechnic College, Bangalore - 560010, Karnataka.</p>
                 </div>
               </motion.div>
@@ -111,7 +111,7 @@ Thank you!`;
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.81 12.81 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" /></svg>
                 </div>
                 <div>
-                  <h3>Direct Inquiry</h3>
+                  <h2>Direct Inquiry</h2>
                   <p>+91 91876 28243</p>
                   <p>admin@arambhainteriorstudio.com</p>
                 </div>
@@ -122,7 +122,7 @@ Thank you!`;
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                 </div>
                 <div>
-                  <h3>Opening Hours</h3>
+                  <h2>Opening Hours</h2>
                   <p>Mon - Sat: 10:00 AM - 7:00 PM</p>
                   <p>Sunday: By Appointment</p>
                 </div>
@@ -130,13 +130,10 @@ Thank you!`;
             </div>
 
             <motion.div className={styles.mapWrapper} variants={itemVariants}>
-              <iframe
+              <LazyMap title="Arambha studio location"
                 className={styles.mapFrame}
                 src="https://maps.google.com/maps?q=No.11/68/1,+2nd+Floor,+59th+Cross,+4th+Block,+Rajajinagar,+Opp.+MEI+Polytechnic+College,+Bangalore+-+560010,+Karnataka&output=embed"
-                loading="lazy"
-                allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+              />
             </motion.div>
           </div>
 
@@ -151,9 +148,10 @@ Thank you!`;
               <form className={styles.form} onSubmit={handleSubmit}>
                 <div className={styles.inputRow}>
                   <div className={styles.formGroup}>
-                    <label>Full Name</label>
+                    <label className="visuallyHidden" htmlFor="contact-fullName">Full Name</label>
                     <input
                       type="text"
+                      id="contact-fullName"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleChange}
@@ -162,9 +160,10 @@ Thank you!`;
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>Email Address</label>
+                    <label className="visuallyHidden" htmlFor="contact-email">Email Address</label>
                     <input
                       type="email"
+                      id="contact-email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
@@ -176,7 +175,7 @@ Thank you!`;
 
                 <div className={styles.formGroup}>
                   <label>Subject</label>
-                  <select
+                  <select aria-label="Service of interest"
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
@@ -191,10 +190,11 @@ Thank you!`;
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Your Message</label>
+                  <label className="visuallyHidden" htmlFor="contact-message">Your Message</label>
                   <textarea
                     rows={6}
-                    name="message"
+                    id="contact-message"
+                      name="message"
                     value={formData.message}
                     onChange={handleChange}
                     placeholder="Tell us more about what you're looking for..."
@@ -215,6 +215,6 @@ Thank you!`;
           </motion.div>
         </motion.div>
       </div>
-    </main>
+    </div>
   );
 }
