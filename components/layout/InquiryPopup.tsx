@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { whatsappUrl } from "@/lib/whatsapp";
 import styles from "./InquiryPopup.module.css";
 
 const Popup = () => {
@@ -51,9 +52,8 @@ const Popup = () => {
         };
     }, [isOpen]);
 
-    const whatsappNumber = "+91 9187628243"; // Using the number from contact page
     const whatsappMessage = "Hi, I am interested in interior design services from Arambha.";
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(whatsappMessage)}`;
+    const whatsappLink = whatsappUrl(whatsappMessage);
 
     if (hidden) return null;
 
@@ -118,7 +118,7 @@ const Popup = () => {
                             </p>
 
                             <a
-                                href={whatsappUrl}
+                                href={whatsappLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={styles.ctaButton}

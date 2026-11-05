@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { fetchCatalog, filterCatalog, type Catalog, type Product } from '@/lib/catalog';
+import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
 import styles from './page.module.css';
 
 function FurnitureContent() {
@@ -58,12 +59,7 @@ function FurnitureContent() {
                       </p>
                     )}
                     <a
-                      href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
-                        `Hello, I am interested in buying the following product from your Furniture collection:%0A%0A` +
-                        `Product: ${prod.name}%0ADescription: ${prod.description}%0A` +
-                        (prod.price ? `Price: ${prod.price}%0A` : '') +
-                        `Image: ${prod.image_url}`
-                      )}`}
+                      href={whatsappUrl(productInquiryMessage('Hello, I am interested in buying the following product from your Furniture collection:', prod))}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -201,12 +197,7 @@ function FurnitureContent() {
 
               {/* WhatsApp Button */}
               <a
-                href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
-                  `Hello, I am interested in buying the following product from your Furniture collection:%0A%0A` +
-                  `Product: ${selectedProduct.name}%0ADescription: ${selectedProduct.description}%0A` +
-                  (selectedProduct.price ? `Price: ${selectedProduct.price}%0A` : '') +
-                  `Image: ${selectedProduct.image_url}`
-                )}`}
+                href={whatsappUrl(productInquiryMessage('Hello, I am interested in buying the following product from your Furniture collection:', selectedProduct))}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{

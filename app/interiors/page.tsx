@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { fetchCatalog, filterCatalog, type Catalog } from '@/lib/catalog';
+import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
 import styles from './page.module.css';
 
 function InteriorsContent() {
@@ -89,12 +90,11 @@ function InteriorsContent() {
                     )}
 
                     <a
-                      href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
-                        `Hello, I am interested in buying the following product:%0A%0A` +
-                        `Product: ${prod.name}%0A` +
-                        `Description: ${prod.description}%0A` +
-                        (prod.price ? `Price: ${prod.price}%0A` : "")
-                      )}`}
+                      href={whatsappUrl(productInquiryMessage('Hello, I am interested in buying the following product:', {
+                        name: prod.name,
+                        description: prod.description,
+                        price: prod.price,
+                      }))}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
