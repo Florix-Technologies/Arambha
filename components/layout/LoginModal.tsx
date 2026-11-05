@@ -3,11 +3,18 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import styles from './LoginModal.module.css';
 
+const errorObjectMessage = (error: unknown) =>
+  typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string'
+    ? error.message
+    : undefined;
+const errorMessage = (error: unknown) => errorObjectMessage(error) || String(error);
+
 interface LoginModalProps {
   onLoginSuccess: () => void;
+  notice?: string;
 }
 
-export default function LoginModal({ onLoginSuccess }: LoginModalProps) {
+export default function LoginModal({ onLoginSuccess, notice }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,10 +45,10 @@ export default function LoginModal({ onLoginSuccess }: LoginModalProps) {
         setPassword('');
         onLoginSuccess();
       }
-    } catch (err: any) {
-      const errorMsg = err?.message || err?.toString?.() || 'Login failed. Please check your Supabase configuration.';
+    } catch (error: unknown) {
+      const errorMsg = (error == null ? '' : errorMessage(error)) || 'Login failed. Please check your Supabase configuration.';
       setError(errorMsg);
-      console.error('Login error:', err);
+      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }
@@ -75,8 +82,8 @@ export default function LoginModal({ onLoginSuccess }: LoginModalProps) {
         setShowResetForm(false);
         setSuccessMessage('');
       }, 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to send reset email. Please try again.');
+    } catch (error: unknown) {
+      setError(errorObjectMessage(error) || 'Failed to send reset email. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -89,6 +96,8 @@ export default function LoginModal({ onLoginSuccess }: LoginModalProps) {
           <>
             <h2 className={styles.title}>Admin Login</h2>
             <p className={styles.subtitle}>Secure access to admin panel</p>
+
+            {notice && <div className={styles.noticeBox} role="status">{notice}</div>}
 
             {error && (
               <div className={styles.errorBox}>

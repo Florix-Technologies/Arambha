@@ -1,49 +1,25 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { Suspense, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { fetchCatalog, filterCatalog, type Catalog, type Product } from '@/lib/catalog';
+import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
+import CatalogMedia from '@/components/ui/CatalogMedia';
 import styles from './page.module.css';
 
-type Category = { id: string; name: string; slug: string };
-type Product = { id: string; name: string; description: string; image_url: string; price?: number };
-
-export default function FurniturePage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [productsByCat, setProductsByCat] = useState<Record<string, Product[]>>({});
+function FurnitureContent() {
+  const filter = useSearchParams().get('filter');
+  const [catalog, setCatalog] = useState<Catalog>([]);
+  const [loading, setLoading] = useState(true);
+  const categories = filterCatalog(catalog, filter);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch categories for furniture collection
-        const { data: cats, error: catsError } = await supabase
-          .from('categories')
-          .select('*')
-          .eq('collection', 'furniture');
-
-        if (catsError) throw catsError;
-        if (!cats) return;
-
-        setCategories(cats);
-
-        // Fetch products for each category
-        const prods: Record<string, Product[]> = {};
-        for (const cat of cats) {
-          const { data: prodData, error: prodError } = await supabase
-            .from('products')
-            .select('id, name, description, image_url, price, category_id, images')
-            .eq('category_id', cat.id);
-
-          if (prodError) throw prodError;
-          prods[cat.id] = prodData || [];
-        }
-        setProductsByCat(prods);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    }
-
-    fetchData();
+    fetchCatalog('furniture')
+      .then(setCatalog)
+      .catch(error => console.error('Error fetching furniture:', error))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -52,12 +28,18 @@ export default function FurniturePage() {
         <h1 className={styles.title}>Furniture Collection</h1>
         <p className={styles.subtitle}>Handcrafted pieces that blend form, function, and timeless aesthetics.</p>
       </header>
+      {!loading && categories.length === 0 && (
+        <p className={styles.subtitle}>
+          No furniture available.{' '}
+          {filter && filter !== 'all' && <Link href="/furniture">View all furniture</Link>}
+        </p>
+      )}
       <div className={styles.categories}>
         {categories.map(cat => (
           <section key={cat.id} className={styles.categorySection}>
             <h2 className={styles.categoryTitle}>{cat.name}</h2>
             <div className={styles.grid}>
-              {productsByCat[cat.id]?.map(prod => (
+              {cat.products?.map(prod => (
                 <div 
                   key={prod.id} 
                   className={styles.card}
@@ -66,7 +48,7 @@ export default function FurniturePage() {
                 >
                   <div className={styles.imagePlaceholder}>
                     {prod.image_url ? (
-                      <img src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      <CatalogMedia src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : prod.name}
                   </div>
                   <div className={styles.cardContent}>
@@ -78,12 +60,7 @@ export default function FurniturePage() {
                       </p>
                     )}
                     <a
-                      href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
-                        `Hello, I am interested in buying the following product from your Furniture collection:%0A%0A` +
-                        `Product: ${prod.name}%0ADescription: ${prod.description}%0A` +
-                        (prod.price ? `Price: ${prod.price}%0A` : '') +
-                        `Image: ${prod.image_url}`
-                      )}`}
+                      href={whatsappUrl(productInquiryMessage('Hello, I am interested in buying the following product from your Furniture collection:', prod))}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -158,7 +135,7 @@ export default function FurniturePage() {
               onClick={() => setFullscreenImage(selectedProduct.image_url)}
             >
               {selectedProduct.image_url ? (
-                <img 
+                <CatalogMedia 
                   src={selectedProduct.image_url} 
                   alt={selectedProduct.name}
                   style={{
@@ -221,12 +198,7 @@ export default function FurniturePage() {
 
               {/* WhatsApp Button */}
               <a
-                href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
-                  `Hello, I am interested in buying the following product from your Furniture collection:%0A%0A` +
-                  `Product: ${selectedProduct.name}%0ADescription: ${selectedProduct.description}%0A` +
-                  (selectedProduct.price ? `Price: ${selectedProduct.price}%0A` : '') +
-                  `Image: ${selectedProduct.image_url}`
-                )}`}
+                href={whatsappUrl(productInquiryMessage('Hello, I am interested in buying the following product from your Furniture collection:', selectedProduct))}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -268,9 +240,10 @@ export default function FurniturePage() {
           }}
           onClick={() => setFullscreenImage(null)}
         >
-          <img
+          <CatalogMedia
             src={fullscreenImage}
             alt="Fullscreen view"
+            controls
             style={{
               width: '90vw',
               height: '90vh',
@@ -303,4 +276,8 @@ export default function FurniturePage() {
       )}
     </div>
   );
+}
+
+export default function FurniturePage() {
+  return <Suspense fallback={null}><FurnitureContent /></Suspense>;
 }

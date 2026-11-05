@@ -1,0 +1,19 @@
+.successBox {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: #d1fae5;
+  border-left: 4px solid #10b981;
+  border-radius: 6px;
+  color: #065f46;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.backLink {
+  display: block;
+  text-align: center;
+  color: #3b82f6;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: underline;
+}

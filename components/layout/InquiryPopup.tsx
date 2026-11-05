@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { whatsappUrl } from "@/lib/whatsapp";
 import styles from "./InquiryPopup.module.css";
 
 const Popup = () => {
@@ -10,12 +11,11 @@ const Popup = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
 
-    // Don't show popup on admin page
-    if (pathname === "/admin") {
-        return null;
-    }
+    // Never interrupt the admin panel or the password reset page.
+    const hidden = pathname === "/admin" || pathname.startsWith("/auth");
 
     useEffect(() => {
+        if (hidden) return;
         let firstTimer: NodeJS.Timeout;
         let repeatTimer: NodeJS.Timeout;
 
@@ -38,7 +38,7 @@ const Popup = () => {
             clearTimeout(firstTimer);
             clearInterval(repeatTimer);
         };
-    }, [hasOpenedOnce]);
+    }, [hasOpenedOnce, hidden]);
 
     // Prevent scroll when popup is open
     useEffect(() => {
@@ -52,9 +52,11 @@ const Popup = () => {
         };
     }, [isOpen]);
 
-    const whatsappNumber = "+91 9187628243"; // Using the number from contact page
     const whatsappMessage = "Hi, I am interested in interior design services from Arambha.";
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(whatsappMessage)}`;
+    const whatsappLink = whatsappUrl(whatsappMessage);
+
+    if (hidden) return null;
+
 
     return (
         <AnimatePresence>
@@ -112,11 +114,11 @@ const Popup = () => {
                             </h2>
 
                             <p className={styles.description}>
-                                Get a free consultation and customized quote for your dream home. Let's build something beautiful together.
+                                Get a free consultation and customized quote for your dream home. Let&apos;s build something beautiful together.
                             </p>
 
                             <a
-                                href={whatsappUrl}
+                                href={whatsappLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={styles.ctaButton}

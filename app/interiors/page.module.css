@@ -508,14 +508,16 @@
     transform: scale(1.03);
 }
 
-.expandedImageItem img {
+.expandedImageItem img,
+.expandedImageItem video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.5s ease;
 }
 
-.expandedImageItem:hover img {
+.expandedImageItem:hover img,
+.expandedImageItem:hover video {
     transform: scale(1.1);
 }
 

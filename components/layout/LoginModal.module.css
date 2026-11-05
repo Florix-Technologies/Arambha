@@ -59,6 +59,17 @@
   line-height: 1.5;
 }
 
+.noticeBox {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: #92400e;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
 .form {
   display: flex;
   flex-direction: column;

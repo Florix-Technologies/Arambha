@@ -3,12 +3,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import styles from './BudgetSlider.module.css';
 
-interface GenericSliderProps {
-    items: any[];
-    renderItem: (item: any, index: number) => React.ReactNode;
+interface GenericSliderProps<T> {
+    items: T[];
+    renderItem: (item: T, index: number) => React.ReactNode;
 }
 
-export default function InfiniteSlider({ items, renderItem }: GenericSliderProps) {
+export default function InfiniteSlider<T>({ items, renderItem }: GenericSliderProps<T>) {
     const totalItems = items.length;
     const [itemsToShow, setItemsToShow] = useState(3);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -17,7 +17,7 @@ export default function InfiniteSlider({ items, renderItem }: GenericSliderProps
     // Use a ref to track the "virtual" index so we don't have to wait for state updates
     // We use 6x items to provide a massive runway for seamless looping
     const indexRef = useRef(totalItems * 3);
-    const [currentIndex, setCurrentIndex] = useState(indexRef.current);
+    const [currentIndex, setCurrentIndex] = useState(totalItems * 3);
 
     const duplicatedItems = [...items, ...items, ...items, ...items, ...items, ...items];
 
@@ -94,7 +94,7 @@ export default function InfiniteSlider({ items, renderItem }: GenericSliderProps
                 <motion.div
                     className={styles.cardsTrack}
                     animate={controls}
-                    initial={{ x: getTranslation(indexRef.current) }}
+                    initial={{ x: getTranslation(currentIndex) }}
                 >
                     {duplicatedItems.map((item, idx) => (
                         <div

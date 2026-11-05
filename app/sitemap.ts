@@ -1,43 +1,42 @@
 import type { MetadataRoute } from 'next';
-
-const BASE_URL = 'https://arambhainteriors.com';
+import { SITE_URL } from '@/lib/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const now = new Date();
 
     return [
         {
-            url: BASE_URL,
+            url: SITE_URL,
             lastModified: now,
             changeFrequency: 'weekly',
             priority: 1.0,
         },
         {
-            url: `${BASE_URL}/services`,
+            url: `${SITE_URL}/services`,
             lastModified: now,
             changeFrequency: 'weekly',
             priority: 0.9,
         },
         {
-            url: `${BASE_URL}/gallery`,
+            url: `${SITE_URL}/gallery`,
             lastModified: now,
             changeFrequency: 'weekly',
             priority: 0.8,
         },
         {
-            url: `${BASE_URL}/interiors`,
+            url: `${SITE_URL}/interiors`,
             lastModified: now,
             changeFrequency: 'weekly',
             priority: 0.8,
         },
         {
-            url: `${BASE_URL}/furniture`,
+            url: `${SITE_URL}/furniture`,
             lastModified: now,
             changeFrequency: 'weekly',
             priority: 0.8,
         },
         {
-            url: `${BASE_URL}/contact`,
+            url: `${SITE_URL}/contact`,
             lastModified: now,
             changeFrequency: 'monthly',
             priority: 0.7,

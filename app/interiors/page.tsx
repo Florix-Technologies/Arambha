@@ -1,67 +1,27 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { Suspense, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { fetchCatalog, filterCatalog, type Catalog } from '@/lib/catalog';
+import { productInquiryMessage, whatsappUrl } from '@/lib/whatsapp';
+import CatalogMedia from '@/components/ui/CatalogMedia';
 import styles from './page.module.css';
 
-type Category = { id: string; name: string; slug: string };
-
-type Product = {
-  id: string;
-  name: string;
-  description: string;
-  image_url: string;
-  price?: number;
-  images?: string[];
-};
-
-export default function InteriorsPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [productsByCat, setProductsByCat] = useState<Record<string, Product[]>>({});
+function InteriorsContent() {
+  const filter = useSearchParams().get('filter');
+  const [catalog, setCatalog] = useState<Catalog>([]);
+  const [loading, setLoading] = useState(true);
+  const categories = filterCatalog(catalog, filter);
   const [selectedProduct, setSelectedProduct] = useState<{
     categoryId: string;
     productId: string;
   } | null>(null);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch categories for interiors collection
-        const { data: cats, error: catsError } = await supabase
-          .from('categories')
-          .select('*')
-          .eq('collection', 'interiors');
-
-        if (catsError) throw catsError;
-        if (!cats) return;
-
-        // Fetch products for each category
-        const prods: Record<string, Product[]> = {};
-        for (const cat of cats) {
-          const { data: prodData, error: prodError } = await supabase
-            .from('products')
-            .select('id, name, description, image_url, price, category_id, images')
-            .eq('category_id', cat.id);
-
-          if (prodError) throw prodError;
-          prods[cat.id] = prodData || [];
-        }
-
-        // Remove only the empty "Aluminion interior" and "Wooden Interior" categories
-        const excludeNames = ['aluminion interior', 'wooden interior'];
-        const filteredCats = cats.filter(cat => {
-          const isEmpty = !prods[cat.id]?.length;
-          const isExcluded = excludeNames.includes(cat.name.toLowerCase());
-          return !(isEmpty && isExcluded);
-        });
-
-        setCategories(filteredCats);
-        setProductsByCat(prods);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    }
-
-    fetchData();
+    fetchCatalog('interiors')
+      .then(setCatalog)
+      .catch(error => console.error('Error fetching interiors:', error))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -70,13 +30,19 @@ export default function InteriorsPage() {
         <h1 className={styles.title}>Interior Solutions</h1>
         <p className={styles.subtitle}>Bespoke craft for modern living spaces.</p>
       </header>
+      {!loading && categories.length === 0 && (
+        <p className={styles.subtitle}>
+          No interiors available.{' '}
+          {filter && filter !== 'all' && <Link href="/interiors">View all interiors</Link>}
+        </p>
+      )}
 
       {categories.map(cat => (
         <section className={styles.section} key={cat.id}>
           <h2 className={styles.sectionTitle}>{cat.name}</h2>
 
           <div className={styles.categoryGrid}>
-            {productsByCat[cat.id]?.map(prod => {
+            {cat.products?.map(prod => {
 
               const isSelected =
                 selectedProduct?.categoryId === cat.id &&
@@ -101,7 +67,7 @@ export default function InteriorsPage() {
                 >
                   <div className={styles.imagePlaceholder}>
                     {prod.image_url ? (
-                      <img
+                      <CatalogMedia
                         src={prod.image_url}
                         alt={prod.name}
                         style={{
@@ -118,14 +84,18 @@ export default function InteriorsPage() {
                   <div className={styles.cardContent}>
                     <h3>{prod.name}</h3>
                     <p>{prod.description}</p>
+                    {prod.price != null && (
+                      <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-accent)', marginTop: '0.5rem' }}>
+                        ₹ {prod.price.toLocaleString('en-IN')}
+                      </p>
+                    )}
 
                     <a
-                      href={`https://api.whatsapp.com/send?phone=9187628243&text=${encodeURIComponent(
-                        `Hello, I am interested in buying the following product:%0A%0A` +
-                        `Product: ${prod.name}%0A` +
-                        `Description: ${prod.description}%0A` +
-                        (prod.price ? `Price: ${prod.price}%0A` : "")
-                      )}`}
+                      href={whatsappUrl(productInquiryMessage('Hello, I am interested in buying the following product:', {
+                        name: prod.name,
+                        description: prod.description,
+                        price: prod.price,
+                      }))}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -152,17 +122,18 @@ export default function InteriorsPage() {
           {selectedProduct?.categoryId === cat.id && (
             <div className={styles.expandedImagesSection}>
               <h4>Product Gallery</h4>
-              {productsByCat[cat.id]
+              {cat.products
                 ?.find(p => p.id === selectedProduct.productId)
                 ?.images?.length ? (
                 <div className={styles.expandedImagesGrid}>
-                  {productsByCat[cat.id]
+                  {cat.products
                     ?.find(p => p.id === selectedProduct.productId)
                     ?.images?.map((img, i) => (
                       <div key={i} className={styles.expandedImageItem}>
-                        <img
+                        <CatalogMedia
                           src={img}
                           alt="Product"
+                          controls
                         />
                       </div>
                     ))}
@@ -182,4 +153,8 @@ export default function InteriorsPage() {
       </div>
     </div>
   );
+}
+
+export default function InteriorsPage() {
+  return <Suspense fallback={null}><InteriorsContent /></Suspense>;
 }

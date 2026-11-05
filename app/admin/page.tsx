@@ -1,13 +1,51 @@
 
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { convertImageUrl, extractGoogleDriveFileId, detectImageService } from '@/lib/imageUtils';
+import { findCategoryConflict, normalizeCategoryName, slugify } from '@/lib/slug';
+import { GOOGLE_DRIVE_WARNING, isGoogleDriveLink, normalizeMediaUrl } from '@/lib/imageUtils';
 import LoginModal from '@/components/layout/LoginModal';
+import MediaPreview from './MediaPreview';
+import MediaUploadButton from './MediaUploadButton';
+import { useInactivityLogout } from './useInactivityLogout';
 import styles from './page.module.css';
+
+const errorObjectMessage = (error: unknown) =>
+  typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string'
+    ? error.message
+    : undefined;
+const errorMessage = (error: unknown) => errorObjectMessage(error) ?? String(error);
 
 type Category = { id: string; name: string; slug: string; collection: string };
 type Product = { id: string; category_id: string; name: string; description: string; image_url: string; price?: number; images?: string[] };
+
+// With row level security, an update or delete the policies do not allow matches no rows and returns no error.
+const NOT_ALLOWED_MESSAGE = 'This account is not allowed to make changes. Log in with the admin account.';
+const RLS_VIOLATION_CODE = '42501';
+
+function databaseErrorMessage(error: { message: string; code?: string }) {
+  return error.code === RLS_VIOLATION_CODE ? NOT_ALLOWED_MESSAGE : `${error.message} (Code: ${error.code})`;
+}
+const IDLE_LIMIT_MS = 30 * 60 * 1000;
+const IDLE_WARNING_MS = 60 * 1000;
+const DRAFT_KEY = 'admin-unsaved-form';
+
+type ItemDraft = { id: string; name: string; description: string; price: string; imageUrl: string };
+
+type FormDraft = {
+  email: string;
+  collection: string;
+  categoryId: string | null;
+  catName: string;
+  prodName: string;
+  prodDesc: string;
+  prodPrice: string;
+  prodImageUrl: string;
+  prodImages: string[];
+  prodImageInput: string;
+  editingProduct: Product | null;
+  editingItem: ItemDraft | null;
+};
 
 const collections = [
   { key: 'furniture', label: 'Furniture' },
@@ -24,17 +62,33 @@ export default function AdminPage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [catName, setCatName] = useState('');
+  const [catError, setCatError] = useState('');
   const [showAddCat, setShowAddCat] = useState(false);
+  const [renamingCategory, setRenamingCategory] = useState<Category | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameError, setRenameError] = useState('');
   const [prodName, setProdName] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodPrice, setProdPrice] = useState('');
   const [prodImageUrl, setProdImageUrl] = useState('');
   const [prodImages, setProdImages] = useState<string[]>([]);
   const [prodImageInput, setProdImageInput] = useState('');
+  const [mainImageError, setMainImageError] = useState('');
+  const [extraImageError, setExtraImageError] = useState('');
+  const [resolvingImage, setResolvingImage] = useState(false);
+  const [uploadsInProgress, setUploadsInProgress] = useState(0);
+  const trackUpload = (busy: boolean) => setUploadsInProgress(count => count + (busy ? 1 : -1));
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingItem, setEditingItem] = useState<ItemDraft | null>(null);
+  const [itemError, setItemError] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [sessionTimeout, setSessionTimeout] = useState<NodeJS.Timeout | null>(null); // Session timeout
+  const [logoutNotice, setLogoutNotice] = useState('');
+  // An ImgBB lookup can finish after its link was edited or its modal closed; each field only trusts its latest lookup.
+  const mainLookup = useRef(0);
+  const extraLookup = useRef(0);
+  const itemLookup = useRef(0);
+  const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -48,8 +102,6 @@ export default function AdminPage() {
         if (session?.user) {
           setIsAuthenticated(true);
           setUserEmail(session.user.email || '');
-          // Start a 30-minute inactivity timeout
-          startSessionTimeout();
         } else {
           setIsAuthenticated(false);
           setUserEmail('');
@@ -77,25 +129,58 @@ export default function AdminPage() {
         console.log('User signed out detected');
         setIsAuthenticated(false);
         setUserEmail('');
-        clearSessionTimeout();
       } else if (session?.user) {
         console.log('User signed in/session exists');
         setIsAuthenticated(true);
         setUserEmail(session.user.email || '');
-        startSessionTimeout();
       } else {
         setIsAuthenticated(false);
         setUserEmail('');
-        clearSessionTimeout();
       }
     });
 
     return () => {
       console.log('Cleaning up auth subscription');
       subscription?.unsubscribe();
-      clearSessionTimeout();
     };
   }, [isLoggingOut]);
+
+  // Restore a form that was open when the inactivity logout happened in this tab.
+  useEffect(() => {
+    if (!isAuthenticated || !userEmail) return;
+    let draft: FormDraft | null = null;
+    try {
+      const saved = sessionStorage.getItem(DRAFT_KEY);
+      if (!saved) return;
+      sessionStorage.removeItem(DRAFT_KEY);
+      draft = JSON.parse(saved);
+    } catch {
+      return;
+    }
+    if (!draft || draft.email !== userEmail) return;
+    setSelectedCollection(draft.collection);
+    setPendingCategoryId(draft.categoryId);
+    setCatName(draft.catName);
+    setProdName(draft.prodName);
+    setProdDesc(draft.prodDesc);
+    setProdPrice(draft.prodPrice);
+    setProdImageUrl(draft.prodImageUrl);
+    setProdImages(draft.prodImages);
+    setProdImageInput(draft.prodImageInput);
+    setEditingProduct(draft.editingProduct);
+    setEditingItem(draft.editingItem ?? null);
+    setLogoutNotice('');
+    setMessage('Your unsaved form from before you were logged out has been restored. Check it, then save.');
+  }, [isAuthenticated, userEmail]);
+
+  useEffect(() => {
+    if (!pendingCategoryId) return;
+    const category = categories.find(cat => cat.id === pendingCategoryId);
+    if (category) {
+      setPendingCategoryId(null);
+      setSelectedCategory(category);
+    }
+  }, [categories, pendingCategoryId]);
 
   // Fetch categories when collection changes
   useEffect(() => {
@@ -124,8 +209,8 @@ export default function AdminPage() {
 
       if (error) throw error;
       setCategories(data || []);
-    } catch (error: any) {
-      const errorMsg = error?.message || JSON.stringify(error) || 'Unknown error';
+    } catch (error: unknown) {
+      const errorMsg = errorObjectMessage(error) || JSON.stringify(error) || 'Unknown error';
       console.error('Error fetching categories:', errorMsg);
       setMessage(`Error fetching categories: ${errorMsg}`);
     } finally {
@@ -144,8 +229,8 @@ export default function AdminPage() {
 
       if (error) throw error;
       setProducts(data || []);
-    } catch (error: any) {
-      const errorMsg = error?.message || JSON.stringify(error) || 'Unknown error';
+    } catch (error: unknown) {
+      const errorMsg = errorObjectMessage(error) || JSON.stringify(error) || 'Unknown error';
       console.error('Error fetching products:', errorMsg);
       setMessage(`Error fetching products: ${errorMsg}`);
     } finally {
@@ -156,29 +241,100 @@ export default function AdminPage() {
   // Add category
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!catName.trim()) {
-      setMessage('Category name is required');
+    setCatError('');
+    const name = normalizeCategoryName(catName);
+    if (!name) {
+      setCatError('Category name is required');
+      return;
+    }
+    const slug = slugify(name);
+    if (!slug) {
+      setCatError('Use at least one letter or number in the category name.');
       return;
     }
 
     try {
       setLoading(true);
-      const slug = catName.toLowerCase().replace(/\s+/g, '-');
-      const { data, error } = await supabase
+      const { data: existingCategories, error: queryError } = await supabase
         .from('categories')
-        .insert([{ name: catName, slug, collection: selectedCollection }]);
+        .select('id, name, slug')
+        .eq('collection', selectedCollection);
+
+      if (queryError) throw new Error(queryError.message);
+      const conflict = findCategoryConflict(existingCategories || [], name, slug);
+      if (conflict) {
+        const collectionLabel = collections.find(collection => collection.key === selectedCollection)?.label || selectedCollection;
+        setCatError(`A category called "${conflict.name}" already exists in ${collectionLabel}.`);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('categories')
+        .insert([{ name, slug, collection: selectedCollection }]);
 
       if (error) {
         console.error('Insert error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
       setMessage('Category added successfully!');
       setCatName('');
+      setCatError('');
       setShowAddCat(false);
       await fetchCategories();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding category:', error);
-      setMessage(`Error adding category: ${error.message}`);
+      setCatError(`Error adding category: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRenameCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renamingCategory) return;
+    setRenameError('');
+    const name = normalizeCategoryName(renameValue);
+    if (!name) {
+      setRenameError('Category name is required');
+      return;
+    }
+    const slug = slugify(name);
+    if (!slug) {
+      setRenameError('Use at least one letter or number in the category name.');
+      return;
+    }
+    if (name === renamingCategory.name && slug === renamingCategory.slug) {
+      setRenamingCategory(null);
+      return;
+    }
+
+    const { id, collection } = renamingCategory;
+    try {
+      setLoading(true);
+      const { data: rows, error: queryError } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .eq('collection', collection);
+      if (queryError) throw new Error(queryError.message);
+      const conflict = findCategoryConflict(rows || [], name, slug, renamingCategory.id);
+      if (conflict) {
+        const collectionLabel = collections.find(item => item.key === collection)?.label || collection;
+        setRenameError(`A category called "${conflict.name}" already exists in ${collectionLabel}.`);
+        return;
+      }
+
+      const { data, error } = await supabase.from('categories').update({ name, slug }).eq('id', id).select('id');
+      if (error) throw new Error(error.message);
+      if (!data?.length) {
+        setRenameError(NOT_ALLOWED_MESSAGE);
+        return;
+      }
+      setRenamingCategory(null);
+      setMessage('Category renamed successfully!');
+      await fetchCategories();
+      setSelectedCategory(current => current?.id === id ? { ...current, name, slug } : current);
+    } catch (error: unknown) {
+      setRenameError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -186,25 +342,38 @@ export default function AdminPage() {
 
   // Delete category
   const handleDeleteCategory = async (cat: Category) => {
-    if (!window.confirm(`Delete category "${cat.name}"?`)) return;
-
     try {
       setLoading(true);
-      const { error } = await supabase
+      // products.category_id is ON DELETE CASCADE, so the database removes these items with the category.
+      const { count, error: countError } = await supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', cat.id);
+      if (countError) throw new Error(`Could not count this category's items: ${countError.message}`);
+
+      const items = count ?? 0;
+      const consequence = items === 0
+        ? 'It has no items.'
+        : `This also permanently deletes ${items} item${items === 1 ? '' : 's'} in it. This cannot be undone.`;
+      if (!window.confirm(`Delete category "${cat.name}"?\n\n${consequence}`)) return;
+
+      const { data: deleted, error } = await supabase
         .from('categories')
         .delete()
-        .eq('id', cat.id);
+        .eq('id', cat.id)
+        .select('id');
 
       if (error) {
         console.error('Delete error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
+      if (!deleted?.length) throw new Error(NOT_ALLOWED_MESSAGE);
       setMessage('Category deleted successfully!');
       setSelectedCategory(null);
       await fetchCategories();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting category:', error);
-      setMessage(`Error deleting category: ${error.message}`);
+      setMessage(`Error deleting category: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -225,10 +394,22 @@ export default function AdminPage() {
     try {
       setLoading(true);
       
-      // Convert image URLs (handles Google Drive links, ImgBB links, etc.)
-      const convertedMainImage = convertImageUrl(prodImageUrl);
-      const convertedImages = prodImages.map(img => convertImageUrl(img));
-      
+      setResolvingImage(true);
+      const mainResult = await normalizeMediaUrl(prodImageUrl);
+      const extraResults = await Promise.all(prodImages.map(normalizeMediaUrl));
+      setResolvingImage(false);
+      if (!mainResult.ok) {
+        setMainImageError(mainResult.error);
+        return;
+      }
+      const failedExtra = extraResults.find(result => !result.ok);
+      if (failedExtra && !failedExtra.ok) {
+        setExtraImageError(failedExtra.error);
+        return;
+      }
+      setProdImageUrl(mainResult.url);
+      const savedImages = extraResults.flatMap(result => (result.ok ? [result.url] : []));
+
       const { data, error } = await supabase
         .from('products')
         .insert([{
@@ -236,13 +417,13 @@ export default function AdminPage() {
           name: prodName,
           description: prodDesc,
           price: prodPrice ? parseFloat(prodPrice) : null,
-          image_url: convertedMainImage,
-          images: convertedImages // Include additional images array
+          image_url: mainResult.url,
+          images: savedImages
         }]);
 
       if (error) {
         console.error('Insert error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
       setMessage('✅ Product added successfully!');
       setProdName('');
@@ -251,10 +432,12 @@ export default function AdminPage() {
       setProdImageUrl('');
       setProdImages([]);
       setProdImageInput('');
+      setMainImageError('');
+      setExtraImageError('');
       await fetchProducts(selectedCategory.id);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding product:', error);
-      setMessage(`Error adding product: ${error.message}`);
+      setMessage(`Error adding product: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -266,22 +449,24 @@ export default function AdminPage() {
 
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { data: deleted, error } = await supabase
         .from('products')
         .delete()
-        .eq('id', prod.id);
+        .eq('id', prod.id)
+        .select('id');
 
       if (error) {
         console.error('Delete error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
+      if (!deleted?.length) throw new Error(NOT_ALLOWED_MESSAGE);
       setMessage('Product deleted successfully!');
       if (selectedCategory) {
         await fetchProducts(selectedCategory.id);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting product:', error);
-      setMessage(`Error deleting product: ${error.message}`);
+      setMessage(`Error deleting product: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -291,36 +476,139 @@ export default function AdminPage() {
   const handleUpdateProduct = async (prod: Product) => {
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('products')
         .update({ images: prod.images || [] })
-        .eq('id', prod.id);
+        .eq('id', prod.id)
+        .select('id');
 
       if (error) {
         console.error('Update error:', error);
-        throw new Error(`${error.message} (Code: ${error.code})`);
+        throw new Error(databaseErrorMessage(error));
       }
+      if (!data?.length) throw new Error(NOT_ALLOWED_MESSAGE);
       setMessage('Product images updated successfully!');
       setEditingProduct(null);
       if (selectedCategory) {
         await fetchProducts(selectedCategory.id);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating product:', error);
-      setMessage(`Error updating product: ${error.message}`);
+      setExtraImageError(`Error updating product: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Add image to editing product
-  const handleAddImageToProduct = () => {
-    if (!editingProduct || !prodImageInput.trim()) {
-      setMessage('Please enter an image URL');
+  const handleSaveItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem || !selectedCategory || loading || resolvingImage) return;
+    setItemError('');
+    const { id, imageUrl: link } = editingItem;
+    const name = editingItem.name.trim();
+    if (!name) {
+      setItemError('Item name is required');
       return;
     }
-    const newImages = [...(editingProduct.images || []), prodImageInput];
-    setEditingProduct({ ...editingProduct, images: newImages });
+    const price = editingItem.price.trim() === '' ? null : Number(editingItem.price);
+    if (price !== null && (!Number.isFinite(price) || price < 0)) {
+      setItemError('Price must be a positive number or empty');
+      return;
+    }
+    const description = editingItem.description.trim();
+    try {
+      setLoading(true);
+      setResolvingImage(true);
+      const result = await normalizeMediaUrl(link);
+      setResolvingImage(false);
+      if (!result.ok) {
+        setItemError(result.error);
+        return;
+      }
+      const image_url = result.url;
+      const { data, error } = await supabase.from('products')
+        .update({ name, description, price, image_url }).eq('id', id).select('id');
+      if (error) {
+        setItemError(error.message);
+        return;
+      }
+      if (!data?.length) {
+        setItemError(NOT_ALLOWED_MESSAGE);
+        return;
+      }
+      setEditingItem(null);
+      setMessage('Item updated successfully!');
+      await fetchProducts(selectedCategory.id);
+    } catch (error: unknown) {
+      setItemError(error instanceof Error ? error.message : 'Could not save item');
+    } finally {
+      setResolvingImage(false);
+      setLoading(false);
+    }
+  };
+
+  const checkItemImage = async () => {
+    if (!editingItem) return;
+    const { id, imageUrl } = editingItem;
+    const lookup = ++itemLookup.current;
+    try {
+      setResolvingImage(true);
+      const result = await normalizeMediaUrl(imageUrl);
+      if (lookup !== itemLookup.current) return;
+      if (!result.ok) {
+        setItemError(result.error);
+        return;
+      }
+      setEditingItem(current => current?.id === id && current.imageUrl === imageUrl
+        ? { ...current, imageUrl: result.url } : current);
+    } catch (error: unknown) {
+      setItemError(error instanceof Error ? error.message : 'Could not check image link');
+    } finally {
+      setResolvingImage(false);
+    }
+  };
+
+  const checkMainImage = async () => {
+    if (!prodImageUrl.trim()) {
+      setMainImageError('');
+      return;
+    }
+    const lookup = ++mainLookup.current;
+    setResolvingImage(true);
+    const result = await normalizeMediaUrl(prodImageUrl);
+    setResolvingImage(false);
+    if (lookup !== mainLookup.current) return;
+    setMainImageError(result.ok ? '' : result.error);
+    if (result.ok) setProdImageUrl(result.url);
+  };
+
+  // Returns the checked link, or null after showing why it cannot be used.
+  const checkExtraImage = async (): Promise<string | null> => {
+    const lookup = ++extraLookup.current;
+    setResolvingImage(true);
+    const result = await normalizeMediaUrl(prodImageInput);
+    setResolvingImage(false);
+    if (lookup !== extraLookup.current) return null;
+    setExtraImageError(result.ok ? '' : result.error);
+    return result.ok ? result.url : null;
+  };
+
+  const handleAddExtraImage = async () => {
+    const url = await checkExtraImage();
+    if (!url) return;
+    setProdImages(images => [...images, url]);
+    setProdImageInput('');
+  };
+
+  // Add image to editing product
+  const handleAddImageToProduct = async () => {
+    if (!editingProduct) return;
+    const productId = editingProduct.id;
+    const url = await checkExtraImage();
+    if (!url) return;
+    setEditingProduct(current => (current?.id === productId
+      ? { ...current, images: [...(current.images || []), url] }
+      : current));
     setProdImageInput('');
   };
 
@@ -329,23 +617,6 @@ export default function AdminPage() {
     if (!editingProduct) return;
     const newImages = editingProduct.images?.filter((_, i) => i !== index) || [];
     setEditingProduct({ ...editingProduct, images: newImages });
-  };
-
-  // Session timeout - auto logout after 30 minutes of inactivity
-  const startSessionTimeout = () => {
-    clearSessionTimeout(); // Clear any existing timeout
-    const timeout = setTimeout(() => {
-      console.log('Session timeout - auto logging out');
-      handleLogout();
-    }, 30 * 60 * 1000); // 30 minutes
-    setSessionTimeout(timeout);
-  };
-
-  const clearSessionTimeout = () => {
-    if (sessionTimeout) {
-      clearTimeout(sessionTimeout);
-      setSessionTimeout(null);
-    }
   };
 
   // Handle logout - END SESSION PROPERLY
@@ -384,18 +655,17 @@ export default function AdminPage() {
       setProdImages([]);
       setProdImageInput('');
       setEditingProduct(null);
+      setEditingItem(null);
       setSelectedCollection(collections[0].key);
-      clearSessionTimeout();
 
       console.log('✅ All state cleared - Login modal should now be visible');
       console.log('🔴 LOGOUT COMPLETE');
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Logout error:', error);
       // Force logout anyway
       setIsAuthenticated(false);
       setUserEmail('');
-      clearSessionTimeout();
     } finally {
       setIsLoggingOut(false); // Unset flag
     }
@@ -414,33 +684,61 @@ export default function AdminPage() {
       }
 
       setMessage(`✅ Password recovery email sent to ${userEmail}. Please check your email.`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending reset email:', error);
-      setMessage(`Error sending reset email: ${error.message}`);
+      setMessage(`Error sending reset email: ${errorMessage(error)}`);
     } finally {
       setLoading(false);
     }
   };
 
+  const hasUnsavedForm = !!(catName || prodName || prodDesc || prodPrice || prodImageUrl || prodImages.length || prodImageInput || editingProduct || editingItem);
+
+  const handleInactivityLogout = async () => {
+    const draft: FormDraft = {
+      email: userEmail, collection: selectedCollection, categoryId: selectedCategory?.id ?? null, catName,
+      prodName, prodDesc, prodPrice, prodImageUrl, prodImages, prodImageInput, editingProduct, editingItem,
+    };
+    const keepDraft = hasUnsavedForm;
+    await handleLogout();
+    if (keepDraft) {
+      try {
+        sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      } catch (error) {
+        console.error('Could not keep the unsaved form:', error);
+      }
+    }
+    setLogoutNotice(keepDraft
+      ? 'You were logged out after 30 minutes without activity. Log in again here and your unsaved form will come back.'
+      : 'You were logged out after 30 minutes without activity.');
+  };
+
+  const { secondsLeft: idleSecondsLeft, stayLoggedIn } = useInactivityLogout({
+    enabled: isAuthenticated,
+    idleLimitMs: IDLE_LIMIT_MS,
+    warningMs: IDLE_WARNING_MS,
+    onTimeout: handleInactivityLogout,
+  });
+
   // Show login modal if not authenticated
   if (!isAuthenticated) {
-    return <LoginModal onLoginSuccess={() => setIsAuthenticated(true)} />;
+    return <LoginModal notice={logoutNotice} onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
   return (
     <div className={styles.main}>
       {/* Header */}
       <header className={styles.header}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '2rem' }}>
-          <div>
+        <div className={styles.headerContent}>
+          <div className={styles.titleBlock}>
             <h1 className={styles.title}>Admin Panel</h1>
             <p className={styles.subtitle}>Manage collections, categories, and products</p>
           </div>
-          <div style={{ textAlign: 'right' }}>
+          <div className={styles.accountBlock}>
             <p style={{ fontSize: '0.95rem', color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>
               Logged in as: <strong>{userEmail}</strong>
             </p>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+            <div className={styles.accountActions}>
               <button 
                 onClick={handleResetPassword}
                 disabled={loading}
@@ -520,7 +818,7 @@ export default function AdminPage() {
         <aside className={styles.categoryPanel}>
           <div className={styles.panelHeader}>
             <h2>Categories</h2>
-            <button className={styles.addButton} onClick={() => setShowAddCat(true)} disabled={loading}>+ Add</button>
+            <button className={styles.addButton} onClick={() => { setCatError(''); setShowAddCat(true); }} disabled={loading}>+ Add</button>
           </div>
           <ul className={styles.categoryList}>
             {categories.map(cat => (
@@ -530,6 +828,21 @@ export default function AdminPage() {
                 onClick={() => setSelectedCategory(cat)}
               >
                 <span>{cat.name}</span>
+                <span className={styles.categoryActions}>
+                  <button
+                    type="button"
+                    className={styles.renameButton}
+                    aria-label={`Rename ${cat.name}`}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setRenamingCategory(cat);
+                      setRenameValue(cat.name);
+                      setRenameError('');
+                    }}
+                    disabled={loading}
+                  >
+                    ✏️
+                  </button>
                 <button 
                   className={styles.deleteButton} 
                   onClick={e => { e.stopPropagation(); handleDeleteCategory(cat); }}
@@ -537,6 +850,7 @@ export default function AdminPage() {
                 >
                   🗑
                 </button>
+                </span>
               </li>
             ))}
           </ul>
@@ -550,13 +864,36 @@ export default function AdminPage() {
                     className={styles.input} 
                     placeholder="Category name" 
                     value={catName} 
-                    onChange={e => setCatName(e.target.value)} 
-                    required 
+                    onChange={e => { setCatName(e.target.value); setCatError(''); }}
                     disabled={loading}
                   />
+                  {catError && <p className={styles.fieldError} role="alert">{catError}</p>}
                   <div className={styles.modalActions}>
                     <button className={styles.button} type="submit" disabled={loading}>Create</button>
-                    <button className={styles.button} type="button" onClick={() => setShowAddCat(false)} disabled={loading}>Cancel</button>
+                    <button className={styles.button} type="button" onClick={() => { setCatError(''); setShowAddCat(false); }} disabled={loading}>Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+          {renamingCategory && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="rename-category-title">
+                <h3 id="rename-category-title">Rename category</h3>
+                <form onSubmit={handleRenameCategory}>
+                  <label htmlFor="rename-category-name">Name</label>
+                  <input
+                    id="rename-category-name"
+                    className={styles.input}
+                    value={renameValue}
+                    onChange={e => { setRenameValue(e.target.value); setRenameError(''); }}
+                    disabled={loading}
+                  />
+                  <p>Link: /{renamingCategory.collection}?filter={slugify(renameValue)}</p>
+                  {renameError && <p className={styles.fieldError} role="alert">{renameError}</p>}
+                  <div className={styles.modalActions}>
+                    <button className={styles.button} type="submit" disabled={loading}>Save</button>
+                    <button className={styles.button} type="button" onClick={() => { setRenameError(''); setRenamingCategory(null); }} disabled={loading}>Cancel</button>
                   </div>
                 </form>
               </div>
@@ -601,130 +938,54 @@ export default function AdminPage() {
                   className={styles.input} 
                   placeholder="Main Image URL" 
                   value={prodImageUrl} 
-                  onChange={e => setProdImageUrl(e.target.value)} 
+                  onChange={e => { mainLookup.current++; setProdImageUrl(e.target.value); setMainImageError(''); }} 
+                  onBlur={checkMainImage}
                   required 
                   disabled={loading}
                 />
+                <MediaUploadButton label="Upload main image" disabled={loading} onBusyChange={trackUpload}
+                  onUploaded={url => { mainLookup.current++; setProdImageUrl(url); setMainImageError(''); }} />
                 {prodImageUrl && (
-                  <div style={{ marginTop: '0.75rem' }}>
-                    {(prodImageUrl.includes('drive.google.com') || prodImageUrl.includes('ibb.co')) ? (
-                      <>
-                        <div style={{
-                          padding: '0.75rem',
-                          backgroundColor: '#fef3c7',
-                          border: '1px solid #fcd34d',
-                          borderRadius: '4px',
-                          marginBottom: '0.5rem',
-                          fontSize: '0.85rem',
-                          color: '#92400e'
-                        }}>
-                          <strong>📌 {detectImageService(prodImageUrl)} Link Detected</strong>
-                          {prodImageUrl.includes('ibb.co') && (
-                            <p style={{ margin: '0.5rem 0 0 0' }}>
-                              ✅ Converting ImgBB share link to direct image URL...
-                            </p>
-                          )}
-                          {prodImageUrl.includes('drive.google.com') && (
-                            <>
-                              <p style={{ margin: '0.5rem 0 0 0' }}>
-                                ⚠️ <strong>Google Drive has embedding restrictions</strong> - even publicly shared files may not load.
-                              </p>
-                              <p style={{ margin: '0.5rem 0 0 0' }}>
-                                💡 Try <strong>ImgBB</strong> or <strong>Imgur</strong> instead (they work reliably).
-                              </p>
-                            </>
-                          )}
-                        </div>
-                        <img 
-                          src={convertImageUrl(prodImageUrl)} 
-                          alt="Preview" 
-                          className={styles.imagePreview} 
-                          style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8, border: '2px solid #fcd34d' }} 
-                          onError={e => {
-                            (e.currentTarget as HTMLImageElement).style.display = 'none';
-                            const parent = (e.currentTarget as HTMLImageElement).parentElement;
-                            if (parent) {
-                              const errorDiv = document.createElement('div');
-                              errorDiv.style.cssText = 'padding: 0.75rem; background: #fee2e2; border: 1px solid #fecaca; border-radius: 4px; color: #991b1b; font-size: 0.85rem; margin-top: 0.5rem;';
-                              
-                              if (prodImageUrl.includes('ibb.co')) {
-                                errorDiv.innerHTML = `
-                                  <strong>❌ ImgBB image failed to load</strong>
-                                  <p style="margin: 0.5rem 0 0 0;">You're using a <strong>share link</strong> (ibb.co), not the direct image URL.</p>
-                                  <p style="margin: 0.5rem 0 0 0;"><strong>How to get the direct URL:</strong></p>
-                                  <ol style="margin: 0.5rem 0 0 0; padding-left: 1rem;">
-                                    <li>On imgbb.com, right-click the image after upload</li>
-                                    <li>Select <strong>"Copy image link"</strong> (not "Copy page link")</li>
-                                    <li>Paste that URL here (should start with <strong>https://i.ibb.co/</strong>)</li>
-                                  </ol>
-                                `;
-                              } else {
-                                errorDiv.innerHTML = `
-                                  <strong>❌ Image failed to load from ${detectImageService(prodImageUrl)}</strong>
-                                  <p style="margin: 0.5rem 0 0 0;">Try using ImgBB or Imgur instead - they work more reliably.</p>
-                                `;
-                              }
-                              parent.appendChild(errorDiv);
-                            }
-                          }} 
-                        />
-                      </>
+                  <div className={styles.previewBlock}>
+                    {mainImageError ? (
+                      <p className={styles.fieldError} role="alert">{mainImageError}</p>
                     ) : (
-                      <>
-                        <img 
-                          src={prodImageUrl} 
-                          alt="Preview" 
-                          className={styles.imagePreview} 
-                          style={{ marginBottom: '0.5rem', maxWidth: 120, maxHeight: 120, borderRadius: 8, border: '1px solid #eee' }} 
-                          onError={e => {
-                            (e.currentTarget as HTMLImageElement).style.display = 'none';
-                          }} 
-                        />
-                        <p style={{ fontSize: '0.8rem', color: '#10b981' }}>✅ {detectImageService(prodImageUrl)}</p>
-                      </>
+                      <MediaPreview url={prodImageUrl} alt="Main image preview" className={styles.imagePreview} />
                     )}
+                    {isGoogleDriveLink(prodImageUrl) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
                   </div>
                 )}
-                
+
                 {/* Extra Images Section */}
-                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                <div className={styles.extraImages}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Extra Images (Optional)</label>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <div className={styles.extraImagesRow}>
                     <input 
                       className={styles.input}
-                      placeholder="Image URL (Google Drive links supported)" 
+                      placeholder="Image URL" 
                       value={prodImageInput} 
-                      onChange={e => setProdImageInput(e.target.value)} 
+                      onChange={e => { extraLookup.current++; setProdImageInput(e.target.value); setExtraImageError(''); }} 
                       disabled={loading}
                       style={{ margin: 0 }}
                     />
                     <button 
                       type="button"
                       className={styles.button}
-                      onClick={() => {
-                        if (prodImageInput.trim()) {
-                          setProdImages([...prodImages, prodImageInput]);
-                          setProdImageInput('');
-                        }
-                      }}
-                      disabled={loading}
+                      onClick={handleAddExtraImage}
+                      disabled={loading || resolvingImage}
                     >
                       Add
                     </button>
+                    <MediaUploadButton label="Upload extra image" disabled={loading} onBusyChange={trackUpload}
+                      onUploaded={url => setProdImages(current => [...current, url])} />
                   </div>
+                  {extraImageError && <p className={styles.fieldError} role="alert">{extraImageError}</p>}
+                  {isGoogleDriveLink(prodImageInput) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
                   {prodImages.length > 0 && (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       {prodImages.map((img, idx) => (
                         <div key={idx} style={{ position: 'relative' }}>
-                          <img 
-                            src={convertImageUrl(img)} 
-                            alt={`Extra ${idx}`} 
-                            style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
-                            onError={e => {
-                              (e.currentTarget as HTMLImageElement).style.opacity = '0.5';
-                              (e.currentTarget as HTMLImageElement).style.borderColor = '#fca5a5';
-                            }}
-                          />
+                          <MediaPreview url={img} alt={`Extra ${idx + 1}`} className={styles.extraThumb} />
                           <button
                             type="button"
                             onClick={() => setProdImages(prodImages.filter((_, i) => i !== idx))}
@@ -751,7 +1012,7 @@ export default function AdminPage() {
                   )}
                 </div>
                 
-                <button className={styles.button} type="submit" disabled={loading}>Save</button>
+                <button className={`${styles.button} ${styles.saveButton}`} type="submit" disabled={loading || resolvingImage || uploadsInProgress > 0}>{resolvingImage ? 'Checking link…' : 'Save'}</button>
               </form>
               {/* Product Grid */}
               <div className={styles.productGrid}>
@@ -759,7 +1020,7 @@ export default function AdminPage() {
                   <div className={styles.card} key={prod.id}>
                     <div className={styles.imagePlaceholder}>
                       {prod.image_url ? (
-                        <img src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <MediaPreview url={prod.image_url} alt={prod.name} className={styles.cardMedia} />
                       ) : (
                         <span>{prod.name[0]}</span>
                       )}
@@ -778,6 +1039,16 @@ export default function AdminPage() {
                         </p>
                       )}
                       <div className={styles.cardActions}>
+                        <button
+                          className={styles.button}
+                          onClick={() => {
+                            setItemError('');
+                            setEditingItem({ id: prod.id, name: prod.name, description: prod.description ?? '', price: prod.price == null ? '' : String(prod.price), imageUrl: prod.image_url ?? '' });
+                          }}
+                          disabled={loading}
+                        >
+                          ✏️ Edit
+                        </button>
                         <button 
                           className={styles.button}
                           onClick={() => setEditingProduct(prod)}
@@ -799,20 +1070,56 @@ export default function AdminPage() {
                 ))}
               </div>
 
+              {editingItem && (
+                <div className={styles.modalOverlay}>
+                  <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="edit-item-title">
+                    <h3 id="edit-item-title">Edit item</h3>
+                    <form onSubmit={handleSaveItem} noValidate>
+                      <label htmlFor="edit-item-name">Name</label>
+                      <input id="edit-item-name" className={styles.input} required value={editingItem.name}
+                        onChange={e => { setEditingItem({ ...editingItem, name: e.target.value }); setItemError(''); }} disabled={loading} />
+                      <label htmlFor="edit-item-description">Description</label>
+                      <textarea id="edit-item-description" className={styles.input} value={editingItem.description}
+                        onChange={e => { setEditingItem({ ...editingItem, description: e.target.value }); setItemError(''); }} disabled={loading} />
+                      <label htmlFor="edit-item-price">Price (optional)</label>
+                      <input id="edit-item-price" className={styles.input} type="number" min="0" step="0.01" value={editingItem.price}
+                        onChange={e => { setEditingItem({ ...editingItem, price: e.target.value }); setItemError(''); }} disabled={loading} />
+                      <label htmlFor="edit-item-image">Main image link</label>
+                      <input id="edit-item-image" className={styles.input} value={editingItem.imageUrl}
+                        onChange={e => { setEditingItem({ ...editingItem, imageUrl: e.target.value }); setItemError(''); }} onBlur={checkItemImage} disabled={loading || resolvingImage} />
+                      <MediaUploadButton key={editingItem.id} label="Upload main image" disabled={loading} onBusyChange={trackUpload}
+                        onUploaded={url => {
+                          itemLookup.current++;
+                          setEditingItem(current => current?.id === editingItem.id ? { ...current, imageUrl: url } : current);
+                          setItemError('');
+                        }} />
+                      {editingItem.imageUrl && <MediaPreview url={editingItem.imageUrl} alt="Main image preview" className={styles.imagePreview} />}
+                      {isGoogleDriveLink(editingItem.imageUrl) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
+                      {itemError && <p className={styles.fieldError} role="alert">{itemError}</p>}
+                      <div className={styles.modalActions}>
+                        <button className={styles.button} type="submit" disabled={loading || resolvingImage || uploadsInProgress > 0}>Save item</button>
+                        <button className={styles.button} type="button" disabled={loading || resolvingImage}
+                          onClick={() => { itemLookup.current++; setEditingItem(null); setItemError(''); }}>Cancel</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
               {/* Edit Product Modal */}
               {editingProduct && (
                 <div className={styles.modalOverlay}>
-                  <div className={styles.modal} style={{ maxWidth: '600px' }}>
+                  <div className={styles.modal}>
                     <h3>Edit Images for: {editingProduct.name}</h3>
-                    <p style={{ color: '#666', marginBottom: '1rem' }}>Main Image: {editingProduct.image_url}</p>
+                    <p className={styles.mainImageUrl}>Main Image: {editingProduct.image_url}</p>
                     
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Add More Images</label>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <div className={styles.editImagesRow}>
                       <input 
                         className={styles.input}
                         placeholder="Image URL" 
                         value={prodImageInput} 
-                        onChange={e => setProdImageInput(e.target.value)} 
+                        onChange={e => { extraLookup.current++; setProdImageInput(e.target.value); setExtraImageError(''); }} 
                         disabled={loading}
                         style={{ margin: 0 }}
                       />
@@ -820,11 +1127,16 @@ export default function AdminPage() {
                         type="button"
                         className={styles.button}
                         onClick={handleAddImageToProduct}
-                        disabled={loading}
+                        disabled={loading || resolvingImage}
                       >
                         Add
                       </button>
                     </div>
+                    <MediaUploadButton key={editingProduct.id} label="Upload image" disabled={loading} onBusyChange={trackUpload}
+                      onUploaded={url => setEditingProduct(current => current?.id === editingProduct.id
+                        ? { ...current, images: [...(current.images ?? []), url] } : current)} />
+                    {extraImageError && <p className={styles.fieldError} role="alert">{extraImageError}</p>}
+                    {isGoogleDriveLink(prodImageInput) && <p className={styles.fieldWarning}>{GOOGLE_DRIVE_WARNING}</p>}
 
                     {editingProduct.images && editingProduct.images.length > 0 && (
                       <div>
@@ -832,12 +1144,7 @@ export default function AdminPage() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                           {editingProduct.images.map((img, idx) => (
                             <div key={idx} style={{ position: 'relative' }}>
-                              <img 
-                                src={img} 
-                                alt={`Extra ${idx}`} 
-                                style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
-                                onError={e => (e.currentTarget.style.display = 'none')}
-                              />
+                              <MediaPreview url={img} alt={`Extra ${idx + 1}`} className={styles.editThumb} />
                               <button
                                 type="button"
                                 onClick={() => handleRemoveImageFromProduct(idx)}
@@ -868,15 +1175,17 @@ export default function AdminPage() {
                       <button 
                         className={styles.button} 
                         onClick={() => handleUpdateProduct(editingProduct)}
-                        disabled={loading}
+                        disabled={loading || uploadsInProgress > 0}
                       >
                         Save Changes
                       </button>
                       <button 
                         className={styles.button} 
                         onClick={() => {
+                          extraLookup.current++;
                           setEditingProduct(null);
                           setProdImageInput('');
+                          setExtraImageError('');
                         }}
                         disabled={loading}
                       >
@@ -892,6 +1201,21 @@ export default function AdminPage() {
           )}
         </main>
       </div>
+
+      {idleSecondsLeft !== null && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal} role="alertdialog" aria-modal="true" aria-labelledby="idle-warning-title">
+            <h3 id="idle-warning-title">Still there?</h3>
+            <p className={styles.idleWarningText}>
+              You will be logged out in {idleSecondsLeft} second{idleSecondsLeft === 1 ? '' : 's'} because of inactivity.
+              {hasUnsavedForm && ' Your unsaved form will be kept and restored when you log in again.'}
+            </p>
+            <div className={styles.modalActions}>
+              <button className={styles.button} onClick={stayLoggedIn}>Stay logged in</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className={styles.footer}>Admin Panel &copy; {new Date().getFullYear()}</footer>

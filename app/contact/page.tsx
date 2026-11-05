@@ -1,6 +1,7 @@
 "use client";
 import { motion, Variants } from 'framer-motion';
 import { useState } from 'react';
+import { whatsappUrl } from '@/lib/whatsapp';
 import styles from './page.module.css';
 
 export default function ContactPage() {
@@ -42,7 +43,6 @@ export default function ContactPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const whatsappNumber = '9187628243';
     const message = `Hi Arambha,
 
 I would like to request a consultation.
@@ -56,9 +56,7 @@ Please get back to me at your earliest convenience.
 
 Thank you!`;
 
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(message)}`;
-
-    window.open(whatsappUrl, '_blank');
+    window.open(whatsappUrl(message), '_blank');
 
     // Reset form
     setFormData({
