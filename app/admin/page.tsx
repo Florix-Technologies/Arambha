@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { findCategoryConflict, normalizeCategoryName, slugify } from '@/lib/slug';
 import { GOOGLE_DRIVE_WARNING, isGoogleDriveLink, normalizeMediaUrl } from '@/lib/imageUtils';
 import LoginModal from '@/components/layout/LoginModal';
 import MediaPreview from './MediaPreview';
@@ -25,6 +26,7 @@ export default function AdminPage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [catName, setCatName] = useState('');
+  const [catError, setCatError] = useState('');
   const [showAddCat, setShowAddCat] = useState(false);
   const [prodName, setProdName] = useState('');
   const [prodDesc, setProdDesc] = useState('');
@@ -160,17 +162,36 @@ export default function AdminPage() {
   // Add category
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!catName.trim()) {
-      setMessage('Category name is required');
+    setCatError('');
+    const name = normalizeCategoryName(catName);
+    if (!name) {
+      setCatError('Category name is required');
+      return;
+    }
+    const slug = slugify(name);
+    if (!slug) {
+      setCatError('Use at least one letter or number in the category name.');
       return;
     }
 
     try {
       setLoading(true);
-      const slug = catName.toLowerCase().replace(/\s+/g, '-');
-      const { data, error } = await supabase
+      const { data: existingCategories, error: queryError } = await supabase
         .from('categories')
-        .insert([{ name: catName, slug, collection: selectedCollection }]);
+        .select('id, name, slug')
+        .eq('collection', selectedCollection);
+
+      if (queryError) throw new Error(queryError.message);
+      const conflict = findCategoryConflict(existingCategories || [], name, slug);
+      if (conflict) {
+        const collectionLabel = collections.find(collection => collection.key === selectedCollection)?.label || selectedCollection;
+        setCatError(`A category called "${conflict.name}" already exists in ${collectionLabel}.`);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('categories')
+        .insert([{ name, slug, collection: selectedCollection }]);
 
       if (error) {
         console.error('Insert error:', error);
@@ -178,11 +199,12 @@ export default function AdminPage() {
       }
       setMessage('Category added successfully!');
       setCatName('');
+      setCatError('');
       setShowAddCat(false);
       await fetchCategories();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding category:', error);
-      setMessage(`Error adding category: ${error.message}`);
+      setCatError(`Error adding category: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -564,7 +586,7 @@ export default function AdminPage() {
         <aside className={styles.categoryPanel}>
           <div className={styles.panelHeader}>
             <h2>Categories</h2>
-            <button className={styles.addButton} onClick={() => setShowAddCat(true)} disabled={loading}>+ Add</button>
+            <button className={styles.addButton} onClick={() => { setCatError(''); setShowAddCat(true); }} disabled={loading}>+ Add</button>
           </div>
           <ul className={styles.categoryList}>
             {categories.map(cat => (
@@ -594,13 +616,13 @@ export default function AdminPage() {
                     className={styles.input} 
                     placeholder="Category name" 
                     value={catName} 
-                    onChange={e => setCatName(e.target.value)} 
-                    required 
+                    onChange={e => { setCatName(e.target.value); setCatError(''); }}
                     disabled={loading}
                   />
+                  {catError && <p className={styles.fieldError} role="alert">{catError}</p>}
                   <div className={styles.modalActions}>
                     <button className={styles.button} type="submit" disabled={loading}>Create</button>
-                    <button className={styles.button} type="button" onClick={() => setShowAddCat(false)} disabled={loading}>Cancel</button>
+                    <button className={styles.button} type="button" onClick={() => { setCatError(''); setShowAddCat(false); }} disabled={loading}>Cancel</button>
                   </div>
                 </form>
               </div>
