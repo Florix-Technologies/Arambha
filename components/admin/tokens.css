@@ -64,3 +64,5 @@
   margin:0;
   padding:0;
 }
+
+.adminRoot :where(button,summary) { font-size:14px; }

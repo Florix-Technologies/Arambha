@@ -7,4 +7,4 @@ export type Breadcrumb = {
 };
 export function Breadcrumbs({ items }: {
     items: Breadcrumb[];
-}) { return <nav aria-label={TERMS.navigation}><ol className={s.list}>{items.map((item, i) => <li key={i}>{i > 0 && <span aria-hidden="true">/</span>}{item.href && i < items.length - 1 ? <Link href={item.href}>{item.label}</Link> : <span aria-current={i === items.length - 1 ? 'page' : undefined}>{item.label}</span>}</li>)}</ol></nav>; }
+}) { return <nav aria-label={TERMS.navigation}><ol className={s.list}>{items.map((item, i) => <li key={i}>{i > 0 && <span aria-hidden="true">{TERMS.separator}</span>}{item.href && i < items.length - 1 ? <Link href={item.href}>{item.label}</Link> : <span aria-current={i === items.length - 1 ? 'page' : undefined}>{item.label}</span>}</li>)}</ol></nav>; }

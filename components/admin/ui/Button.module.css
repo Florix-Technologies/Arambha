@@ -41,7 +41,9 @@
   background:var(--danger-hover)}
 
 .button:disabled,.button[aria-disabled=true] {
-  opacity:.5;
+  background:var(--primary-soft);
+  color:var(--text-muted)!important;
+  border-color:var(--border);
   cursor:not-allowed}
 
 .spinner {

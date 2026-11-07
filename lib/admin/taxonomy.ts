@@ -1,5 +1,10 @@
 export const TERMS = {
     "dashboard": "Dashboard",
+    adminTitle: 'Arambha Admin', cancel: 'Cancel', actions: 'Actions', productDetails: 'Product details', pricing: 'Pricing',
+    allSubcategories: 'All subcategories', chooseSubcategory: 'Choose a subcategory',
+    remove: 'Remove', reorder: 'Reorder', uploadProgress: 'Upload progress', mediaDetails: 'Media details',
+    separator: '\u203a', unavailable: '\u2014', date: 'Date', thumbnail: 'Thumbnail', required: 'Required', currency: '\u20b9',
+
     "category": "Category",
     "categories": "Categories",
     "subcategory": "Subcategory",
@@ -73,6 +78,9 @@ export type CategoryKey = keyof typeof CATEGORIES;
 export const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];
 export function categoryFromParam(param: unknown) { return typeof param === 'string' && Object.hasOwn(CATEGORIES, param) ? CATEGORIES[param as CategoryKey] : null; }
 export const MESSAGES = {
+    productCount: (n: number) => `${n} products`, subcategoryCount: (n: number) => `${n} subcategories`,
+    statusHint: 'Active products appear on your website. Draft products stay hidden.',
+    featuredHint: 'The featured image appears first on your website.',
     productAdded: 'Product added', changesSaved: 'Changes saved', subcategoryAdded: 'Subcategory added', subcategoryDeleted: 'Subcategory deleted',
     deleteConfirm: (name: string) => `Delete ${name}? This can't be undone.`,
     moveProducts: (n: number, name: string) => `Move ${n} products to ${name}`,
