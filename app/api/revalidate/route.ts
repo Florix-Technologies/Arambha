@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAnonKey, supabaseUrl } from '@/lib/supabase';
@@ -21,6 +21,7 @@ export async function POST(request: Request) {
   }
 
   const unique = [...new Set([...(paths as string[]), '/sitemap.xml'])];
-  unique.forEach(path => revalidatePath(path));
+  // 'layout' also refreshes every page below the path (subcategory and product pages).
+  unique.forEach(path => revalidatePath(path, 'layout'));
   return NextResponse.json({ revalidated: unique });
 }

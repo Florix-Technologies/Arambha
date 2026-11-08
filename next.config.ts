@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
       { key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'" },
     ] }];
   },
+  // One canonical host: the bare domain moves permanently to www (path and query kept).
+  async redirects() {
+    return [{ source: '/:path*', has: [{ type: 'host', value: 'arambhainteriorstudio.com' }], destination: 'https://www.arambhainteriorstudio.com/:path*', permanent: true }];
+  },
 };
 
 export default nextConfig;

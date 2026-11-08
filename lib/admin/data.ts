@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { requestRevalidate } from '../revalidate';
 import type { Product } from '../catalog';
 import { findCategoryConflict, normalizeCategoryName, slugify } from '../slug';
 import { CATEGORIES, categoryFromParam, TERMS, type CategoryKey } from './taxonomy';
@@ -118,10 +119,17 @@ function productValues(input: ProductInput) {
     return { category_id: input.category_id, image_url: input.image_url, images: input.images, name: input.name.trim(), description: input.description.trim(),
         price: typeof input.price === 'string' && !input.price.trim() ? null : Number(input.price) };
 }
+// After a saved change, refresh the cached public pages and sitemap now instead of within the hour. Best-effort.
+function refreshSite() {
+    Promise.resolve().then(() => supabase.auth.getSession())
+        .then(({ data }) => data.session && requestRevalidate(['/', '/interiors', '/furniture', '/gallery'], data.session.access_token))
+        .catch(() => undefined);
+}
 async function changed(query: PromiseLike<{ data: { id: string }[] | null; error: unknown }>): Promise<string> {
     const { data, error } = await query;
     if (error) throw error;
     if (!data?.length) throw new Error(NOT_ALLOWED);
+    refreshSite();
     return data[0].id;
 }
 export function createProduct(input: ProductInput): Promise<DataResult<string>> {
@@ -182,6 +190,7 @@ export function moveProducts(ids: string[], categoryId: string): Promise<DataRes
         const { data, error } = await supabase.from('products').update({ category_id: categoryId }).in('id', ids).select('id');
         if (error) throw error;
         if ((data?.length ?? 0) !== ids.length) throw new Error(data?.length ? 'Some products could not be moved. Reload and try again.' : NOT_ALLOWED);
+        refreshSite();
         return ids.length;
     });
 }
