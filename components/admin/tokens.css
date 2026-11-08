@@ -2,6 +2,7 @@
   --bg:#F7F5F1;
   --surface:#FFFFFF;
   --border:#DCD6CC;
+  --control-border:#8C8274;
   --text:#2F2B28;
   --text-muted:#5C5852;
   --primary:#75664F;
@@ -54,6 +55,7 @@
   font-size:16px;
 }
 
+.adminRoot:focus-visible,
 .adminRoot :focus-visible {
   outline:2px solid var(--focus-ring);
   outline-offset:2px;
@@ -66,3 +68,9 @@
 }
 
 .adminRoot :where(button,summary) { font-size:14px; }
+
+.adminRoot :where(input,textarea)::placeholder { color:var(--text-muted); opacity:1; }
+
+@media(prefers-reduced-motion:reduce) {
+  .adminRoot, .adminRoot * { scroll-behavior:auto; }
+}

@@ -4,23 +4,25 @@ import { Package } from 'lucide-react';
 import { PageHeader, Button, Card, Thumbnail, Badge, ViewToggle, EmptyState } from '../ui';
 import { CATEGORIES, TERMS, MESSAGES, type CategoryKey } from '@/lib/admin/taxonomy';
 import { ProductTable } from './ProductTable';
+import { LiveProducts } from './LiveProducts';
 import type { AdminProduct } from '@/lib/admin/types';
 import s from './SubcategoryScreen.module.css';
-export function SubcategoryScreen({ category, name, products, dialog, basePath = '/admin-preview' }: {
+export function SubcategoryScreen({ category, name, products, dialog, subcategoryId, basePath = '/admin-preview', onDeleted }: {
     category: CategoryKey;
-    name: string;
+    name: string; subcategoryId?: string;
     products: AdminProduct[];
     dialog?: ReactNode;
     basePath?: string;
+    onDeleted?: (id: string) => void;
 }) {
     const [view, setView] = useState<'table' | 'grid'>('table');
     return <div className={s.page}>
         <PageHeader breadcrumbs={[{ label: CATEGORIES[category].label, href: `${basePath}/${category}` }, { label: name }]} title={name} primaryAction={
-            <Button href={`${basePath}/products/new`}>
+            <Button href={`${basePath}/products/new?category=${category}${subcategoryId ? `&subcategory=${encodeURIComponent(subcategoryId)}` : ''}`}>
                 {TERMS.addProduct}
             </Button>
-        } menu={[{ label: TERMS.rename }, { label: TERMS.delete, href: '?modal=delete', destructive: true }]} />
-        {products.length ?
+        } menu={onDeleted ? undefined : [{ label: TERMS.rename }, { label: TERMS.delete, href: '?modal=delete', destructive: true }]} />
+        {onDeleted ? <Card title={TERMS.products}><LiveProducts products={products} onDeleted={onDeleted} /></Card> : products.length ?
             <ViewToggle value={view} onValueChange={setView} table={
                 <ProductTable products={products} />
             } grid={

@@ -1,8 +1,10 @@
 .wrapper {
-  min-width:0}
+  min-width:0;
+  overflow-x:auto}
 
 .table {
   width:100%;
+  min-width:720px;
   border-collapse:collapse;
   table-layout:fixed;
   background:var(--surface)}
@@ -67,6 +69,7 @@
     clip-path:inset(50%)  }
 
   .table {
+    min-width:0;
     background:transparent  }
 
   .table tr {
@@ -103,3 +106,5 @@
 .selectionBar { display:flex; padding:var(--space-1); background:var(--surface); border-bottom:1px solid var(--border); }
 .selectionBar .check { gap:var(--space-1); }
 .srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+
+.table td:focus-visible { outline-offset:-3px; }

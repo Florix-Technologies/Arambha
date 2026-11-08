@@ -68,7 +68,7 @@
   gap:var(--space-1);
   min-width:0;
   padding:0 var(--space-1);
-  border:1px solid var(--border);
+  border:1px solid var(--control-border);
   border-radius:var(--radius);
   background:var(--surface)}
 
@@ -116,7 +116,9 @@
     padding:var(--space-1) var(--space-2)  }
 
   .mobileLogo {
-    display:block;
+    display:flex;
+    align-items:center;
+    gap:var(--space-1);
     min-width:0  }
 
   .logo {
@@ -166,3 +168,10 @@
     inset:0  }
 
 }
+
+.skip { position:fixed; top:8px; left:8px; z-index:110; padding:var(--space-2); background:var(--surface); transform:translateY(-200%); }
+.skip:focus { transform:none; }
+.drawerButton { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; min-width:44px; min-height:44px; border:0; border-radius:var(--radius); background:var(--surface); color:var(--text); cursor:pointer; }
+.drawerOverlay.drawerOverlay { position:fixed; inset:0; min-height:0; background:rgb(47 43 40 / .45); z-index:70; }
+.drawer.drawer { position:fixed; inset:0 auto 0 0; width:min(320px,calc(100vw - 32px)); min-height:0; overflow:auto; padding:var(--space-2); background:var(--surface); border-right:1px solid var(--border); z-index:71; }
+.drawerHeader { display:flex; align-items:center; justify-content:space-between; gap:var(--space-1); }

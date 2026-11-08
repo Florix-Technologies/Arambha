@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { Button, Card, TextField } from '../ui';
 import { TERMS, MESSAGES } from '@/lib/admin/taxonomy';
 import s from './LoginScreen.module.css';
-export function LoginScreen({ error }: {
+export function LoginScreen({ error, loading = false, onSignIn }: {
     error?: string;
+    loading?: boolean;
+    onSignIn?: (email: string, password: string) => void;
 }) {
     const [show, setShow] = useState(false);
     return <main className={s.page}>
@@ -18,19 +20,24 @@ export function LoginScreen({ error }: {
                 <p>
                     {MESSAGES.loginHint}
                 </p>
-                <form onSubmit={e => e.preventDefault()}>
-                    <TextField label={TERMS.email} type="email" autoComplete="username" />
-                    <TextField label={TERMS.password} type={show ? 'text' : 'password'} autoComplete="current-password" />
+                <form onSubmit={e => {
+                    e.preventDefault();
+                    if (loading) return;
+                    const data = new FormData(e.currentTarget);
+                    onSignIn?.(String(data.get('email') ?? ''), String(data.get('password') ?? ''));
+                }}>
+                    <TextField name="email" label={TERMS.email} type="email" autoComplete="username" required maxLength={254} disabled={loading} />
+                    <TextField name="password" label={TERMS.password} type={show ? 'text' : 'password'} autoComplete="current-password" required maxLength={4096} disabled={loading} />
                     <Button variant="plain" onClick={() => setShow(!show)}>
                         {show ? TERMS.hidePassword : TERMS.showPassword}
                     </Button>
                     <div role="alert" className={s.error}>
                         {error}
                     </div>
-                    <Button type="submit" className={s.full}>
+                    <Button type="submit" loading={loading} className={s.full}>
                         {TERMS.logIn}
                     </Button>
-                    <Button variant="plain">
+                    <Button variant="plain" href="/admin">
                         {TERMS.forgotPassword}
                     </Button>
                 </form>

@@ -64,6 +64,7 @@ export const TERMS = {
     "selectAll": "Select all",
     "selectRow": "Select row",
     "navigation": "Navigation",
+    "breadcrumb": "Breadcrumb",
     "account": "Account",
     "notifications": "Notifications",
     "loading": "Loading",
