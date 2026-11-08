@@ -47,7 +47,7 @@ gallery media; rename/delete subcategory; confirm logged-out writes are refused 
 | # | Finding | Status |
 |---|---|---|
 | S1 | Supabase leaked-password protection is off (advisor `auth_leaked_password_protection`). | Owner: Supabase > Authentication > enable it. |
-| S2 | `supabase_setup.sql` in the repo still creates open "for all users" insert/delete policies; the live DB is stricter. Re-running it would weaken production. | Recommend replacing it with the policies in `docs/admin-v2-staging-setup.sql` (separate owner-approved change). |
+| S2 | `supabase_setup.sql` created open "for all users" insert/delete policies; re-running it would have weakened production. | Fixed on admin-v2-int: it now creates the live admin-only policies. |
 | S3 | Admin access is decided by RLS (admin email); the app's session checks are a second layer only. | Verified live; keep. |
 | S4 | Public sign-ups setting not verified (not readable via SQL). Writes are pinned to the admin email, so a new sign-up cannot write. | Owner: consider disabling sign-ups. |
 | S5 | `npm` skipped install scripts for `sharp` and `unrs-resolver`; build and lint pass. | Info. |
