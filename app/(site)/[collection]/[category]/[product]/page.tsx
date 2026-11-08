@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { fetchProductByPrefix } from '@/lib/catalogPages';
-import { COLLECTIONS, breadcrumbJsonLd, categoryPath, isCollection, productJsonLd, productMeta, productPath } from '@/lib/seo';
+import { COLLECTIONS, breadcrumbJsonLd, categoryPath, isCollection, productJsonLd, productMeta, productPath, serializeJsonLd } from '@/lib/seo';
 import { ProductView } from '@/components/catalog/CollectionViews';
 
 export const revalidate = 3600;
@@ -47,8 +47,8 @@ export default async function ProductPage({ params }: { params: Params }) {
   const product = productJsonLd(collection, found.category, found.product);
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(trail)) }} />
-      {product && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(product) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd(trail)) }} />
+      {product && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(product) }} />}
       <ProductView collection={collection} category={found.category} product={found.product} />
     </>
   );

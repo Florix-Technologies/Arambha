@@ -63,7 +63,11 @@ function TourPopover({ step, onStep, onEnd }: { step: number; onStep: (n: number
             : `/admin/products/new?category=${category}${sub ? `&subcategory=${encodeURIComponent(sub.id)}` : ''}`;
     const go = (n: number) => {
         const path = pathFor(TOUR_STEPS[n].page);
-        if (path && path.split('?')[0] !== pathname) router.push(path);
+        if (path && path.split('?')[0] !== pathname) {
+            // A form with unsaved changes (ProductForm) may cancel the move; the tour then stays on this step.
+            if (!window.dispatchEvent(new Event('admin:leave', { cancelable: true }))) return;
+            router.push(path);
+        }
         onStep(n);
     };
 

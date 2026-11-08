@@ -135,3 +135,6 @@ export function productJsonLd(collection: Collection, category: SeoCategory, pro
     offers: { '@type': 'Offer', url, price: Number(product.price), priceCurrency: 'INR' },
   };
 }
+
+/** JSON-LD for a <script> tag: escapes '<' so saved text such as </script> cannot end the tag and run code. */
+export const serializeJsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, '\\u003c');

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { SITE_URL } from '@/lib/site';
-import { BRAND, BUSINESS, DEFAULT_OG_IMAGE } from '@/lib/seo';
+import { BRAND, BUSINESS, DEFAULT_OG_IMAGE, serializeJsonLd } from '@/lib/seo';
 import { Outfit, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 
@@ -147,7 +147,7 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
         />
       </head>
       <body suppressHydrationWarning>

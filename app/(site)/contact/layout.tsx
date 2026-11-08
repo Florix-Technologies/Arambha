@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SITE_URL } from '@/lib/site';
-import { BRAND, BUSINESS, pageMeta } from "@/lib/seo";
+import { BRAND, BUSINESS, pageMeta, serializeJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
     title: "Contact Us – Book an Interior Design Consultation",
@@ -33,7 +33,7 @@ export default function ContactLayout({
         <>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+                dangerouslySetInnerHTML={{ __html: serializeJsonLd(contactJsonLd) }}
             />
             {children}
         </>

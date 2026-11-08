@@ -126,6 +126,16 @@ test('deleting a subcategory with products moves them first; nothing is ever los
     expect(fake.revalidations[0]).toEqual(['/', '/interiors', '/furniture', '/gallery']);
 });
 
+test('before the database safety update, delete explains it and sends nothing', async ({ page, fake }) => {
+    fake.unmigrated = true;
+    await login(page);
+    await page.goto('/admin/interiors');
+    await page.getByRole('button', { name: 'Delete Wardrobes', exact: true }).click();
+    await expect(page.getByRole('dialog')).toContainText('database safety update');
+    await expect(page.getByRole('dialog').getByRole('button', { name: /delete/i })).toHaveCount(0);
+    expect(fake.writes).toEqual([]);
+});
+
 test('an empty subcategory deletes after confirmation; a product added meanwhile blocks it', async ({ page, fake }) => {
     await login(page);
     await page.goto('/admin/interiors');

@@ -54,3 +54,13 @@ test('reload warns only when there are unsaved changes', () => {
   guard.listeners.beforeunload(event);
   assert.equal(prevented, 1);
 });
+
+test('the guided tour cannot leave a form with unsaved changes unless discard is confirmed', () => {
+  for (const [answer, dirty, cancelled] of [[false, true, true], [true, true, false], [false, false, false]]) {
+    const guard = mount(answer);
+    guard.dirtyRef.current = dirty;
+    let prevented = false;
+    guard.listeners['admin:leave']({ preventDefault() { prevented = true; } });
+    assert.equal(prevented, cancelled);
+  }
+});

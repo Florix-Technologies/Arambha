@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchCatalog } from '@/lib/catalog';
 import { fetchSubcategory } from '@/lib/catalogPages';
-import { BRAND, COLLECTIONS, breadcrumbJsonLd, categoryPath, isCollection, subcategoryMeta } from '@/lib/seo';
+import { BRAND, COLLECTIONS, breadcrumbJsonLd, categoryPath, isCollection, subcategoryMeta, serializeJsonLd } from '@/lib/seo';
 import { SubcategoryView } from '@/components/catalog/CollectionViews';
 
 export const revalidate = 3600;
@@ -33,7 +33,7 @@ export default async function SubcategoryPage({ params }: { params: Params }) {
   const trail = [{ name: 'Home', path: '/' }, { name: COLLECTIONS[collection].label, path: COLLECTIONS[collection].path }, { name: category.name, path: categoryPath(collection, category.slug) }];
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(trail)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd(trail)) }} />
       <SubcategoryView collection={collection} category={category} intro={String(meta.description ?? BRAND)} />
     </>
   );

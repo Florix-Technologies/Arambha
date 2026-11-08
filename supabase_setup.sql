@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS categories (
   name TEXT NOT NULL,
   slug TEXT NOT NULL,
   collection TEXT NOT NULL CHECK (collection IN ('furniture', 'interiors', 'gallery')),
+  seo_title TEXT,
+  seo_description TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   UNIQUE(slug, collection)
 );
@@ -23,7 +25,10 @@ CREATE TABLE IF NOT EXISTS categories (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  -- RESTRICT: a subcategory that still has products can never be deleted (the admin moves them first).
+  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+  seo_title TEXT,
+  seo_description TEXT,
   name TEXT NOT NULL,
   description TEXT,
   image_url TEXT,

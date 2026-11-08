@@ -96,10 +96,14 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
         const guardedPop = (event: PopStateEvent) => {
             if (!leaving && location.href === original && history.state?.productFormGuard !== original) pop(event);
         };
+        // In-app navigation that is not a link (the guided tour) announces itself and may be cancelled here.
+        const leave = (event: Event) => { if (!confirmLeave()) event.preventDefault(); };
         window.addEventListener('beforeunload', unload);
         document.addEventListener('click', click, true);
         window.addEventListener('popstate', guardedPop, true);
+        window.addEventListener('admin:leave', leave);
         return () => {
+            window.removeEventListener('admin:leave', leave);
             window.removeEventListener('beforeunload', unload);
             document.removeEventListener('click', click, true);
             window.removeEventListener('popstate', guardedPop, true);

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { preload } from 'react-dom';
 import { SITE_URL } from '@/lib/site';
-import { BRAND, pageMeta } from '@/lib/seo';
+import { BRAND, pageMeta, serializeJsonLd } from '@/lib/seo';
 import Button from '@/components/ui/Button';
 import SmartVideo from '@/components/ui/SmartVideo';
 import SectionBoundary from '@/components/ui/SectionBoundary';
@@ -59,7 +59,7 @@ export default function Home() {
     <div className={styles.main}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(homeJsonLd) }}
       />
       {/* Hero Section */}
       <section className={styles.hero}>

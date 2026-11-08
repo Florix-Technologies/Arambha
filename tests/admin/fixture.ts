@@ -48,6 +48,8 @@ function fakeData() {
         ],
         writes: [] as Write[],
         revalidations: [] as string[][],
+        // true = the live database before docs/admin-v2-restrict-category-delete.sql (no seo_title, CASCADE).
+        unmigrated: false,
         objects: [] as { path: string; bytes: Buffer; headers: Record<string, string>; type: string }[],
         denied: null as 'zero' | '42501' | null,
         signedIn: false,
@@ -67,6 +69,7 @@ export const test = base.extend<{ fake: Fake }>({
             const text = message.text(), url = message.location().url;
             if (message.type() !== 'error') return;
             if (fake.denied && /status of 403/.test(text)) return;
+            if (fake.unmigrated && /status of 400/.test(text) && /seo_title/.test(url)) return;
             if (/status of 404/.test(text) && /broken\.png/.test(url)) return;
             errors.push(text);
         });
@@ -108,6 +111,10 @@ export const test = base.extend<{ fake: Fake }>({
             });
             const selected = rows.filter(matches);
             const method = request.method();
+            if (method === 'GET' && fake.unmigrated && url.searchParams.get('select')?.includes('seo_title')) {
+                await route.fulfill({ status: 400, json: { code: '42703', message: 'column categories.seo_title does not exist' } });
+                return;
+            }
             if (method === 'GET' || method === 'HEAD') {
                 const single = request.headers().accept?.includes('application/vnd.pgrst.object+json');
                 const range = `${selected.length ? `0-${selected.length - 1}` : '*'}/${selected.length}`;

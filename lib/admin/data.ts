@@ -202,15 +202,27 @@ export function countCategoryProducts(id: string): Promise<DataResult<number>> {
         return count ?? 0;
     });
 }
+export const DELETE_NEEDS_DATABASE_UPDATE = 'Deleting subcategories starts working after a one-time database safety update (docs/admin-v2-restrict-category-delete.sql). You can rename it or move its products now.';
+// docs/admin-v2-restrict-category-delete.sql adds seo_title and switches the products foreign key to ON DELETE RESTRICT in
+// one transaction, so a readable seo_title column proves the database refuses any delete that would remove products.
+// Checked again until it succeeds: once the owner applies the SQL, deletion works without a new release.
+let protection: Promise<boolean> | null = null;
+export function subcategoryDeleteIsProtected(): Promise<boolean> {
+    protection ??= Promise.resolve(supabase.from('categories').select('seo_title').limit(1))
+        .then(({ error }) => !error, () => false)
+        .then(ok => { if (!ok) protection = null; return ok; });
+    return protection;
+}
 // Products are never deleted with a subcategory: `moveTo` first moves everything still in it (including products added
-// after the list was loaded), then an empty check, then the delete. docs/admin-v2-restrict-category-delete.sql makes the
-// database itself refuse a delete that would remove products (error 23503), which closes the check-then-delete race.
+// after the list was loaded), then an empty check, then the delete; the database refuses a delete that would still remove
+// products (error 23503), which closes the check-then-delete race.
 export function deleteCategory(id: string, moveTo?: string): Promise<DataResult<string>> {
     return result(async () => {
         requireId(id);
         if (moveTo !== undefined) requireId(moveTo);
         if (moveTo === id) throw new Error('Choose a different subcategory to move the products to.');
         await requireSession();
+        if (!await subcategoryDeleteIsProtected()) throw new Error(DELETE_NEEDS_DATABASE_UPDATE);
         if (moveTo) {
             const { error } = await supabase.from('products').update({ category_id: moveTo }).eq('category_id', id);
             if (error) throw error;

@@ -1,6 +1,6 @@
 "use client";
-import { useState } from 'react';
-import { createCategory, deleteCategory, renameCategory } from '@/lib/admin/data';
+import { useEffect, useState } from 'react';
+import { createCategory, deleteCategory, DELETE_NEEDS_DATABASE_UPDATE, renameCategory, subcategoryDeleteIsProtected } from '@/lib/admin/data';
 import { CATEGORIES, MESSAGES, TERMS, type CategoryKey } from '@/lib/admin/taxonomy';
 import type { AdminProduct, AdminSubcategory } from '@/lib/admin/types';
 import { Button, Modal, SelectField, TextField, useToast } from '../ui';
@@ -54,6 +54,12 @@ function DeleteForm({ subcategory, subcategories, products, onCancel, onDeleted 
     const [busy, setBusy] = useState(false);
     const toast = useToast();
     const count = products.length;
+    const [protectedDb, setProtectedDb] = useState<boolean | null>(null);
+    useEffect(() => { let live = true; void subcategoryDeleteIsProtected().then(ok => { if (live) setProtectedDb(ok); }); return () => { live = false; }; }, []);
+    if (protectedDb === false) return <div className={s.form}>
+        <p>{DELETE_NEEDS_DATABASE_UPDATE}</p>
+        <div className={s.actions}><Button variant="secondary" onClick={onCancel}>{TERMS.close}</Button></div>
+    </div>;
     async function remove() {
         if (busy || (count > 0 && !target)) return;
         setBusy(true); setError('');
@@ -74,7 +80,7 @@ function DeleteForm({ subcategory, subcategories, products, onCancel, onDeleted 
         {error && <p role="alert" className={s.error}>{error}</p>}
         <div className={s.actions}>
             <Button variant="secondary" onClick={onCancel} disabled={busy}>{TERMS.cancel}</Button>
-            <Button type="submit" variant="destructive" loading={busy} disabled={count > 0 && !target}>{count ? `Move ${count} and delete` : TERMS.delete}</Button>
+            <Button type="submit" variant="destructive" loading={busy || protectedDb === null} disabled={count > 0 && !target}>{count ? `Move ${count} and delete` : TERMS.delete}</Button>
         </div>
     </form>;
 }
