@@ -135,7 +135,7 @@ export default function Navbar() {
             <div key={link.name} className={`${styles.navItemContainer} ${link.name === 'Furniture' ? styles.furnitureItem : ''}`}>
               <Link
                 href={link.href}
-                className={`${styles.navLink} ${pathname === link.href ? styles.active : ''}`}
+                className={`${styles.navLink} ${pathname === link.href || (link.href !== '/' && pathname.startsWith(`${link.href}/`)) ? styles.active : ''}`}
               >
                 {link.name}
                 {link.hasDropdown && <span className={styles.arrow}></span>}
