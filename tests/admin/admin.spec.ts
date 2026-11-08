@@ -122,6 +122,8 @@ test('deleting a subcategory with products moves them first; nothing is ever los
     expect(fake.categories.map(c => c.id)).not.toContain('int-kitchen');
     expect(fake.products).toHaveLength(6);
     expect(fake.products.filter(p => p.category_id === 'wardrobes')).toHaveLength(2);
+    await expect.poll(() => fake.revalidations.length).toBeGreaterThan(0);
+    expect(fake.revalidations[0]).toEqual(['/', '/interiors', '/furniture', '/gallery']);
 });
 
 test('an empty subcategory deletes after confirmation; a product added meanwhile blocks it', async ({ page, fake }) => {

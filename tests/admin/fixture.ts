@@ -47,6 +47,7 @@ function fakeData() {
             p(5, 'gal-kitchen', 'Kitchen project', 'gallery-k.png', null), p(6, 'chairs', 'Broken photo chair', 'broken.png', 3000),
         ],
         writes: [] as Write[],
+        revalidations: [] as string[][],
         objects: [] as { path: string; bytes: Buffer; headers: Record<string, string>; type: string }[],
         denied: null as 'zero' | '42501' | null,
         signedIn: false,
@@ -139,6 +140,12 @@ export const test = base.extend<{ fake: Fake }>({
                 if (table === 'categories') fake.categories = kept as Category[]; else fake.products = kept as Product[];
             } else unexpected.push(`${method} ${request.url()}`);
             await route.fulfill({ status: method === 'POST' ? 201 : 200, json: changed.map(row => ({ id: row.id })) });
+        });
+        // After each saved change the admin asks the site to refresh its public pages (real route verifies the token).
+        await page.route('**/api/revalidate', async route => {
+            expect(route.request().headers().authorization).toBe('Bearer fake-access-token');
+            fake.revalidations.push(route.request().postDataJSON().paths);
+            await route.fulfill({ json: { revalidated: [] } });
         });
         await page.route(`${mock}/storage/v1/**`, async route => {
             const request = route.request();

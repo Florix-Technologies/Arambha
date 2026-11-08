@@ -44,7 +44,8 @@ for (const [name, viewport] of [['desktop', { width: 1280, height: 900 }], ['mob
         test.setTimeout(180_000);
         void blocked;
         await page.setViewportSize(viewport);
-        const shot = (file: string) => page.screenshot({ path: `${OUT}/live-${name}-${file}.png`, fullPage: true });
+        // Tour steps are captured at viewport size: a full-page capture resizes the viewport under the fixed highlight.
+        const shot = (file: string) => page.screenshot({ path: `${OUT}/live-${name}-${file}.png`, fullPage: !file.includes('tour') });
         await page.goto('/admin/login');
         await page.getByLabel('Email', { exact: true }).fill(user.email);
         await page.getByLabel('Password', { exact: true }).fill('not-a-real-password');
@@ -68,5 +69,17 @@ for (const [name, viewport] of [['desktop', { width: 1280, height: 900 }], ['mob
         await page.locator('a', { hasText: 'Aluminium Glass Partition Wall' }).first().click();
         await expect(page.getByLabel('Product name', { exact: true })).toHaveValue('Aluminium Glass Partition Wall');
         await settle(page); await shot('9-edit-product');
+
+        // Help page and the guided tour on real data (steps 1, 2 and 5).
+        await page.getByRole('link', { name: 'Help and guided tour' }).click();
+        await settle(page); await shot('10-help');
+        await page.getByRole('main').getByRole('button', { name: 'Take a tour' }).first().click();
+        const tour = page.getByRole('dialog');
+        await expect(tour).toContainText('Step 1 of 9'); await page.waitForTimeout(600); await shot('11-tour-step1');
+        await tour.getByRole('button', { name: 'Next', exact: true }).click();
+        await expect(tour).toContainText('Step 2 of 9'); await settle(page); await shot('12-tour-step2');
+        for (const n of [3, 4, 5]) { await tour.getByRole('button', { name: 'Next', exact: true }).click(); await expect(tour).toContainText(`Step ${n} of 9`); }
+        await settle(page); await shot('13-tour-step5');
+        await tour.getByRole('button', { name: /^Skip/ }).first().click();
     });
 }
