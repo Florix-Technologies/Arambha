@@ -12,12 +12,13 @@ Nothing is merged, pushed or deployed. Florix checkpoints: `refs/florix/checkpoi
 | Accessibility check (`docs/admin-v2-a11y.check.cjs`) | pass |
 | Production build (`next build`) | pass |
 | Playwright smoke (45: preview screens + logged-out redirects, 360/768/1280) | 45/45 pass |
+| Playwright logged-in flows against a fake Supabase (9: login, lists, create also at 360 px, edit, delete, upload, permission denied x2, log out) | 9/9 pass (54 total) |
 | Live Supabase RLS (read-only) | writes on categories, products, catalog-media pinned to the admin email; public read |
 | Consolidated review | done (Claude, cross-family); findings fixed in `a05b754` |
 
 ## 2. Not yet verified (needs the owner)
-- Logged-in screens against real data (read-only on live).
-- Create, edit, delete and media upload (staging only).
+- Logged-in screens against real data (read-only on live). The UI flows themselves are verified against a fake Supabase.
+- Create, edit, delete and media upload against real Row Level Security (staging only).
 
 ## 3. Authenticated browser test (read-only on live)
 Configuration: the worktree needs the project's Supabase settings file. Claude must not read or copy it, so the
@@ -58,6 +59,8 @@ gallery media; rename/delete subcategory; confirm logged-out writes are refused 
 - [x] Type, lint, unit, a11y, build, Playwright checks pass
 - [x] Review findings fixed (refresh data loss, dead links, session checks, UI defects)
 - [x] Live RLS verified read-only
+- [x] Logged-in UI flows verified against a fake Supabase (create, edit, delete, upload, denial, log out)
+- [x] Repo setup script no longer creates open write policies (S2)
 - [ ] Logged-in read-only test on live (owner sign-in)
 - [ ] Staging write tests (owner chooses staging option)
 - [ ] S1 leaked-password protection enabled
