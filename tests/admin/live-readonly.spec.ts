@@ -4,10 +4,11 @@ import { test as base, expect, type Page } from '@playwright/test';
 // public anon key in LIVE_SUPABASE_URL / LIVE_SUPABASE_ANON_KEY (process env only, never committed).
 // Login is faked; catalog reads (GET/HEAD) are proxied to the live project; every other request to it is blocked,
 // so nothing can be written. Run: npx playwright test live-readonly --project=chromium-1280
+const PORT = process.env.E2E_PORT ?? '3100';
 const LIVE = process.env.LIVE_SUPABASE_URL ?? '';
 const KEY = process.env.LIVE_SUPABASE_ANON_KEY ?? '';
 const OUT = process.env.DEMO_DIR ?? 'C:/Users/RAJ/AppData/Local/Temp/claude/39420d9cdc6bcb4b/bda300b1-ae2d-4d6b-b9d9-669763fc23e8/scratchpad/demo';
-const mock = 'http://127.0.0.1:3100/mock-supabase';
+const mock = `http://127.0.0.1:${PORT}/mock-supabase`;
 const user = { id: 'owner-review', aud: 'authenticated', role: 'authenticated', email: 'owner-review@example.test', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' };
 
 const test = base.extend<{ blocked: string[] }>({

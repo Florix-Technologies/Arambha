@@ -39,7 +39,7 @@ export function ProductList({ products, subcategory, subcategories, onChanged }:
     const close = () => { if (!busy) { setDeleting(null); setMoving(null); setError(''); } };
     if (!products.length) return null;
     return <>
-        <div className={s.toolbar}>
+        <div className={s.toolbar} data-tour="product-search">
             <TextField type="search" label={TERMS.search} placeholder="Search by name or description" value={search} onChange={e => setSearch(e.target.value)} />
             <SelectField label="Sort" value={sort} onChange={e => setSort(e.target.value)}>
                 <option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name">Name A–Z</option>
