@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { createCategory, deleteCategory, DELETE_OFF, moveProducts, renameCategory, SUBCATEGORY_DELETE_ENABLED } from '@/lib/admin/data';
+import { createCategory, deleteCategory, renameCategory } from '@/lib/admin/data';
 import { CATEGORIES, MESSAGES, TERMS, type CategoryKey } from '@/lib/admin/taxonomy';
 import type { AdminProduct, AdminSubcategory } from '@/lib/admin/types';
 import { Button, Modal, SelectField, TextField, useToast } from '../ui';
@@ -54,18 +54,10 @@ function DeleteForm({ subcategory, subcategories, products, onCancel, onDeleted 
     const [busy, setBusy] = useState(false);
     const toast = useToast();
     const count = products.length;
-    if (!SUBCATEGORY_DELETE_ENABLED) return <div className={s.form}>
-        <p>{DELETE_OFF}</p>
-        <div className={s.actions}><Button variant="secondary" onClick={onCancel}>{TERMS.close}</Button></div>
-    </div>;
     async function remove() {
         if (busy || (count > 0 && !target)) return;
         setBusy(true); setError('');
-        if (count > 0) {
-            const moved = await moveProducts(products.map(p => p.id), target);
-            if (moved.error !== null) { setBusy(false); setError(moved.error); return; }
-        }
-        const deleted = await deleteCategory(subcategory.id);
+        const deleted = await deleteCategory(subcategory.id, count > 0 ? target : undefined);
         setBusy(false);
         if (deleted.error !== null) { setError(deleted.error); return; }
         toast({ title: MESSAGES.subcategoryDeleted, description: count ? `${MESSAGES.productCount(count)} moved to ${targets.find(x => x.id === target)?.name}.` : undefined });

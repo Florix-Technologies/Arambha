@@ -11,7 +11,6 @@ export type ProductInput = {
     category_id: string; name: string; description: string; image_url: string;
     images: string[]; price: string | number;
 };
-export const DELETE_OFF = 'Deleting subcategories is switched off until a database safety update is approved. You can still rename it, or move its products.';
 const NOT_ALLOWED = 'This account is not allowed to make changes. Log in with the admin account.';
 
 export function validateName(value: unknown, label: string = TERMS.productName): string | null {
@@ -168,8 +167,9 @@ export function renameCategory(category: AdminSubcategory, value: string): Promi
     return result(async () => {
         requireId(category.id);
         await requireSession();
-        const values = await checkedName(category.category, value, category.id);
-        return changed(supabase.from('categories').update(values).eq('id', category.id).select('id'));
+        const { name } = await checkedName(category.category, value, category.id);
+        // The slug (web address) stays the same, so links to the subcategory and its products keep working.
+        return changed(supabase.from('categories').update({ name }).eq('id', category.id).select('id'));
     });
 }
 // Moves products to another subcategory; fails if any product was not moved.
@@ -193,15 +193,19 @@ export function countCategoryProducts(id: string): Promise<DataResult<number>> {
         return count ?? 0;
     });
 }
-// shortcut: the live database still deletes a subcategory's products with it (ON DELETE CASCADE), so a product added
-// between the count and the delete would be lost. Deletion stays off until docs/admin-v2-restrict-category-delete.sql
-// is applied (owner approval); then set this to true. The count check below stays as a second layer.
-export const SUBCATEGORY_DELETE_ENABLED = false;
-export function deleteCategory(id: string): Promise<DataResult<string>> {
+// Products are never deleted with a subcategory: `moveTo` first moves everything still in it (including products added
+// after the list was loaded), then an empty check, then the delete. docs/admin-v2-restrict-category-delete.sql makes the
+// database itself refuse a delete that would remove products (error 23503), which closes the check-then-delete race.
+export function deleteCategory(id: string, moveTo?: string): Promise<DataResult<string>> {
     return result(async () => {
         requireId(id);
-        if (!SUBCATEGORY_DELETE_ENABLED) throw new Error(DELETE_OFF);
+        if (moveTo !== undefined) requireId(moveTo);
+        if (moveTo === id) throw new Error('Choose a different subcategory to move the products to.');
         await requireSession();
+        if (moveTo) {
+            const { error } = await supabase.from('products').update({ category_id: moveTo }).eq('category_id', id);
+            if (error) throw error;
+        }
         const count = await countCategoryProducts(id);
         if (count.error !== null) throw new Error(count.error);
         if (count.data > 0) throw new Error(`This subcategory still has ${count.data === 1 ? '1 product' : `${count.data} products`}. Move them first.`);

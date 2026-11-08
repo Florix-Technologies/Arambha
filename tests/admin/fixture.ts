@@ -129,7 +129,11 @@ export const test = base.extend<{ fake: Fake }>({
                 changed.forEach(row => Object.assign(row, payload));
             } else if (method === 'DELETE') {
                 changed = selected;
-                if (table === 'categories') fake.products = fake.products.filter(row => !changed.some(c => c.id === row.category_id)); // ON DELETE CASCADE
+                // ON DELETE RESTRICT (docs/admin-v2-restrict-category-delete.sql): a subcategory with products is refused.
+                if (table === 'categories' && fake.products.some(row => changed.some(c => c.id === row.category_id))) {
+                    await route.fulfill({ status: 409, json: { code: '23503', message: 'update or delete on table "categories" violates foreign key constraint' } });
+                    return;
+                }
                 const kept = rows.filter(row => !matches(row));
                 if (table === 'categories') fake.categories = kept as Category[]; else fake.products = kept as Product[];
             } else unexpected.push(`${method} ${request.url()}`);

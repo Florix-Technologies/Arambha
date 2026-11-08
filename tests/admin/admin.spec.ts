@@ -81,30 +81,45 @@ test('Interiors: add and edit a subcategory', async ({ page, fake }) => {
     await page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('link', { name: /^Lounge 0 products/ })).toBeVisible();
-    expect(fake.writes[1]).toMatchObject({ table: 'categories', method: 'PATCH', id: 'eq.new-1', payload: { name: 'Lounge', slug: 'lounge' } });
+    expect(fake.writes[1]).toMatchObject({ table: 'categories', method: 'PATCH', id: 'eq.new-1', payload: { name: 'Lounge' } });
 
     expect(fake.writes).toHaveLength(2);
 });
 
-test('deleting a subcategory is switched off: message shown and no DELETE is sent', async ({ page, fake }) => {
+test('deleting a subcategory with products moves them first; nothing is ever lost', async ({ page, fake }) => {
     await login(page);
-    await page.goto('/admin/interiors');
-    for (const name of ['Kitchen', 'Wardrobes']) {
-        await page.getByRole('button', { name: `Delete ${name}`, exact: true }).click();
-        const dialog = page.getByRole('dialog');
-        await expect(dialog).toContainText('Deleting subcategories is switched off');
-        await expect(dialog.getByRole('button', { name: /delete|move/i })).toHaveCount(0);
-        await dialog.getByRole('button', { name: 'Close', exact: true }).first().click();
-        await expect(dialog).toHaveCount(0);
-    }
-    // Same dialog from the subcategory page menu.
     await page.goto('/admin/interiors/int-kitchen');
     await page.getByRole('main').getByRole('button', { name: 'More', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Delete subcategory' }).click();
-    await expect(page.getByRole('dialog')).toContainText('Deleting subcategories is switched off');
-    expect(fake.writes).toEqual([]);
-    expect(fake.categories).toHaveLength(5);
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText('Kitchen has 2 products');
+    await expect(dialog.getByRole('button', { name: 'Move 2 and delete' })).toBeDisabled();
+    await dialog.getByLabel('Move products to').selectOption({ label: 'Wardrobes' });
+    await dialog.getByRole('button', { name: 'Move 2 and delete' }).click();
+    await expect(page).toHaveURL('/admin/interiors');
+    expect(fake.writes.map(w => `${w.method} ${w.table}`)).toEqual(['PATCH products', 'DELETE categories']);
+    expect(fake.writes[0].payload).toEqual({ category_id: 'wardrobes' });
+    expect(fake.categories.map(c => c.id)).not.toContain('int-kitchen');
     expect(fake.products).toHaveLength(6);
+    expect(fake.products.filter(p => p.category_id === 'wardrobes')).toHaveLength(2);
+});
+
+test('an empty subcategory deletes after confirmation; a product added meanwhile blocks it', async ({ page, fake }) => {
+    await login(page);
+    await page.goto('/admin/interiors');
+    await page.getByRole('button', { name: 'Delete Wardrobes', exact: true }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText('It has no products');
+    // Another tab adds a product after the dialog opened: the delete must be refused, not cascade.
+    fake.products.push({ ...fake.products[2], id: 'late', category_id: 'wardrobes' });
+    await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(dialog).toContainText('Move them first');
+    expect(fake.categories.map(c => c.id)).toContain('wardrobes');
+    fake.products = fake.products.filter(p => p.id !== 'late');
+    await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    expect(fake.categories.map(c => c.id)).not.toContain('wardrobes');
+    expect(fake.writes.filter(w => w.method === 'DELETE')).toHaveLength(1);
 });
 
 test('Interiors > Kitchen shows only its own products', async ({ page }) => {
