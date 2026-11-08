@@ -14,11 +14,12 @@ Nothing is merged, pushed or deployed. Florix checkpoints: `refs/florix/checkpoi
 | Playwright smoke (45: preview screens + logged-out redirects, 360/768/1280) | 45/45 pass |
 | Playwright logged-in flows against a fake Supabase (9: login, lists, create also at 360 px, edit, delete, upload, permission denied x2, log out) | 9/9 pass (54 total) |
 | Live Supabase RLS (read-only) | writes on categories, products, catalog-media pinned to the admin email; public read |
+| Live RLS write test (owner-approved, ecommerce project, one transaction that always rolls back) | public visitor and non-admin: product/category insert and upload denied, update/delete 0 rows; admin: insert, update, delete, category insert/delete and upload allowed. Afterwards 0 test rows remain (28 products, 12 categories unchanged). |
 | Consolidated review | done (Claude, cross-family); findings fixed in `a05b754` |
 
 ## 2. Not yet verified (needs the owner)
 - Logged-in screens against real data (read-only on live). The UI flows themselves are verified against a fake Supabase.
-- Create, edit, delete and media upload against real Row Level Security (staging only).
+- Create, edit, delete and media upload through the app screens with the real admin login (the rules themselves are proven by the rolled-back live test).
 
 ## 3. Authenticated browser test (read-only on live)
 Configuration: the worktree needs the project's Supabase settings file. Claude must not read or copy it, so the
@@ -62,7 +63,7 @@ gallery media; rename/delete subcategory; confirm logged-out writes are refused 
 - [x] Logged-in UI flows verified against a fake Supabase (create, edit, delete, upload, denial, log out)
 - [x] Repo setup script no longer creates open write policies (S2)
 - [ ] Logged-in read-only test on live (owner sign-in)
-- [ ] Staging write tests (owner chooses staging option)
+- [x] Write permissions tested on the live project inside a rolled-back transaction (owner chose the ecommerce project; no data changed)
 - [ ] S1 leaked-password protection enabled
 - [ ] Owner approval to merge
 
