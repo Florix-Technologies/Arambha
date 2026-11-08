@@ -19,8 +19,8 @@ export function ProductTable({ products, onMove, onDelete }: {
         {
             key: 'actions', label: TERMS.actions, render: p => <>
                 <Button variant="plain" href={`/admin/products/${encodeURIComponent(p.id)}`} aria-label={`${TERMS.edit} ${p.name}`}>{TERMS.edit}</Button>
-                {onMove && <Button variant="plain" onClick={() => onMove(p)} aria-label={`${TERMS.move} ${p.name}`}>{TERMS.move}</Button>}
-                <Button variant="plain" onClick={() => onDelete(p)} aria-label={`${TERMS.delete} ${p.name}`}>{TERMS.delete}</Button>
+                {onMove && <Button variant="plain" data-tour="product-move" onClick={() => onMove(p)} aria-label={`${TERMS.move} ${p.name}`}>{TERMS.move}</Button>}
+                <Button variant="plain" data-tour="product-delete" onClick={() => onDelete(p)} aria-label={`${TERMS.delete} ${p.name}`}>{TERMS.delete}</Button>
             </>
         },
     ]} />;

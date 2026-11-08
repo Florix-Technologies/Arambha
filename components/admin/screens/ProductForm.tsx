@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createProduct, getProduct, listCategories, updateProduct, validateMediaUrl, validateName, validatePrice, type ProductInput } from '@/lib/admin/data';
+import { createProduct, getProduct, updateProduct, validateMediaUrl, validateName, validatePrice, type ProductInput } from '@/lib/admin/data';
 import { CATEGORIES, CATEGORY_KEYS, categoryFromParam, MESSAGES, TERMS, type CategoryKey } from '@/lib/admin/taxonomy';
-import type { AdminSubcategory } from '@/lib/admin/types';
 import { normalizeCategoryName } from '@/lib/slug';
 import { Button, Card, PageHeader, SaveBar, SelectField, Skeleton, TextArea, TextField, useToast } from '../ui';
 import { useActiveCategory } from '../AdminGate';
+import { useCatalog } from '../useCatalog';
 import { MediaField } from './MediaField';
 import s from './ProductScreen.module.css';
 
@@ -20,7 +20,12 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
     const toast = useToast();
     const [fields, setFields] = useState<Fields>(empty);
     const [saved, setSaved] = useState<Fields>(empty);
-    const [categories, setCategories] = useState<AdminSubcategory[]>([]);
+    // Subcategories come from the shared catalog (already loaded on most routes); only the product itself is fetched here.
+    const catalog = useCatalog();
+    const categories = catalog.subcategories;
+    const catalogReady = !catalog.loading && !catalog.error;
+    const subcategoriesRef = useRef(categories);
+    subcategoriesRef.current = categories;
     const [category, setCategory] = useState<CategoryKey>(categoryFromParam(initialCategory)?.key ?? 'furniture');
     const [ready, setReady] = useState(false);
     const [error, setError] = useState('');
@@ -38,11 +43,9 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
     useEffect(() => {
         let cancelled = false;
         async function load() {
+            if (!catalogReady) return;
             try {
-                const results = await Promise.all(CATEGORY_KEYS.map(listCategories));
-                const failed = results.find(result => result.error !== null);
-                if (failed?.error) throw new Error(failed.error);
-                const all = results.flatMap(result => result.data ?? []).sort((a, b) => a.name.localeCompare(b.name));
+                const all = subcategoriesRef.current;
                 const preset = all.find(row => row.id === initialSubcategory);
                 let selected = preset?.category ?? categoryFromParam(initialCategory)?.key ?? 'furniture';
                 let next: Fields = { ...empty, category_id: preset?.id ?? '' };
@@ -61,14 +64,14 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
                     if (only.length === 1) next.category_id = only[0].id;
                 }
                 if (cancelled) return;
-                setCategories(all); setCategory(selected); setFields(next); setSaved(next); setReady(true);
+                setCategory(selected); setFields(next); setSaved(next); setReady(true);
             } catch (cause) {
                 if (!cancelled) setError(cause instanceof Error ? cause.message : 'Could not load product');
             }
         }
         void load();
         return () => { cancelled = true; };
-    }, [productId, initialCategory, initialSubcategory, attempt]);
+    }, [productId, initialCategory, initialSubcategory, attempt, catalogReady]);
 
     useEffect(() => {
         const confirmLeave = () => !dirtyRef.current || window.confirm('Discard unsaved changes?');
@@ -133,13 +136,14 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
             if (result.error !== null) { setError(result.error); return; }
             setSaved(fields); dirtyRef.current = false;
             toast({ title: productId ? MESSAGES.changesSaved : MESSAGES.productAdded, description: `${input.name} is in ${subcategoryName(fields.category_id)}.` });
+            await catalog.reload();
             if (!productId) router.replace(`/admin/${category}/${encodeURIComponent(fields.category_id)}`);
         } catch {
             setError('Could not save product. Your changes are still here; please retry.');
         } finally { pending.current = false; setBusy(false); }
     }
 
-    if (!ready) return <Card>{error ? <><p role="alert">{error}</p><Button onClick={() => { setError(''); setAttempt(value => value + 1); }}>Try again</Button></> : <Skeleton lines={6} />}</Card>;
+    if (!ready) return <Card>{error || catalog.error ? <><p role="alert">{error || catalog.error}</p><Button onClick={() => { setError(''); if (catalog.error) catalog.retry(); setAttempt(value => value + 1); }}>Try again</Button></> : <Skeleton lines={6} />}</Card>;
     const c = CATEGORIES[category];
     const sub = categories.find(row => row.id === fields.category_id && row.category === category);
     const back = sub ? `/admin/${category}/${encodeURIComponent(sub.id)}` : `/admin/${category}`;
@@ -152,7 +156,7 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
         <fieldset disabled={busy} className={s.fieldset}>
             <div className={s.columns}>
                 <div className={s.main}>
-                    <Card title="Photos and videos"><div data-invalid={errors.media ? true : undefined}>
+                    <Card title="Photos and videos"><div data-invalid={errors.media ? true : undefined} data-tour="product-photos">
                         <MediaField value={fields.media} disabled={busy} error={errors.media} onBusyChange={setUploading}
                             onChange={update => { setFields(previous => ({ ...previous, media: update(previous.media) })); setErrors(previous => ({ ...previous, media: undefined })); }} />
                         {category === 'gallery' && <p className={s.hint}>The Our Work page shows the cover only.</p>}

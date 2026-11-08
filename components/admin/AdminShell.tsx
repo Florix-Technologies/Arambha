@@ -25,7 +25,7 @@ export function AdminShell({ active, userEmail, children, onLogOut }: {
     children: ReactNode;
     onLogOut: () => void;
 }) {
-    const link = ({ key, label, href, Icon }: Item) => <Link key={key} className={s.navLink} href={href} aria-current={active === key ? 'page' : undefined}>
+    const link = ({ key, label, href, Icon }: Item) => <Link key={key} className={s.navLink} href={href} data-tour={`nav-${key}`} aria-current={active === key ? 'page' : undefined}>
         <Icon size={20} aria-hidden="true" />{label}</Link>;
     const brand = <Link href={BASE} className={s.brand} aria-label={`${TERMS.brand} ${TERMS.dashboard}`}>
         <Image src="/admin-mark.png" alt="" width={40} height={40} className={s.mark} priority />
@@ -52,6 +52,7 @@ export function AdminShell({ active, userEmail, children, onLogOut }: {
             <header className={s.top}>
                 <div className={s.mobileBrand}>{brand}</div>
                 <div className={s.topActions}>
+                    <Link className={s.help} href={`${BASE}/help`} aria-label="Help and guided tour" data-tour="help"><CircleHelp size={20} aria-hidden="true" />{TERMS.help}</Link>
                     <a className={s.website} href="/" target="_blank" rel="noreferrer">{TERMS.viewWebsite}<ExternalLink size={16} aria-hidden="true" /></a>
                     <Menu ariaLabel={`${TERMS.account}: ${userEmail}`} icon={<UserRound size={20} />} items={account} />
                 </div>
@@ -59,7 +60,7 @@ export function AdminShell({ active, userEmail, children, onLogOut }: {
             <main id="admin-main" tabIndex={-1} className={s.main}>{children}</main>
         </div>
         <nav className={s.bottom} aria-label={TERMS.navigation}>
-            {[overview, ...catalog].map(({ key, label, href, Icon }) => <Link key={key} href={href} aria-current={active === key ? 'page' : undefined}>
+            {[overview, ...catalog].map(({ key, label, href, Icon }) => <Link key={key} href={href} data-tour={`nav-${key}`} aria-current={active === key ? 'page' : undefined}>
                 <Icon size={20} aria-hidden="true" /><span>{label}</span>
             </Link>)}
             <div className={s.more} data-active={active === 'media' || active === 'settings' || active === 'help' || undefined}>

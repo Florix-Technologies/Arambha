@@ -68,7 +68,7 @@ export function MediaField({ value, onChange, onBusyChange, disabled, error }: {
     });
     return <div className={s.uploader}>
         {value.length > 0 && <ul className={s.tiles} aria-label="Photos and videos">
-            {value.map((url, index) => <li key={`${url}-${index}`} className={s.tile} data-cover={index === 0 || undefined}>
+            {value.map((url, index) => <li key={`${url}-${index}`} className={s.tile} data-cover={index === 0 || undefined} data-tour={index === 0 ? 'cover-tile' : undefined}>
                 <div className={s.tileTop}>
                     <span>{index === 0 ? 'Cover' : `Photo ${index + 1}`}</span>
                     <Button variant="plain" disabled={disabled} onClick={() => onChange(previous => previous.filter((_, i) => i !== index))} aria-label={`Remove ${index === 0 ? 'cover' : `photo ${index + 1}`}`}><X size={16} /></Button>

@@ -12,7 +12,7 @@ import s from './SubcategoryScreen.module.css';
 
 // One subcategory (e.g. Interiors › Kitchen): only its own products, and actions that already know where new products go.
 export function SubcategoryScreen({ subcategory, subcategories, products, onChanged }: {
-    subcategory: AdminSubcategory; subcategories: AdminSubcategory[]; products: AdminProduct[]; onChanged: () => void;
+    subcategory: AdminSubcategory; subcategories: AdminSubcategory[]; products: AdminProduct[]; onChanged: () => void | Promise<void>;
 }) {
     const router = useRouter();
     const [editing, setEditing] = useState(false);
@@ -26,7 +26,7 @@ export function SubcategoryScreen({ subcategory, subcategories, products, onChan
             title={subcategory.name}
             subtitle={products.length ? `${MESSAGES.productCount(products.length)} · shown on the website under ${c.menuTitle}` : 'Empty, so it is hidden from the website menu until you add something.'}
             secondaryActions={<Button variant="secondary" onClick={() => setEditing(true)}>{TERMS.edit}</Button>}
-            primaryAction={<Button href={addHref}>{gallery ? 'Add item' : TERMS.addProduct}</Button>}
+            primaryAction={<Button href={addHref} data-tour="add-product">{gallery ? 'Add item' : TERMS.addProduct}</Button>}
             menu={[{ label: TERMS.deleteSubcategory, destructive: true, onSelect: () => setDeleting(true) }]} />
         {gallery && <Card title={TERMS.uploadMedia}><GalleryUploader subcategoryId={subcategory.id} onUploaded={onChanged} /></Card>}
         <Card title={TERMS.products}>
@@ -36,6 +36,6 @@ export function SubcategoryScreen({ subcategory, subcategories, products, onChan
         </Card>
         <SubcategoryNameDialog open={editing} onOpenChange={setEditing} category={subcategory.category} subcategory={subcategory} onSaved={onChanged} />
         <DeleteSubcategoryDialog open={deleting} onOpenChange={setDeleting} subcategory={subcategory} subcategories={subcategories} products={products}
-            onDeleted={() => router.push(parent)} />
+            onDeleted={() => { router.push(parent); void onChanged(); }} />
     </div>;
 }

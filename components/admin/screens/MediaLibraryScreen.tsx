@@ -14,8 +14,12 @@ export function MediaLibraryScreen() {
     const [show, setShow] = useState('all');
     const files = products.filter(p => !category || p.category === category)
         .flatMap(p => productMedia(p).map((url, index) => ({ url, index, product: p })));
-    const status = useMediaCheck(files.map(f => f.url));
-    const broken = files.filter(f => status.get(f.url) === 'broken');
+    // Thumbnails load lazily as they scroll into view and report a file that fails. "Broken files" checks every file (on demand).
+    const [reported, setReported] = useState<ReadonlySet<string>>(new Set());
+    const status = useMediaCheck(show === 'problems' ? files.map(f => f.url) : []);
+    const checking = Array.from(status.values()).filter(v => v === 'checking').length;
+    const isBroken = (url: string) => reported.has(url) || status.get(url) === 'broken';
+    const broken = files.filter(f => isBroken(f.url));
     const shown = show === 'problems' ? broken : files;
     return <div className={s.page}>
         <PageHeader breadcrumbs={[{ label: TERMS.dashboard, href: '/admin' }, { label: TERMS.mediaLibrary }]} title={TERMS.mediaLibrary}
@@ -28,18 +32,19 @@ export function MediaLibraryScreen() {
                 </SelectField>
                 <SelectField label="Show" value={show} onChange={e => setShow(e.target.value)}>
                     <option value="all">All files ({files.length})</option>
-                    <option value="problems">Broken files ({broken.length})</option>
+                    <option value="problems">Broken files{show === 'problems' ? ` (${broken.length})` : ''}</option>
                 </SelectField>
             </div>
-            {shown.length === 0 ? <EmptyState icon={<Images size={24} />} title={show === 'problems' ? 'No broken files' : 'No photos or videos yet'}
+            {checking > 0 && <p role="status">Checking {checking} {checking === 1 ? 'file' : 'files'}…</p>}
+            {shown.length === 0 && checking === 0 ? <EmptyState icon={<Images size={24} />} title={show === 'problems' ? 'No broken files' : 'No photos or videos yet'}
                 text={show === 'problems' ? 'Every file loads. Nice.' : 'Add products with photos and they appear here.'} /> :
                 <ul className={s.grid}>
                     {shown.map(f => <li key={`${f.product.id}-${f.index}`}>
                         <Link href={`/admin/products/${encodeURIComponent(f.product.id)}`} className={s.tile}>
-                            <Thumbnail src={f.url} alt={`${f.product.name}${f.index ? ` photo ${f.index + 1}` : ''}`} size="lg" />
+                            <Thumbnail src={f.url} alt={`${f.product.name}${f.index ? ` photo ${f.index + 1}` : ''}`} size="lg" onBroken={url => setReported(previous => new Set(previous).add(url))} />
                             <strong>{f.product.name}</strong>
                             <small>{CATEGORIES[f.product.category].label} › {f.product.subcategory}</small>
-                            <span className={s.badges}>{f.index === 0 && productMedia(f.product).length > 1 && <Badge>{TERMS.cover}</Badge>}{status.get(f.url) === 'broken' && <Badge tone="danger">Broken</Badge>}</span>
+                            <span className={s.badges}>{f.index === 0 && productMedia(f.product).length > 1 && <Badge>{TERMS.cover}</Badge>}{isBroken(f.url) && <Badge tone="danger">Broken</Badge>}</span>
                         </Link>
                     </li>)}
                 </ul>}

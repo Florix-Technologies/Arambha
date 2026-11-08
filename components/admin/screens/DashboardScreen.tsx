@@ -1,10 +1,12 @@
 "use client";
 import Link from 'next/link';
+import { useState } from 'react';
 import { CircleCheck, ImageOff, FolderOpen, Package, ChevronRight } from 'lucide-react';
 import { PageHeader, Card, Button, Thumbnail, Skeleton, EmptyState } from '../ui';
 import { CATEGORIES, CATEGORY_KEYS, TERMS, MESSAGES } from '@/lib/admin/taxonomy';
 import type { AdminProduct, AdminSubcategory } from '@/lib/admin/types';
 import { productMedia, useMediaCheck } from '../useCatalog';
+import { TourOffer } from '../Tour';
 import s from './DashboardScreen.module.css';
 
 const where = (p: AdminProduct) => `${CATEGORIES[p.category].label} › ${p.subcategory}`;
@@ -21,6 +23,7 @@ export function DashboardScreen({ products, subcategories, loading = false, erro
     return <div className={s.page}>
         <PageHeader title={TERMS.dashboard} subtitle={MESSAGES.dashboardSubtitle}
             primaryAction={ready ? <Button href="/admin/products/new">{TERMS.addProduct}</Button> : undefined} />
+        <TourOffer />
         {loading ? <div className={s.columns}><Card><Skeleton lines={6} /></Card><Card><Skeleton lines={4} /></Card></div> : error ?
             <Card><p role="alert">{error}</p>{onRetry && <Button variant="secondary" onClick={onRetry}>Try again</Button>}</Card> :
             <div className={s.columns}>
@@ -59,14 +62,17 @@ export function DashboardScreen({ products, subcategories, loading = false, erro
 }
 
 function Attention({ products, subcategories }: { products: AdminProduct[]; subcategories: AdminSubcategory[] }) {
-    const status = useMediaCheck(products.flatMap(productMedia));
+    // Files are only downloaded to be checked when asked; a missing cover is flagged straight away.
+    const [checkFiles, setCheckFiles] = useState(false);
+    const status = useMediaCheck(checkFiles ? products.flatMap(productMedia) : []);
     const checking = Array.from(status.values()).filter(v => v === 'checking').length;
     const media = products.filter(p => !p.image || productMedia(p).some(url => status.get(url) === 'broken'));
     const empty = subcategories.filter(sub => !products.some(p => p.subcategoryId === sub.id));
     return <Card title={TERMS.needsAttention}>
         <div className={s.attention}>
             {checking > 0 && <p role="status" className={s.checking}>Checking {checking} {checking === 1 ? 'file' : 'files'}…</p>}
-            {media.length + empty.length === 0 && checking === 0 && <p className={s.ok}><CircleCheck size={20} aria-hidden="true" />All {status.size} photos and videos load, and every subcategory has products.</p>}
+            {!checkFiles && <p className={s.checking}>Photos and videos are not checked automatically. <Button variant="secondary" onClick={() => setCheckFiles(true)}>Check all photos and videos</Button></p>}
+            {media.length + empty.length === 0 && checking === 0 && <p className={s.ok}><CircleCheck size={20} aria-hidden="true" />{checkFiles ? `All ${status.size} photos and videos load, and every` : 'Every product has a cover photo, and every'} subcategory has products.</p>}
             {media.length > 0 && <section>
                 <h3><ImageOff size={18} aria-hidden="true" />{MESSAGES.productCount(media.length)} with a missing or broken photo</h3>
                 <ul>{media.map(p => <li key={p.id}>
