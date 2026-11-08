@@ -1,14 +1,8 @@
 import { fetchCatalog } from '@/lib/catalog';
-import FurnitureClient from './FurnitureClient';
+import { CollectionIndex } from '@/components/catalog/CollectionViews';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
-export default async function FurniturePage({ searchParams }: { searchParams: Promise<{ filter?: string | string[] }> }) {
-  const { filter: rawFilter } = await searchParams;
-  const filter = Array.isArray(rawFilter) ? rawFilter[0] : rawFilter;
-  const catalog = await fetchCatalog('furniture').catch(error => {
-    console.error('Error fetching furniture:', error);
-    return [];
-  });
-  return <FurnitureClient catalog={catalog} filter={filter} />;
+export default async function FurniturePage() {
+  return <CollectionIndex collection="furniture" catalog={await fetchCatalog('furniture')} />;
 }

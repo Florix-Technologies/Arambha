@@ -62,6 +62,10 @@ export default function ProcessSection() {
                                 src={step.image}
                                 alt={step.title}
                                 className={styles.bgImage}
+                                width={1000}
+                                height={667}
+                                loading="lazy"
+                                decoding="async"
                             />
                             <div className={styles.overlay} />
 
