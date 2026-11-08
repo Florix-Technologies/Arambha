@@ -1,59 +1,46 @@
-.page {
-  display:grid;
-  gap:24px
-}
+.page { display:grid; gap:24px; }
+.columns { display:grid; gap:24px; grid-template-columns:minmax(0,1fr); align-items:start; }
+.stack { display:grid; gap:24px; min-width:0; }
+@media (min-width:1100px) { .columns { grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr); } }
 
-.warning {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:16px;
-  border:1px solid var(--warning);
-  border-radius:12px;
-  background:var(--warning-soft);
-  color:var(--warning)
-}
+.srOnly { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 
-.warning svg {
-  flex-shrink:0
-}
-
-.row {
-  display:grid;
-  grid-template-columns:64px minmax(0,1fr) auto;
-  align-items:center;
-  gap:16px;
-  padding:16px 0;
-  border-bottom:1px solid var(--border)
-}
-
-.row p,.row time {
-  color:var(--text-muted)
-}
-
-@media(max-width:767px) {
-  .row {
-    grid-template-columns:64px minmax(0,1fr)
-  }
-  .row time {
-    grid-column:2
-  }
-}
-
-/* Catalog summary: one scannable table instead of a card per collection. */
+/* Catalog: one scannable table; each main category name is the shortcut. */
 .summary { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
-.summary th, .summary td { padding:12px var(--space-2); text-align:left; border-bottom:1px solid var(--border); }
-.summary thead th { padding-top:0; font-size:14px; font-weight:500; color:var(--text-muted); }
+.summary th, .summary td { padding:12px 8px; text-align:left; border-bottom:1px solid var(--border); overflow-wrap:normal; word-break:normal; }
+.summary th:first-child { padding-left:0; }
+.summary thead th { padding-top:0; font-size:13px; font-weight:500; color:var(--text-muted); }
 .summary tbody th { font-weight:600; }
 .summary td:nth-child(2), .summary td:nth-child(3), .summary thead th:nth-child(2), .summary thead th:nth-child(3) { text-align:right; }
-.summary td:last-child, .summary th:last-child { padding-right:0; }
-.summary th, .summary td { overflow-wrap:normal; word-break:normal; }
-.collection { color:var(--primary); text-decoration:underline; text-decoration-color:transparent; text-underline-offset:3px; }
-.collection:hover { text-decoration-color:currentColor; }
+.summary td:last-child, .summary th:last-child { width:28px; padding-right:0; color:var(--text-muted); }
+.summary tbody tr { position:relative; }
+.summary tbody tr:hover { background:var(--bg); }
 .summary tfoot th, .summary tfoot td { border-bottom:0; font-weight:600; }
-.summary th:first-child { padding-left:0; }
-.srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.collection { font-size:15px; }
+/* The name link covers the whole row, so any part of the row opens the category. */
+.collection::after { content:""; position:absolute; inset:0; }
+.collection:focus-visible { outline:none; }
+.summary tbody tr:has(.collection:focus-visible) { outline:2px solid var(--focus-ring); outline-offset:-2px; }
+.menu { display:block; font-size:12px; font-weight:400; color:var(--text-muted); }
 
-@media(max-width:767px) {
-  .summary th, .summary td { padding:12px var(--space-1); }
-}
+.recent { list-style:none; margin:0; padding:0; }
+.row { display:grid; grid-template-columns:56px minmax(0,1fr) auto; align-items:center; gap:16px; padding:10px 0; border-top:1px solid var(--border); }
+.recent li:first-child .row { border-top:0; padding-top:0; }
+.row span, .attention a > span:not(.fix) { display:grid; min-width:0; }
+.row strong, .attention strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.row small, .attention small { color:var(--text-muted); font-size:13px; }
+.row time { color:var(--text-muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.row:hover strong, .attention a:hover strong { color:var(--primary-hover); text-decoration:underline; text-underline-offset:3px; }
+
+.attention { display:grid; gap:20px; }
+.attention section { display:grid; gap:8px; }
+.attention h3 { display:flex; align-items:flex-start; gap:8px; margin:0; font-size:14px; font-weight:600; color:var(--warning); }
+.attention h3 svg { flex-shrink:0; margin-top:2px; }
+.attention ul { list-style:none; margin:0; padding:0; display:grid; gap:4px; }
+.attention a { display:flex; align-items:center; gap:12px; min-height:44px; padding:6px 8px; margin:0 -8px; border-radius:8px; }
+.attention a > span:not(.fix) { flex:1; }
+.attention a:hover { background:var(--bg); }
+.fix { font-weight:600; color:var(--primary-hover); white-space:nowrap; }
+.checking { margin:0; color:var(--text-muted); }
+.ok { display:flex; gap:8px; margin:0; color:var(--success); }
+.ok svg { flex-shrink:0; margin-top:1px; }

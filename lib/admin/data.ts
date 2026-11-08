@@ -11,6 +11,7 @@ export type ProductInput = {
     category_id: string; name: string; description: string; image_url: string;
     images: string[]; price: string | number;
 };
+export const DELETE_OFF = 'Deleting subcategories is switched off until a database safety update is approved. You can still rename it, or move its products.';
 const NOT_ALLOWED = 'This account is not allowed to make changes. Log in with the admin account.';
 
 export function validateName(value: unknown, label: string = TERMS.productName): string | null {
@@ -44,6 +45,7 @@ async function requireSession() {
 function message(error: unknown): string {
     if (typeof error === 'object' && error !== null) {
         if ('code' in error && error.code === '42501') return NOT_ALLOWED;
+        if ('code' in error && error.code === '23503') return 'This subcategory still has products. Move them first.';
         if ('message' in error && typeof error.message === 'string') {
             return 'code' in error ? `${error.message} (Code: ${error.code})` : error.message;
         }
@@ -66,7 +68,7 @@ export function mapSubcategory(row: CategoryRow): AdminSubcategory {
 }
 export function mapProduct(row: ProductRow, subcategory: AdminSubcategory): AdminProduct {
     return {
-        id: row.id, name: row.name, category: subcategory.category, subcategory: subcategory.name,
+        id: row.id, name: row.name, category: subcategory.category, subcategory: subcategory.name, subcategoryId: subcategory.id, images: row.images ?? [],
         image: row.image_url ?? '', price: row.price ?? undefined,
         // All saved products are public; the schema has no draft status.
         status: 'active', date: row.created_at, description: row.description ?? undefined,
@@ -142,22 +144,47 @@ export function deleteProduct(id: string): Promise<DataResult<string>> {
         return changed(supabase.from('products').delete().eq('id', id).select('id'));
     });
 }
-export function renameCategory(category: AdminSubcategory, value: string): Promise<DataResult<string>> {
+// Shared by add and rename: normalised name, slug and a duplicate check within the main category.
+async function checkedName(category: CategoryKey, value: string, exceptId?: string) {
+    requireCategory(category);
+    const invalid = validateName(value, TERMS.subcategory);
+    if (invalid) throw new Error(invalid);
+    const name = normalizeCategoryName(value), slug = slugify(name);
+    if (!slug) throw new Error('Use at least one letter or number in the name.');
+    const { data, error } = await supabase.from('categories').select('id, name, slug').eq('collection', category);
+    if (error) throw error;
+    const conflict = findCategoryConflict((data ?? []) as Pick<CategoryRow, 'id' | 'name' | 'slug'>[], name, slug, exceptId);
+    if (conflict) throw new Error(`A subcategory called "${conflict.name}" already exists in ${CATEGORIES[category].label}.`);
+    return { name, slug };
+}
+export function createCategory(category: CategoryKey, value: string): Promise<DataResult<string>> {
     return result(async () => {
-        requireId(category.id); requireCategory(category.category);
         await requireSession();
-        const invalid = validateName(value, TERMS.subcategory);
-        if (invalid) throw new Error(invalid);
-        const name = normalizeCategoryName(value), slug = slugify(name);
-        if (!slug) throw new Error('Use at least one letter or number in the category name.');
-        const { data, error } = await supabase.from('categories').select('id, name, slug').eq('collection', category.category);
-        if (error) throw error;
-        const conflict = findCategoryConflict((data ?? []) as Pick<CategoryRow, 'id' | 'name' | 'slug'>[], name, slug, category.id);
-        if (conflict) throw new Error(`A category called "${conflict.name}" already exists in ${CATEGORIES[category.category].label}.`);
-        return changed(supabase.from('categories').update({ name, slug }).eq('id', category.id).select('id'));
+        const values = await checkedName(category, value);
+        return changed(supabase.from('categories').insert([{ ...values, collection: category }]).select('id'));
     });
 }
-// Call before asking for deletion confirmation; deletion cascades to products in the database.
+export function renameCategory(category: AdminSubcategory, value: string): Promise<DataResult<string>> {
+    return result(async () => {
+        requireId(category.id);
+        await requireSession();
+        const values = await checkedName(category.category, value, category.id);
+        return changed(supabase.from('categories').update(values).eq('id', category.id).select('id'));
+    });
+}
+// Moves products to another subcategory; fails if any product was not moved.
+export function moveProducts(ids: string[], categoryId: string): Promise<DataResult<number>> {
+    return result(async () => {
+        requireId(categoryId);
+        if (!ids.length) return 0;
+        ids.forEach(requireId);
+        await requireSession();
+        const { data, error } = await supabase.from('products').update({ category_id: categoryId }).in('id', ids).select('id');
+        if (error) throw error;
+        if ((data?.length ?? 0) !== ids.length) throw new Error(data?.length ? 'Some products could not be moved. Reload and try again.' : NOT_ALLOWED);
+        return ids.length;
+    });
+}
 export function countCategoryProducts(id: string): Promise<DataResult<number>> {
     return result(async () => {
         requireId(id);
@@ -166,7 +193,18 @@ export function countCategoryProducts(id: string): Promise<DataResult<number>> {
         return count ?? 0;
     });
 }
+// shortcut: the live database still deletes a subcategory's products with it (ON DELETE CASCADE), so a product added
+// between the count and the delete would be lost. Deletion stays off until docs/admin-v2-restrict-category-delete.sql
+// is applied (owner approval); then set this to true. The count check below stays as a second layer.
+export const SUBCATEGORY_DELETE_ENABLED = false;
 export function deleteCategory(id: string): Promise<DataResult<string>> {
-    return result(async () => { requireId(id); await requireSession(); return changed(supabase.from('categories').delete().eq('id', id).select('id')); });
+    return result(async () => {
+        requireId(id);
+        if (!SUBCATEGORY_DELETE_ENABLED) throw new Error(DELETE_OFF);
+        await requireSession();
+        const count = await countCategoryProducts(id);
+        if (count.error !== null) throw new Error(count.error);
+        if (count.data > 0) throw new Error(`This subcategory still has ${count.data === 1 ? '1 product' : `${count.data} products`}. Move them first.`);
+        return changed(supabase.from('categories').delete().eq('id', id).select('id'));
+    });
 }
-

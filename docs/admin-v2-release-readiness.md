@@ -1,76 +1,60 @@
-# Admin V2: release readiness (Florix task #17)
+# Admin: release readiness (Florix task #17)
 
-Branch `admin-v2-int` (worktree `Arambha-worktrees/admin-v2-int`), commit `a05b754`, built on `admin-v2` (`c7a2b04`).
-Nothing is merged, pushed or deployed. Florix checkpoints: `refs/florix/checkpoints/manual/20261108T081121Z-*` and later.
+Branch `admin-v2-int` (worktree `Arambha-worktrees/admin-v2-int`), built on `admin-v2` (`c7a2b04`).
+Nothing is merged, pushed or deployed. Florix checkpoints: `refs/florix/checkpoints/manual/*`.
 
-## 1. Verified (8 Nov 2026)
-| Check | Result |
-|---|---|
-| TypeScript (`tsc --noEmit`) | 0 errors |
-| ESLint | 0 errors, 13 warnings (img / unused vars, pre-existing) |
-| Unit tests (`node --test`, 28) | 28/28 pass |
-| Accessibility check (`docs/admin-v2-a11y.check.cjs`) | pass |
-| Production build (`next build`) | pass |
-| Playwright smoke (45: preview screens + logged-out redirects, 360/768/1280) | 45/45 pass |
-| Playwright logged-in flows against a fake Supabase (9: login, lists, create also at 360 px, edit, delete, upload, permission denied x2, log out) | 9/9 pass (54 total) |
-| Live Supabase RLS (read-only) | writes on categories, products, catalog-media pinned to the admin email; public read |
-| Live RLS write test (owner-approved, ecommerce project, one transaction that always rolls back) | public visitor and non-admin: product/category insert and upload denied, update/delete 0 rows; admin: insert, update, delete, category insert/delete and upload allowed. Afterwards 0 test rows remain (28 products, 12 categories unchanged). |
-| Consolidated review | done (Claude, cross-family); findings fixed in `a05b754` |
+## 1. What changed (8 Nov 2026 redesign)
+- One admin at `/admin`. The classic admin (`app/admin/page.tsx`, item wizard, tour), `/admin-preview` and `/admin-v2` are removed; no redirects or fallbacks.
+- Hierarchy: main category (Furniture, Interiors, Gallery) › subcategory › products. No fourth level.
+- Navigation: sidebar Overview · Catalog (Furniture, Interiors, Gallery) · Media Library · Settings · Help; phone bottom bar Overview, Furniture, Interiors, Gallery, More. Breadcrumbs on every page; the product form marks its main category active.
+- Main category page: subcategories with product counts, Add subcategory, Edit (rename) and Delete.
+- Subcategory page: only that subcategory's products; search, sort, Edit, Move (within the main category), Delete. "Add product" pre-selects the main category and subcategory. Gallery subcategories accept multi-file uploads (one item per file, retry on failure).
+- Product form: direct photo/video upload to storage with progress, previews, cover (first item, "Make cover"), reorder, remove, add from link (Google Drive/ImgBB), validation, save blocked while uploading, unsaved-changes guard. After adding, opens the subcategory page.
+- Overview: catalog table (each main category opens its page), recently added, Needs attention (missing or broken photos checked in the browser, empty subcategories), Add product.
+- Media Library: every catalog photo/video, filter by main category and broken files. Settings: password reset email. Help: guides for the new screens.
+- Thumbnails show video frames and flag files that fail to load. Arambha emblem plus wordmark in the sidebar (cropped from `logo2.png`).
+- Inquiry popup hidden on all `/admin` pages; robots disallow `/admin`.
 
-## 2. Not yet verified (needs the owner)
-- Logged-in screens against real data (read-only on live). The UI flows themselves are verified against a fake Supabase.
-- Create, edit, delete and media upload through the app screens with the real admin login (the rules themselves are proven by the rolled-back live test).
+## 2. Subcategory delete: blocked for release
+Live `products.category_id` is `ON DELETE CASCADE` (checked 8 Nov). Deleting a subcategory deletes its products, and a product
+added between the app's count and the delete would be lost. So `SUBCATEGORY_DELETE_ENABLED = false` in `lib/admin/data.ts`:
+the dialog explains it and sends nothing. Products can still be moved and subcategories renamed.
+To enable safely (owner approval): run `docs/admin-v2-restrict-category-delete.sql` on the live project (one atomic constraint
+change to `ON DELETE RESTRICT`, no rows changed, rollback included), then set the flag to `true`. The app then moves products
+first and the database refuses any delete that would remove products (error 23503 is shown as "Move them first").
 
-## 3. Authenticated browser test (read-only on live)
-Configuration: the worktree needs the project's Supabase settings file. Claude must not read or copy it, so the
-owner copies it (one command, nothing is printed):
-`Copy-Item "D:\client\arambha design\Arambha\.env.local" "D:\client\arambha design\Arambha-worktrees\admin-v2-int\"`
-(`.env.local` is git-ignored there, as in the main checkout.)
+## 3. Live media references (read-only check, 8 Nov)
+All 28 products' media resolve: local `/v*.mp4` and `/i*.jpeg` exist in `public/`, storage and Unsplash URLs return 200.
+No broken references to repair. One product ("Sleek Aluminium Window Frames") repeats its cover as its extra photo.
 
-Steps (Claude runs them; the owner only signs in):
-1. Claude starts `npm run dev -- --hostname 127.0.0.1 --port 3102` in the worktree and opens a visible browser at `http://127.0.0.1:3102/admin-v2/login`.
-2. The owner types the admin email and password into that window (never into chat).
-3. Claude checks, without saving anything: dashboard counts match the live site; each collection and subcategory page loads;
-   product edit page opens with existing media; gallery grid loads; account menu, Help (classic admin) and log out work;
-   hourly-refresh behaviour (stays on the page); phone (390 px) and desktop layouts.
-4. Claude closes the browser and deletes the browser profile. No create/edit/delete/upload on live.
-
-## 4. Staging for write tests (no production change)
-Options, cheapest first:
-- A. New free Supabase project `arambha-staging`. The free plan allows 2 active projects; `ecommerce` and `hangtag` are
-  active, so one would need pausing, or the owner accepts a paid project. Owner decision.
-- B. Local Supabase (Docker + WSL2 on this PC): free and fully isolated, but needs WSL2/Docker installed (admin, reboot).
-Setup once the project exists: run `docs/admin-v2-staging-setup.sql` there (schema, RLS, bucket and seed, mirrored from live),
-create a staging admin user, and point a separate `.env.local` at the staging URL and anon key (owner copies it in).
-Write tests then: create product with images; edit name/price/description/media; delete product; upload, retry and delete
-gallery media; rename/delete subcategory; confirm logged-out writes are refused (RLS).
+## 4. Verification
+See the Florix #17 notes for the latest run (TypeScript, ESLint, unit tests, accessibility check, production build,
+Playwright 360/768/1280 against a fake Supabase, demo screenshots, independent Codex review).
+Not yet done: logged-in read-only pass on live data (owner signs in to a browser window; no writes).
 
 ## 5. Security findings
 | # | Finding | Status |
 |---|---|---|
-| S1 | Supabase leaked-password protection is off (advisor `auth_leaked_password_protection`). | Owner: Supabase > Authentication > enable it. |
-| S2 | `supabase_setup.sql` created open "for all users" insert/delete policies; re-running it would have weakened production. | Fixed on admin-v2-int: it now creates the live admin-only policies. |
-| S3 | Admin access is decided by RLS (admin email); the app's session checks are a second layer only. | Verified live; keep. |
-| S4 | Public sign-ups setting not verified (not readable via SQL). Writes are pinned to the admin email, so a new sign-up cannot write. | Owner: consider disabling sign-ups. |
-| S5 | `npm` skipped install scripts for `sharp` and `unrs-resolver`; build and lint pass. | Info. |
-| S6 | Outside Arambha: a Cloudflare tunnel token and a Cloudflare password were pasted in chat on 8 Nov. | Owner: rotate the tunnel token and change the password. |
+| S1 | Supabase leaked-password protection is off. | Owner: Authentication > enable it. |
+| S2 | `supabase_setup.sql` used to create open write policies. | Fixed: admin-only policies, as live. |
+| S3 | Writes are authorised by RLS (admin email); app checks are a second layer. | Verified live. |
+| S4 | Public sign-ups setting not readable via SQL; a new sign-up still cannot write. | Owner: consider disabling sign-ups. |
+| S6 | A Cloudflare token and password were pasted in chat on 8 Nov (outside Arambha). | Owner: rotate/change. |
+| S7 | Subcategory delete cascades to products in the database. | Blocked in app; DB fix awaiting approval (section 2). |
 
 ## 6. Readiness checklist
-- [x] All child tasks integrated, data layer reconciled
-- [x] Type, lint, unit, a11y, build, Playwright checks pass
-- [x] Review findings fixed (refresh data loss, dead links, session checks, UI defects)
-- [x] Live RLS verified read-only
-- [x] Logged-in UI flows verified against a fake Supabase (create, edit, delete, upload, denial, log out)
-- [x] Repo setup script no longer creates open write policies (S2)
-- [ ] Logged-in read-only test on live (owner sign-in)
-- [x] Write permissions tested on the live project inside a rolled-back transaction (owner chose the ecommerce project; no data changed)
+- [x] Single `/admin`, legacy admin and previews removed
+- [x] Hierarchy, navigation, subcategory and product workflows, direct upload
+- [x] Subcategory delete cannot lose products (blocked until DB protection)
+- [x] Live RLS verified (read-only and rolled-back write test)
+- [ ] Logged-in read-only pass on live (owner sign-in)
 - [ ] S1 leaked-password protection enabled
+- [ ] Owner decision on `admin-v2-restrict-category-delete.sql`
 - [ ] Owner approval to merge
 
-## 7. Owner-controlled merge plan (nothing runs without approval)
-1. Review: `git diff admin-v2..admin-v2-int` (or `git log admin-v2..admin-v2-int`).
-2. Move `admin-v2` forward (no merge commit, fails safely if diverged), from the `admin-v2` worktree:
-   `git merge --ff-only admin-v2-int`
-3. Re-run checks on `admin-v2`: `npm ci`, `npx tsc --noEmit`, `npx eslint .`, `npm run build`, `npm run test:e2e`.
-4. Only later, with separate approval: open a pull request `admin-v2` -> `main`. Merging `main` may deploy the live site.
+## 7. Merge plan (nothing runs without approval)
+1. Review: `git log admin-v2..admin-v2-int`, `git diff admin-v2..admin-v2-int`.
+2. From the `admin-v2` worktree: `git merge --ff-only admin-v2-int`.
+3. Re-run: `npm ci`, `npx tsc --noEmit`, `npx eslint .`, `npm run build`, `npm run test:e2e`.
+4. Separately approved later: pull request `admin-v2` -> `main` (merging `main` may deploy the live site; `/admin` then serves the new admin).
 Rollback: `admin-v2` before step 2 is `c7a2b04`; Florix checkpoints keep every intermediate state.

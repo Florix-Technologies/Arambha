@@ -1,20 +1,7 @@
-.page {
-  display:grid;
-  gap:24px
-}
-
-.grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));
-  gap:16px
-}
-
-.product {
-  display:grid;
-  justify-items:start;
-  gap:16px
-}
-
-.product h2 {
-  font-size:18px
-}
+.page { display:grid; gap:24px; }
+.toolbar { display:grid; grid-template-columns:minmax(0,1fr) 200px; gap:16px; align-items:end; }
+.count { margin:16px 0 8px; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+.dialog { display:grid; gap:20px; }
+.dialogActions { display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-end; }
+.error { margin:0; color:var(--danger); }
+@media (max-width:767px) { .toolbar { grid-template-columns:1fr; } }

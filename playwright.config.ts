@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-    testDir: './tests/admin-v2',
+    testDir: './tests/admin',
     workers: 1,
     forbidOnly: !!process.env.CI,
     retries: 0,
@@ -18,7 +18,7 @@ export default defineConfig({
     })),
     webServer: {
         command: 'npm run dev -- --hostname 127.0.0.1 --port 3100',
-        url: 'http://127.0.0.1:3100/admin-preview/login',
+        url: 'http://127.0.0.1:3100/admin/login',
         reuseExistingServer: false,
         timeout: 120_000,
         // Never inherit a real Supabase endpoint.

@@ -33,3 +33,7 @@
   color:var(--danger);
   min-height:20px
 }
+
+.logo { display:block; width:120px; height:120px; object-fit:contain; margin:0 auto; }
+.card h1 { text-align:center; }
+.card form p { margin:0; color:var(--success); }

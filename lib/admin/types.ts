@@ -4,7 +4,9 @@ export type AdminProduct = {
     name: string;
     category: CategoryKey;
     subcategory: string;
+    subcategoryId: string;
     image: string;
+    images?: string[];
     price?: number;
     status: 'active' | 'draft';
     date: string;

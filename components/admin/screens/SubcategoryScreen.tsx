@@ -1,62 +1,41 @@
 "use client";
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Package } from 'lucide-react';
-import { PageHeader, Button, Card, Thumbnail, Badge, ViewToggle, EmptyState } from '../ui';
-import { CATEGORIES, TERMS, MESSAGES, type CategoryKey } from '@/lib/admin/taxonomy';
-import { ProductTable } from './ProductTable';
-import { LiveProducts } from './LiveProducts';
-import type { AdminProduct } from '@/lib/admin/types';
+import { PageHeader, Button, Card, EmptyState } from '../ui';
+import { CATEGORIES, TERMS, MESSAGES } from '@/lib/admin/taxonomy';
+import type { AdminProduct, AdminSubcategory } from '@/lib/admin/types';
+import { ProductList } from './ProductList';
+import { GalleryUploader } from './GalleryUploader';
+import { DeleteSubcategoryDialog, SubcategoryNameDialog } from './SubcategoryDialogs';
 import s from './SubcategoryScreen.module.css';
-export function SubcategoryScreen({ category, name, products, dialog, subcategoryId, basePath = '/admin-preview', onDeleted }: {
-    category: CategoryKey;
-    name: string; subcategoryId?: string;
-    products: AdminProduct[];
-    dialog?: ReactNode;
-    basePath?: string;
-    onDeleted?: (id: string) => void;
+
+// One subcategory (e.g. Interiors › Kitchen): only its own products, and actions that already know where new products go.
+export function SubcategoryScreen({ subcategory, subcategories, products, onChanged }: {
+    subcategory: AdminSubcategory; subcategories: AdminSubcategory[]; products: AdminProduct[]; onChanged: () => void;
 }) {
-    const [view, setView] = useState<'table' | 'grid'>('table');
+    const router = useRouter();
+    const [editing, setEditing] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const c = CATEGORIES[subcategory.category];
+    const parent = `/admin/${subcategory.category}`;
+    const addHref = `/admin/products/new?category=${subcategory.category}&subcategory=${encodeURIComponent(subcategory.id)}`;
+    const gallery = subcategory.category === 'gallery';
     return <div className={s.page}>
-        <PageHeader breadcrumbs={[{ label: CATEGORIES[category].label, href: `${basePath}/${category}` }, { label: name }]} title={name} primaryAction={
-            <Button href={`${basePath}/products/new?category=${category}${subcategoryId ? `&subcategory=${encodeURIComponent(subcategoryId)}` : ''}`}>
-                {TERMS.addProduct}
-            </Button>
-        } menu={onDeleted ? undefined : [{ label: TERMS.rename }, { label: TERMS.delete, href: '?modal=delete', destructive: true }]} />
-        {onDeleted ? <Card title={TERMS.products}><LiveProducts products={products} onDeleted={onDeleted} /></Card> : products.length ?
-            <ViewToggle value={view} onValueChange={setView} table={
-                <ProductTable products={products} />
-            } grid={
-                <div className={s.grid}>
-                    {products.map(p =>
-                        <Card key={p.id}>
-                            <div className={s.product}>
-                                <Thumbnail src={p.image} alt={p.name} />
-                                <h2>
-                                    {p.name}
-                                </h2>
-                                {CATEGORIES[category].hasPrice && p.price != null &&
-                                    <p>
-                                        {TERMS.currency} {p.price.toLocaleString('en-IN')}
-                                    </p>
-                                }
-                                <Badge tone={p.status === 'active' ? 'success' : 'neutral'}>
-                                    {TERMS[p.status]}
-                                </Badge>
-                            </div>
-                        </Card>
-                    )}
-                </div>
-            } />
-            :
-            <Card>
-                <EmptyState icon={
-                    <Package />
-                } title={MESSAGES.noProductsIn(name)} text={MESSAGES.noProducts} action={
-                    <Button>
-                        {TERMS.addProduct}
-                    </Button>
-                } />
-            </Card>
-        }{dialog}
+        <PageHeader breadcrumbs={[{ label: TERMS.dashboard, href: '/admin' }, { label: c.label, href: parent }, { label: subcategory.name }]}
+            title={subcategory.name}
+            subtitle={products.length ? `${MESSAGES.productCount(products.length)} · shown on the website under ${c.menuTitle}` : 'Empty, so it is hidden from the website menu until you add something.'}
+            secondaryActions={<Button variant="secondary" onClick={() => setEditing(true)}>{TERMS.edit}</Button>}
+            primaryAction={<Button href={addHref}>{gallery ? 'Add item' : TERMS.addProduct}</Button>}
+            menu={[{ label: TERMS.deleteSubcategory, destructive: true, onSelect: () => setDeleting(true) }]} />
+        {gallery && <Card title={TERMS.uploadMedia}><GalleryUploader subcategoryId={subcategory.id} onUploaded={onChanged} /></Card>}
+        <Card title={TERMS.products}>
+            {products.length ? <ProductList products={products} subcategory={subcategory} subcategories={subcategories} onChanged={onChanged} />
+                : <EmptyState icon={<Package size={24} />} title={MESSAGES.noProductsIn(subcategory.name)} text={gallery ? MESSAGES.noMedia : MESSAGES.noProducts}
+                    action={gallery ? undefined : <Button href={addHref}>{TERMS.addProduct}</Button>} />}
+        </Card>
+        <SubcategoryNameDialog open={editing} onOpenChange={setEditing} category={subcategory.category} subcategory={subcategory} onSaved={onChanged} />
+        <DeleteSubcategoryDialog open={deleting} onOpenChange={setDeleting} subcategory={subcategory} subcategories={subcategories} products={products}
+            onDeleted={() => router.push(parent)} />
     </div>;
 }

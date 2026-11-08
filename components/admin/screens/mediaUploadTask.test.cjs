@@ -7,7 +7,7 @@ const vm = require('node:vm');
 function setup(overrides = {}) {
   const calls = [];
   const dependencies = {
-    validateMediaFile: () => null,
+    validateBeforeShrink: () => null,
     shrinkImage: async file => file,
     supabase: { auth: { getUser: async () => ({ data: { user: { id: 'admin' } } }), getSession: async () => ({ data: { session: { access_token: 'test' } } }) } },
     uploadMedia: async () => { calls.push('upload'); return '/photo.jpg'; },
@@ -24,7 +24,7 @@ const task = () => ({ file, categoryId: 'c', url: undefined });
 const options = () => ({ signal: new AbortController().signal, onProgress() {} });
 
 test('invalid files never upload or save', async () => {
-  const { run, calls } = setup({ validateMediaFile: () => 'Too large' });
+  const { run, calls } = setup({ validateBeforeShrink: () => 'Too large' });
   await assert.rejects(run(task(), options()), /Too large/);
   assert.equal(calls.length, 0);
 });
@@ -92,4 +92,14 @@ test('shared validation rejects unsupported MIME types and oversized images/vide
   ]) assert.equal(typeof context.validateMediaFile(rejected), 'string');
   assert.equal(context.validateMediaFile(file), null);
   assert.equal(context.validateMediaFile({ name: 'clip.mp4', type: 'video/mp4', size: 50 * 1024 * 1024 }), null);
+});
+
+test('large photos are allowed before shrinking; unsupported types and large videos are not', () => {
+  const source = stripTypeScriptTypes(readFileSync(`${__dirname}/../../../lib/mediaUpload.ts`, 'utf8').replace(/^import .*;$/gm, '').replace(/export /g, ''));
+  const context = vm.createContext({});
+  vm.runInContext(source, context);
+  assert.equal(context.validateBeforeShrink({ name: 'big.jpg', type: 'image/jpeg', size: 8 * 1024 * 1024 }), null);
+  assert.equal(typeof context.validateBeforeShrink({ name: 'big.gif', type: 'image/gif', size: 8 * 1024 * 1024 }), 'string');
+  assert.equal(typeof context.validateBeforeShrink({ name: 'code.svg', type: 'image/svg+xml', size: 100 }), 'string');
+  assert.equal(typeof context.validateBeforeShrink({ name: 'clip.mp4', type: 'video/mp4', size: 50 * 1024 * 1024 + 1 }), 'string');
 });

@@ -1,26 +1,29 @@
 "use client";
 import Image from 'next/image';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button, Card, TextField } from '../ui';
 import { TERMS, MESSAGES } from '@/lib/admin/taxonomy';
 import s from './LoginScreen.module.css';
-export function LoginScreen({ error, loading = false, onSignIn }: {
+export function LoginScreen({ error, notice, loading = false, onSignIn, onForgotPassword }: {
     error?: string;
+    notice?: string;
+    onForgotPassword?: (email: string) => void;
     loading?: boolean;
     onSignIn?: (email: string, password: string) => void;
 }) {
     const [show, setShow] = useState(false);
+    const form = useRef<HTMLFormElement>(null);
     return <main className={s.page}>
         <div className={s.card}>
             <Card>
-                <Image src="/logo2.png" alt={TERMS.brand} width={160} height={64} />
+                <Image src="/logo2.png" alt={TERMS.brand} width={120} height={120} className={s.logo} priority />
                 <h1>
                     {TERMS.loginTitle}
                 </h1>
                 <p>
                     {MESSAGES.loginHint}
                 </p>
-                <form onSubmit={e => {
+                <form ref={form} onSubmit={e => {
                     e.preventDefault();
                     if (loading) return;
                     const data = new FormData(e.currentTarget);
@@ -37,9 +40,10 @@ export function LoginScreen({ error, loading = false, onSignIn }: {
                     <Button type="submit" loading={loading} className={s.full}>
                         {TERMS.logIn}
                     </Button>
-                    <Button variant="plain" href="/admin">
+                    <Button variant="plain" disabled={loading} onClick={() => onForgotPassword?.(String(new FormData(form.current ?? undefined).get('email') ?? ''))}>
                         {TERMS.forgotPassword}
                     </Button>
+                    {notice && <p role="status">{notice}</p>}
                 </form>
             </Card>
         </div>

@@ -13,7 +13,7 @@ function mount(answer) {
   let pushes = 0, backs = 0;
   const history = { state: {}, pushState(state) { this.state = state; pushes++; }, back() { backs++; } };
   const context = vm.createContext({
-    dirtyRef, history, location: { href: 'https://local/admin-v2/products/p' },
+    dirtyRef, history, location: { href: 'https://local/admin/products/p' },
     useEffect: callback => callback(),
     window: { confirm: () => answer, addEventListener: (name, callback) => { listeners[name] = callback; }, removeEventListener() {} },
     document: { addEventListener() {}, removeEventListener() {} },

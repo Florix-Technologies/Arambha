@@ -20,5 +20,5 @@ export function ConfirmDialog(props: Props) { return <Modal open={props.open} on
 function ConfirmationForm({ onOpenChange, confirmLabel, onConfirm, destructive = false, typeToConfirm, loading = false }: Props) {
     const [typed, setTyped] = useState('');
     return <form onSubmit={e => { e.preventDefault(); if (!loading && (!typeToConfirm || typed === typeToConfirm))
-        onConfirm(); }}>{typeToConfirm && <TextField label={MESSAGES.typeToConfirm(typeToConfirm)} value={typed} onChange={e => setTyped(e.target.value)} autoComplete="off"/>}<div className={s.actions}><Button variant="secondary" onClick={() => onOpenChange(false)} disabled={loading}>{TERMS.discard}</Button><Button type="submit" variant={destructive ? 'destructive' : 'primary'} disabled={!!typeToConfirm && typed !== typeToConfirm} loading={loading}>{confirmLabel}</Button></div></form>;
+        onConfirm(); }}>{typeToConfirm && <TextField label={MESSAGES.typeToConfirm(typeToConfirm)} value={typed} onChange={e => setTyped(e.target.value)} autoComplete="off"/>}<div className={s.actions}><Button variant="secondary" onClick={() => onOpenChange(false)} disabled={loading}>{TERMS.cancel}</Button><Button type="submit" variant={destructive ? 'destructive' : 'primary'} disabled={!!typeToConfirm && typed !== typeToConfirm} loading={loading}>{confirmLabel}</Button></div></form>;
 }

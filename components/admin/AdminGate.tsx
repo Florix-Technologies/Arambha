@@ -1,14 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { categoryFromParam, MESSAGES, TERMS } from '@/lib/admin/taxonomy';
-import { useInactivityLogout } from '@/app/admin/useInactivityLogout';
-import { AdminShell } from './AdminShell';
+import { categoryFromParam, MESSAGES, TERMS, type CategoryKey } from '@/lib/admin/taxonomy';
+import { useInactivityLogout } from './useInactivityLogout';
+import { AdminShell, type ActiveKey } from './AdminShell';
 import { LoginScreen } from './screens/LoginScreen';
 import { Button, Card, Modal, ToastProvider } from './ui';
+
+// Lets a screen whose URL has no category (the product form) mark its main category as active in the navigation.
+const ActiveCategory = createContext<(key: CategoryKey | null) => void>(() => {});
+export function useActiveCategory(key: CategoryKey | null) {
+    const set = useContext(ActiveCategory);
+    useEffect(() => { set(key); return () => set(null); }, [key, set]);
+}
 
 export function AdminGate({ children, login = false }: { children?: ReactNode; login?: boolean }) {
     const router = useRouter();
@@ -17,6 +24,8 @@ export function AdminGate({ children, login = false }: { children?: ReactNode; l
     const [checking, setChecking] = useState(true);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
+    const [notice, setNotice] = useState('');
+    const [activeCategory, setActiveCategory] = useState<CategoryKey | null>(null);
     const signingOut = useRef(false);
     const submitting = useRef(false);
 
@@ -64,8 +73,8 @@ export function AdminGate({ children, login = false }: { children?: ReactNode; l
 
     useEffect(() => {
         if (checking || signingOut.current || error) return;
-        if (!user && !login) router.replace('/admin-v2/login');
-        if (user && login) router.replace('/admin-v2');
+        if (!user && !login) router.replace('/admin/login');
+        if (user && login) router.replace('/admin');
     }, [checking, user, login, router, error]);
 
     const logOut = async () => {
@@ -77,7 +86,7 @@ export function AdminGate({ children, login = false }: { children?: ReactNode; l
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
-            router.replace('/admin-v2/login');
+            router.replace('/admin/login');
         } catch {
             setError('Could not end your session. Please retry logging out.');
         } finally {
@@ -115,17 +124,30 @@ export function AdminGate({ children, login = false }: { children?: ReactNode; l
         }
     };
 
+    const forgotPassword = async (email: string) => {
+        email = email.trim();
+        setNotice('');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Enter your email above, then choose "Forgot password?" again.'); return; }
+        setError('');
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback` })
+            .catch(() => ({ error: true }));
+        if (error) setError('Could not send the reset email. Please try again in a minute.');
+        else setNotice(`If ${email} is an admin account, a password reset link is on its way. Check your inbox.`);
+    };
+
     if (error && !login) return <Card><p role="alert">{error}</p><Button loading={busy} onClick={() => void logOut()}>{TERMS.logOut}</Button></Card>;
     if (checking || (busy && !login) || (login && user) || (!login && !user)) return <p role="status">{TERMS.loading}…</p>;
-    if (login) return <LoginScreen error={error} loading={busy} onSignIn={signIn} />;
+    if (login) return <LoginScreen error={error} notice={notice} loading={busy} onSignIn={signIn} onForgotPassword={email => void forgotPassword(email)} />;
 
-    const active = categoryFromParam(pathname.split('/')[2])?.key ?? 'dashboard';
-    return <ToastProvider><AdminShell basePath="/admin-v2" active={active} userEmail={user?.email ?? ''} onLogOut={() => void logOut()}>
+    const segment = pathname.split('/')[2] ?? '';
+    const active: ActiveKey = segment === '' ? 'dashboard' : segment === 'media' || segment === 'settings' || segment === 'help' ? segment
+        : categoryFromParam(segment)?.key ?? activeCategory;
+    return <ToastProvider><ActiveCategory.Provider value={setActiveCategory}><AdminShell active={active} userEmail={user?.email ?? ''} onLogOut={() => void logOut()}>
         {children}
         <Modal open={secondsLeft !== null} onOpenChange={open => { if (!open) stayLoggedIn(); }} title={MESSAGES.sessionTitle} description={MESSAGES.sessionBody}>
             <p role="status">Logging out in {secondsLeft ?? 0} {secondsLeft === 1 ? 'second' : 'seconds'}.</p>
             <Button onClick={stayLoggedIn}>Stay logged in</Button>
             <Button variant="plain" onClick={() => void logOut()}>{TERMS.logOut}</Button>
         </Modal>
-    </AdminShell></ToastProvider>;
+    </AdminShell></ActiveCategory.Provider></ToastProvider>;
 }

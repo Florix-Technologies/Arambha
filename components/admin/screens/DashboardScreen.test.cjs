@@ -5,23 +5,22 @@ const vm = require('node:vm');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../..');
 
-test('live dashboard catalog actions resolve to an existing management page', () => {
-  const page = readFileSync(path.join(root, 'app/admin-v2/(screens)/page.tsx'), 'utf8');
+test('dashboard links resolve to existing admin pages', () => {
   const screen = readFileSync(path.join(__dirname, 'DashboardScreen.tsx'), 'utf8');
-  const managementHref = page.match(/managementHref="([^"]+)"/)?.[1];
-  // Every dashboard destination exists in Admin V2, so the live dashboard must not send the admin to the classic admin.
-  assert.equal(managementHref, undefined, 'live dashboard links stay inside Admin V2');
-  const links = [...screen.matchAll(/href=\{((?:`[^`]*`|[^}])*)\}/g)].map(match => match[1]);
-  assert.equal(links.length, 3, 'category, quick action and empty-state links are covered');
+  assert.doesNotMatch(screen, /basePath|managementHref/, 'dashboard no longer takes link-base props');
+  const links = [...screen.matchAll(/href=(?:"([^"]+)"|\{((?:`[^`]*`|[^}])*)\})/g)].map(match => match[2] ?? JSON.stringify(match[1]));
+  assert.equal(links.length, 6, 'add-product (x2), category, product (x2) and subcategory links are covered');
+  const params = { key: 'gallery', p: { id: 'p1' }, sub: { category: 'gallery', id: 's1' } };
   for (const expression of links) {
-    const previewHref = vm.runInNewContext(expression, { managementHref: undefined, basePath: '/admin-preview', key: 'gallery' });
-    assert.ok(existsSync(path.join(root, 'app/admin-preview/(screens)', previewHref.replace('/admin-preview/', ''), 'page.tsx')), `${previewHref} must keep its preview page`);
-    for (const key of ['furniture', 'interiors', 'gallery']) {
-      const href = vm.runInNewContext(expression, { managementHref, basePath: '/admin-v2', key });
-      const [, area, ...rest] = href.split('/');
-      const pageFile = [path.join(root, 'app', href, 'page.tsx'), path.join(root, 'app', area, '(screens)', ...rest, 'page.tsx')].find(existsSync);
-      assert.ok(pageFile, `${href} must have a page`);
+    const href = vm.runInNewContext(expression, params);
+    assert.match(href, /^\/admin(\/|$)/, `${href} stays inside /admin`);
+    // Dynamic segments are folder names ([category], [id], ...), so match each URL segment to a literal or dynamic folder.
+    let dir = path.join(root, 'app/admin/(screens)');
+    for (const segment of href.split('/').slice(2)) {
+      const next = [segment, ...['[category]', '[subcategoryId]', '[id]']].map(name => path.join(dir, name)).find(existsSync);
+      assert.ok(next, `${href} has no folder for "${segment}"`);
+      dir = next;
     }
+    assert.ok(existsSync(path.join(dir, 'page.tsx')), `${href} must have a page`);
   }
 });
-

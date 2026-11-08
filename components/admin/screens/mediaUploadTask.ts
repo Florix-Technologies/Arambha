@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { createProduct } from '@/lib/admin/data';
-import { uploadMedia, validateMediaFile } from '@/lib/mediaUpload';
+import { uploadMedia, validateBeforeShrink } from '@/lib/mediaUpload';
 import { shrinkImage } from '@/lib/imageShrink';
 
 export type GalleryUpload = { file: File; categoryId: string; url?: string };
@@ -9,7 +9,7 @@ export async function saveGalleryUpload(task: GalleryUpload, options: {
     signal: AbortSignal; onProgress: (percent: number) => void;
 }): Promise<string> {
     if (!task.file.name.trim() || task.file.size === 0) throw new Error('Choose a non-empty media file.');
-    const invalid = validateMediaFile(task.file);
+    const invalid = validateBeforeShrink(task.file);
     if (invalid) throw new Error(invalid);
     if (!task.categoryId.trim()) throw new Error('Choose a gallery subcategory.');
     const user = await supabase.auth.getUser();

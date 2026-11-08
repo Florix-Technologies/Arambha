@@ -1,107 +1,71 @@
-// The words of the admin help: guides, first-login tour and field tips. Kept together so they are easy to change.
+// The words of the admin help page. Kept together so they are easy to change.
 export type HelpGuide = { id: string; title: string; steps: string[] };
-export type TourStep = { target: string | null; title: string; text: string };
 
 export const HELP_GUIDES: HelpGuide[] = [
   {
-    id: 'add',
-    title: 'Adding an item',
+    id: 'structure',
+    title: 'How the catalog is organised',
     steps: [
-      'Press "Add item".',
-      'Choose where it should appear: Furniture, Interiors or Gallery.',
-      'Choose a category, or make a new one.',
-      'Add the main photo or video.',
-      'Fill in the name, description and price, then add any extra photos.',
-      'Check the preview and press Publish. You can then view it on the website or add another.',
-      'If you leave halfway, your draft is saved in this browser.',
+      'There are three main categories: Furniture, Interiors and Gallery. Each is a page of your website.',
+      'Each main category has subcategories, for example Interiors › Kitchen. These are the headings visitors see.',
+      'Products sit inside a subcategory. Choose a main category in the menu, then a subcategory.',
+    ],
+  },
+  {
+    id: 'add',
+    title: 'Adding a product',
+    steps: [
+      'Open the subcategory it belongs to, for example Interiors › Kitchen, and press "Add product". Its place is filled in for you.',
+      'Drop photos or videos into the box, or click it to choose them. The first one is the cover; press "Make cover" on another to change it.',
+      'Type the name, and optionally a description and price.',
+      'Press Save. The product appears on your website straight away.',
     ],
   },
   {
     id: 'edit',
-    title: 'Editing an item',
+    title: 'Editing, moving or deleting a product',
     steps: [
-      'Choose the category the item is in.',
-      'Find the item and press Edit.',
-      'The same steps open with your details filled in.',
-      'Press Save when you are finished.',
+      'Open its subcategory and find it, or search by name.',
+      'Edit opens the product. Change anything, then press Save.',
+      'Move puts it in another subcategory of the same main category.',
+      'Delete removes it from your website after you confirm. This cannot be undone.',
     ],
   },
   {
-    id: 'delete',
-    title: 'Deleting an item',
+    id: 'subcategories',
+    title: 'Subcategories',
     steps: [
-      'Choose the category the item is in.',
-      'Find the item and press Delete.',
-      'Confirm that you want to delete it. This cannot be undone.',
+      'Open a main category and press "Add subcategory". Keep the name short, for example "Kitchen".',
+      'Press Edit beside a subcategory to rename it.',
+      'Delete asks where its products should go first, so products are never deleted with a subcategory.',
+      'An empty subcategory is hidden from the website menu until it has products.',
     ],
   },
   {
-    id: 'categories',
-    title: 'Categories',
+    id: 'gallery',
+    title: 'Gallery photos and videos',
     steps: [
-      'Categories group your items on the website.',
-      'Add one with the "+ Add" button beside Categories, or while adding an item.',
-      'You can rename a category at any time.',
-      'A category that still has items cannot be deleted. Move or delete its items first.',
+      'Open Gallery, then a subcategory such as Kitchen.',
+      'Drop several photos or videos at once. Each one becomes its own gallery item; a failed file can be retried.',
     ],
   },
   {
     id: 'media',
     title: 'Photo and video tips',
     steps: [
-      'Photos are made smaller for you, so large phone photos are fine.',
+      'Large phone photos are made smaller for you.',
       'Bright photos taken in landscape look best.',
-      'Videos must be MP4 files of 50 MB or less.',
-      'iPhone videos are often .mov files, so convert them to MP4 first.',
-      'Videos play silently and on a loop on the website.',
-    ],
-  },
-  {
-    id: 'sections',
-    title: 'Which section shows on which page',
-    steps: [
-      'Furniture items appear on the Furniture page.',
-      'Interiors items appear on the Interior Solutions page.',
-      'Gallery items appear on the Our Work page, without a price.',
-      'Price is optional for Furniture and Interiors.',
+      'Videos must be MP4 files of 50 MB or less. iPhone videos are often .mov files, so convert them to MP4 first.',
+      'Overview and Media Library list any photo that no longer loads, with a link to fix it.',
     ],
   },
   {
     id: 'password',
-    title: 'Resetting your password',
+    title: 'Password and automatic log out',
     steps: [
-      'Press "Reset Password" while logged in, or use "Forgot password" on the login screen.',
-      'An email arrives with a link.',
-      'Open the link and choose a new password.',
-    ],
-  },
-  {
-    id: 'logout',
-    title: 'The 30-minute auto-logout',
-    steps: [
-      'After 30 minutes without activity you are logged out, to keep the account safe.',
-      'You get a warning one minute before, and you can choose to stay logged in.',
-      'Your unsaved draft stays in this browser.',
+      'Settings › "Email me a reset link" sends a link to change your password. "Forgot password?" on the log-in page does the same.',
+      'After 30 minutes without activity you are logged out to keep the account safe. You get a warning one minute before.',
+      'If you leave a product with unsaved changes, you are asked before they are discarded.',
     ],
   },
 ];
-
-export const TOUR_STEPS: TourStep[] = [
-  { target: null, title: 'Welcome!', text: 'This short tour shows you where everything is. It takes less than a minute.' },
-  { target: 'collections', title: 'Choose a section', text: 'Furniture, Interiors and Gallery are the three sections of your website.' },
-  { target: 'categories', title: 'Categories', text: 'Categories group your items. Pick one to see its items, or add a new one here.' },
-  { target: 'add-item', title: 'Add an item', text: 'Press this to put something new on your website. We walk you through it step by step.' },
-  { target: 'help', title: 'Help is always here', text: 'Stuck? Press Help at any time. You can restart this tour from there too.' },
-];
-
-export const WIZARD_TIPS = {
-  where: 'This decides which page of your website shows the item.',
-  category: 'A category is a group of similar items, such as "Kitchen". Visitors see these groups on the page.',
-  mainMedia: 'This is the first thing visitors see on the card. Use a photo, or an MP4 video of 50 MB or less.',
-  pasteLink: 'Only needed if your photo or video is already online somewhere else. Most of the time, just upload the file.',
-  name: 'A short name visitors will read on the card, such as "Oak Dining Table".',
-  description: 'One or two sentences about the item. This is optional.',
-  price: 'Optional. Leave it empty if you would rather discuss the price with each customer.',
-  extras: 'More photos that visitors can look through. Use the arrows to change the order.',
-  preview: 'This is how the card looks to visitors. Go back to change anything.',
-} as const;

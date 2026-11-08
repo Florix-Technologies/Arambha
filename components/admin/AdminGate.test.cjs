@@ -4,7 +4,8 @@ const { readFileSync } = require('node:fs');
 const { stripTypeScriptTypes } = require('node:module');
 const vm = require('node:vm');
 const source = readFileSync(`${__dirname}/AdminGate.tsx`, 'utf8');
-const start = source.indexOf('    useEffect(() => {');
+// The auth effect is the first useEffect inside AdminGate (useActiveCategory has its own, earlier one).
+const start = source.indexOf('    useEffect(() => {', source.indexOf('export function AdminGate'));
 const effect = source.slice(start, source.indexOf('    useEffect(() => {', start + 1));
 
 test('same-user auth events keep children mounted; sign-out clears them and invalidates pending checks', async () => {

@@ -1,72 +1,55 @@
 "use client";
+import Link from 'next/link';
 import { useState } from 'react';
-import { PageHeader, Card, Button, Thumbnail, Badge, Menu, TextField, SelectField } from '../ui';
+import { useRouter } from 'next/navigation';
+import { FolderPlus, ChevronRight } from 'lucide-react';
+import { PageHeader, Card, Button, Thumbnail, Badge, EmptyState } from '../ui';
 import { CATEGORIES, TERMS, MESSAGES, type CategoryKey } from '@/lib/admin/taxonomy';
 import type { AdminProduct, AdminSubcategory } from '@/lib/admin/types';
-import { ProductTable } from './ProductTable';
-import { LiveProducts } from './LiveProducts';
+import { DeleteSubcategoryDialog, SubcategoryNameDialog } from './SubcategoryDialogs';
 import s from './CategoryScreen.module.css';
-export function CategoryScreen({ category, subcategories, products, basePath = '/admin-preview', onDeleted }: {
+
+// Main category page: its subcategories, with add, edit and delete. Products live one level down, in each subcategory.
+export function CategoryScreen({ category, subcategories, products, onChanged }: {
     category: CategoryKey;
     subcategories: AdminSubcategory[];
     products: AdminProduct[];
-    basePath?: string;
-    onDeleted?: (id: string) => void;
+    onChanged: () => void;
 }) {
-    const [search, setSearch] = useState('');
-    const [filter, setFilter] = useState('');
+    const router = useRouter();
+    const [adding, setAdding] = useState(false);
+    const [editing, setEditing] = useState<AdminSubcategory | null>(null);
+    const [deleting, setDeleting] = useState<AdminSubcategory | null>(null);
     const c = CATEGORIES[category];
+    const base = `/admin/${category}`;
     return <div className={s.page}>
-        <PageHeader breadcrumbs={[{ label: TERMS.dashboard, href: basePath }, { label: c.label }]} title={c.label} subtitle={MESSAGES.shownInMenu(c.menuTitle)} secondaryActions={
-            <Button variant="secondary" disabled={!!onDeleted}>
-                {TERMS.addSubcategory}
-            </Button>
-        } primaryAction={
-            <Button href={category === 'gallery' && !onDeleted ? `${basePath}/gallery/kitchen` : `${basePath}/products/new?category=${category}`}>
-                {c.actionPrimary}
-            </Button>
-        } />
+        <PageHeader breadcrumbs={[{ label: TERMS.dashboard, href: '/admin' }, { label: c.label }]} title={c.label}
+            subtitle={`${MESSAGES.shownInMenu(c.menuTitle)} · ${MESSAGES.subcategoryCount(subcategories.length)} · ${MESSAGES.productCount(products.length)}`}
+            secondaryActions={subcategories.length ? <Button variant="secondary" href={`/admin/products/new?category=${category}`}>{c.actionPrimary}</Button> : undefined}
+            primaryAction={<Button onClick={() => setAdding(true)}>{TERMS.addSubcategory}</Button>} />
         <Card title={TERMS.subcategories}>
-            <div className={s.grid}>
-                {!subcategories.length && <p>{MESSAGES.noSubcategories}</p>}
-                {subcategories.map(sub => {
-                    const items = products.filter(p => p.subcategory === sub.name); return <div className={s.sub} key={sub.id}>
-                        <Thumbnail src={items[0]?.image} alt={sub.name} />
-                        <div>
-                            <Button variant="plain" href={`${basePath}/${category}/${sub.id}`}>
-                                {sub.name}
-                            </Button>
-                            <p>
-                                {MESSAGES.productCount(items.length)}
-                            </p>
-                            {!items.length &&
-                                <Badge tone="warning">
-                                    {TERMS.hiddenEmpty}
-                                </Badge>
-                            }
-                        </div>
-                        {!onDeleted && <Menu ariaLabel={`${TERMS.more}: ${sub.name}`} items={[{ label: TERMS.rename }, { label: TERMS.delete, destructive: true }]} />}
-                    </div>;
-                })}
-            </div>
+            {subcategories.length === 0 ? <EmptyState icon={<FolderPlus size={24} />} title={`No subcategories in ${c.label} yet`} text={MESSAGES.noSubcategories}
+                action={<Button onClick={() => setAdding(true)}>{TERMS.addSubcategory}</Button>} /> :
+                <ul className={s.list}>
+                    {subcategories.map(sub => {
+                        const items = products.filter(p => p.subcategoryId === sub.id);
+                        return <li className={s.row} key={sub.id}>
+                            <Thumbnail src={items[0]?.image} alt={sub.name} />
+                            <Link className={s.name} href={`${base}/${sub.id}`}>
+                                <strong>{sub.name}</strong>
+                                <span>{MESSAGES.productCount(items.length)}{!items.length && <Badge tone="warning">Hidden on website (empty)</Badge>}</span>
+                                <ChevronRight className={s.chevron} size={20} aria-hidden="true" />
+                            </Link>
+                            <div className={s.actions}>
+                                <Button variant="plain" onClick={() => setEditing(sub)} aria-label={`${TERMS.edit} ${sub.name}`}>{TERMS.edit}</Button>
+                                <Button variant="plain" className={s.danger} onClick={() => setDeleting(sub)} aria-label={`${TERMS.delete} ${sub.name}`}>{TERMS.delete}</Button>
+                            </div>
+                        </li>;
+                    })}
+                </ul>}
         </Card>
-        <Card title={TERMS.products}>
-            {onDeleted ? <LiveProducts products={products} onDeleted={onDeleted} /> : <>
-            <div className={s.filters}>
-                <TextField type="search" label={TERMS.search} value={search} onChange={e => setSearch(e.target.value)} />
-                <SelectField label={TERMS.subcategory} value={filter} onChange={e => setFilter(e.target.value)}>
-                    <option value="">
-                        {TERMS.allSubcategories}
-                    </option>
-                    {subcategories.map(sub =>
-                        <option key={sub.id}>
-                            {sub.name}
-                        </option>
-                    )}
-                </SelectField>
-            </div>
-            <ProductTable products={products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) && (!filter || p.subcategory === filter))} />
-            </>}
-        </Card>
+        <SubcategoryNameDialog open={adding} onOpenChange={setAdding} category={category} onSaved={id => { onChanged(); router.push(`${base}/${id}`); }} />
+        <SubcategoryNameDialog open={!!editing} onOpenChange={open => { if (!open) setEditing(null); }} category={category} subcategory={editing ?? undefined} onSaved={onChanged} />
+        <DeleteSubcategoryDialog open={!!deleting} onOpenChange={open => { if (!open) setDeleting(null); }} subcategory={deleting} subcategories={subcategories} products={products} onDeleted={onChanged} />
     </div>;
 }

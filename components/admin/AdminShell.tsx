@@ -1,95 +1,75 @@
 "use client";
 import Link from 'next/link';
-import * as Dialog from '@radix-ui/react-dialog';
 import Image from 'next/image';
-import { useEffect, useState, type ReactNode } from 'react';
-import { LayoutDashboard, Armchair, House, Images, MoreHorizontal, CircleHelp, UserRound, Search, Menu as MenuIcon, X } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { LayoutDashboard, Armchair, House, Frame, Images, Settings, CircleHelp, MoreHorizontal, UserRound, ExternalLink } from 'lucide-react';
 import { CATEGORIES, CATEGORY_KEYS, TERMS, type CategoryKey } from '@/lib/admin/taxonomy';
 import { Menu, type MenuItem } from './ui/Menu';
-import { Modal } from './ui/Modal';
 import s from './AdminShell.module.css';
-import { adminFont } from './font';
-type ActiveKey = 'dashboard' | CategoryKey | 'help' | 'more';
-type Props = {
+
+export type ActiveKey = 'dashboard' | CategoryKey | 'media' | 'settings' | 'help' | null;
+const BASE = '/admin';
+const categoryIcons = { furniture: Armchair, interiors: House, gallery: Frame };
+type Item = { key: Exclude<ActiveKey, null>; label: string; href: string; Icon: typeof Settings };
+const catalog: Item[] = CATEGORY_KEYS.map(key => ({ key, label: CATEGORIES[key].label, href: `${BASE}/${key}`, Icon: categoryIcons[key] }));
+const overview: Item = { key: 'dashboard', label: TERMS.dashboard, href: BASE, Icon: LayoutDashboard };
+const media: Item = { key: 'media', label: TERMS.mediaLibrary, href: `${BASE}/media`, Icon: Images };
+const footer: Item[] = [
+    { key: 'settings', label: TERMS.settings, href: `${BASE}/settings`, Icon: Settings },
+    { key: 'help', label: TERMS.help, href: `${BASE}/help`, Icon: CircleHelp },
+];
+
+export function AdminShell({ active, userEmail, children, onLogOut }: {
     active: ActiveKey;
     userEmail: string;
-    basePath?: string;
     children: ReactNode;
-    onChangePassword?: () => void;
-    onLogOut?: () => void;
-    onSearch?: (query: string) => void;
-};
-const icons = { dashboard: LayoutDashboard, furniture: Armchair, interiors: House, gallery: Images };
-export function AdminShell({ active, userEmail, basePath = '/admin', children, onChangePassword, onLogOut, onSearch }: Props) {
-    const [drawerOpen, setDrawerOpen] = useState(false);
-    const [searchOpen, setSearchOpen] = useState(false);
-    useEffect(() => {
-        const desktop = window.matchMedia('(min-width:768px)');
-        const closeOnDesktop = () => { if (desktop.matches) setDrawerOpen(false); };
-        desktop.addEventListener('change', closeOnDesktop);
-        return () => desktop.removeEventListener('change', closeOnDesktop);
-    }, []);
-    const base = basePath.replace(/\/$/, '');
-    const account: MenuItem[] = [{ label: TERMS.email + ': ' + userEmail, disabled: true }, { label: onChangePassword ? TERMS.changePassword : TERMS.changePasswordClassic, href: onChangePassword ? undefined : '/admin', onSelect: onChangePassword }, { label: TERMS.logOut, href: onLogOut ? undefined : '/admin', onSelect: onLogOut }];
-    const nav = [{ key: 'dashboard' as const, label: TERMS.dashboard, href: base }, ...CATEGORY_KEYS.map(key => ({ key, label: CATEGORIES[key].label, href: `${base}/${key}` }))];
-    const search = () => onSearch && <form className={s.search} onSubmit={onSearch ? e => { e.preventDefault(); const data = new FormData(e.currentTarget); onSearch(String(data.get('q') ?? '')); } : undefined}>
-        <Search size={18} aria-hidden="true"/>
-        <input type="search" name="q" placeholder={TERMS.search} aria-label={TERMS.search}/>
-        </form>;
-    const logo = <Link href={base} className={s.logo} onClick={() => setDrawerOpen(false)} aria-label={TERMS.dashboard}>
-        <Image src="/logo2.png" alt={TERMS.brand} width={140} height={48} className={s.logoImage}/>
-        </Link>;
+    onLogOut: () => void;
+}) {
+    const link = ({ key, label, href, Icon }: Item) => <Link key={key} className={s.navLink} href={href} aria-current={active === key ? 'page' : undefined}>
+        <Icon size={20} aria-hidden="true" />{label}</Link>;
+    const brand = <Link href={BASE} className={s.brand} aria-label={`${TERMS.brand} ${TERMS.dashboard}`}>
+        <Image src="/admin-mark.png" alt="" width={40} height={40} className={s.mark} priority />
+        <span className={s.wordmark}>{TERMS.brand}<small>Admin</small></span>
+    </Link>;
+    const account: MenuItem[] = [
+        { label: userEmail, disabled: true },
+        { label: TERMS.settings, href: `${BASE}/settings` },
+        { label: TERMS.logOut, onSelect: onLogOut },
+    ];
     return <div className={s.shell}>
-        <a className={s.skip} href="#admin-main">{TERMS.adminTitle}</a>
-        <aside className={s.sidebar}>{logo}<nav aria-label={TERMS.navigation}>{nav.map((item, i) => { const Icon = icons[item.key]; return <div key={item.key}>{i === 1 && <p className={s.group}>{TERMS.categories}</p>}<Link className={s.navLink} href={item.href} aria-current={active === item.key ? 'page' : undefined}>
-        <Icon size={20} aria-hidden="true"/>{item.label}</Link>
-        </div>; })}</nav>
-        <Link className={`${s.navLink} ${s.help}`} href="/admin" aria-current={active === 'help' ? 'page' : undefined}>
-        <CircleHelp size={20} aria-hidden="true"/>{TERMS.helpClassic}</Link>
+        <a className={s.skip} href="#admin-main">Skip to content</a>
+        <aside className={s.sidebar}>
+            {brand}
+            <nav aria-label={TERMS.navigation} className={s.nav}>
+                {link(overview)}
+                <p className={s.group} id="nav-catalog">{TERMS.catalog}</p>
+                <div role="group" aria-labelledby="nav-catalog">{catalog.map(link)}</div>
+                {link(media)}
+                <div className={s.footer}>{footer.map(link)}</div>
+            </nav>
         </aside>
         <div className={s.body}>
-        <header className={s.top}>
-        <div className={s.mobileLogo}>
-        <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <Dialog.Trigger type="button" className={s.drawerButton} aria-label={TERMS.navigation}>
-        <MenuIcon size={20} aria-hidden="true"/>
-        </Dialog.Trigger>
-        <Dialog.Portal>
-        <Dialog.Overlay className={`adminRoot ${adminFont.variable} ${s.drawerOverlay}`}/>
-        <Dialog.Content className={`adminRoot ${adminFont.variable} ${s.drawer}`} aria-describedby={undefined} onCloseAutoFocus={event => {
-            if (window.matchMedia('(min-width:768px)').matches) {
-                event.preventDefault();
-                document.getElementById('admin-main')?.focus();
-            }
-        }}>
-        <div className={s.drawerHeader}>
-        <Dialog.Title>{TERMS.navigation}</Dialog.Title>
-        <Dialog.Close type="button" className={s.drawerButton} aria-label={TERMS.close}>
-        <X size={20} aria-hidden="true"/>
-        </Dialog.Close>
-        </div>{logo}<nav aria-label={TERMS.navigation}>{nav.map(item => { const Icon = icons[item.key]; return <Link key={item.key} className={s.navLink} href={item.href} aria-current={active === item.key ? 'page' : undefined} onClick={() => setDrawerOpen(false)}>
-        <Icon size={20} aria-hidden="true"/>{item.label}</Link>; })}<Link className={s.navLink} href="/admin" aria-current={active === 'help' ? 'page' : undefined} onClick={() => setDrawerOpen(false)}>{TERMS.helpClassic}</Link>
+            <header className={s.top}>
+                <div className={s.mobileBrand}>{brand}</div>
+                <div className={s.topActions}>
+                    <a className={s.website} href="/" target="_blank" rel="noreferrer">{TERMS.viewWebsite}<ExternalLink size={16} aria-hidden="true" /></a>
+                    <Menu ariaLabel={`${TERMS.account}: ${userEmail}`} icon={<UserRound size={20} />} items={account} />
+                </div>
+            </header>
+            <main id="admin-main" tabIndex={-1} className={s.main}>{children}</main>
+        </div>
+        <nav className={s.bottom} aria-label={TERMS.navigation}>
+            {[overview, ...catalog].map(({ key, label, href, Icon }) => <Link key={key} href={href} aria-current={active === key ? 'page' : undefined}>
+                <Icon size={20} aria-hidden="true" /><span>{label}</span>
+            </Link>)}
+            <div className={s.more} data-active={active === 'media' || active === 'settings' || active === 'help' || undefined}>
+                <Menu ariaLabel={TERMS.more} icon={<MoreHorizontal size={20} />} items={[
+                    { label: TERMS.mediaLibrary, href: media.href },
+                    ...footer.map(item => ({ label: item.label, href: item.href })),
+                    { label: TERMS.viewWebsite, href: '/' },
+                ]} />
+                <span>{TERMS.more}</span>
+            </div>
         </nav>
-        </Dialog.Content>
-        </Dialog.Portal>
-        </Dialog.Root>{logo}</div>
-        <div className={s.desktopSearch}>{search()}</div>
-        <div className={s.topActions}>
-        <Link className={s.website} href="/" target="_blank" rel="noreferrer">{TERMS.viewWebsite} <span aria-hidden="true">&#8599;</span>
-        </Link>
-        <Menu ariaLabel={`${TERMS.account}: ${userEmail}`} icon={<UserRound size={20}/>} items={account}/>
-        </div>
-        </header>
-        <main id="admin-main" tabIndex={-1} className={s.main}>{children}</main>
-        </div>
-        <nav className={s.bottom} aria-label={TERMS.navigation}>{nav.map(item => { const Icon = icons[item.key]; return <Link key={item.key} href={item.href} aria-current={active === item.key ? 'page' : undefined}>
-        <Icon size={20} aria-hidden="true"/>
-        <span>{item.label}</span>
-        </Link>; })}<div className={s.more}>
-        <Menu ariaLabel={TERMS.more} icon={<MoreHorizontal size={20}/>} items={[{ label: TERMS.helpClassic, href: '/admin' }, { label: TERMS.viewWebsite, href: '/' }, ...(onSearch ? [{ label: TERMS.search, onSelect: () => setSearchOpen(true) }] : [])]}/>
-        <span>{TERMS.more}</span>
-        </div>
-        </nav>
-        <Modal open={searchOpen} onOpenChange={setSearchOpen} title={TERMS.search}>{search()}</Modal>
-        </div>;
+    </div>;
 }

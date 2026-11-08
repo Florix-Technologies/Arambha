@@ -24,7 +24,7 @@ function load(file) {
       if (name.startsWith('@radix-ui/')) return radix;
       if (name.endsWith('.css')) return {};
       if (name.endsWith('/font')) return { adminFont: { variable: 'font' } };
-      if (name.endsWith('/taxonomy')) return { TERMS, MESSAGES: { typeToConfirm: v => v } };
+      if (name.endsWith('/taxonomy')) return { TERMS, MESSAGES: { typeToConfirm: v => v }, CATEGORY_KEYS: ['furniture', 'interiors', 'gallery'], CATEGORIES: new Proxy({}, { get: (_, key) => ({ label: key }) }) };
       return new Proxy({}, { get: (_, key) => key });
     },
     document: { activeElement: opener }, HTMLElement: Element,

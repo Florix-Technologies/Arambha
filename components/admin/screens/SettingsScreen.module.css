@@ -1,0 +1,16 @@
+.page { display:grid; gap:24px; max-width:760px; }
+.list { margin:0; display:grid; }
+.list > div { display:grid; grid-template-columns:180px minmax(0,1fr); gap:16px; padding:16px 0; border-top:1px solid var(--border); }
+.list > div:first-child { border-top:0; padding-top:0; }
+.list dt { font-weight:600; }
+.list dd { margin:0; display:grid; gap:12px; justify-items:start; }
+.list p { margin:0; color:var(--text-muted); }
+.list p.ok { color:var(--success); }
+.list p.error { color:var(--danger); }
+.guides { display:grid; }
+.guides details { border-top:1px solid var(--border); }
+.guides details:first-child { border-top:0; }
+.guides summary { min-height:48px; display:flex; align-items:center; cursor:pointer; font-weight:600; font-size:15px; }
+.guides summary:hover { color:var(--primary-hover); }
+.guides ol { margin:0 0 16px; padding-left:22px; display:grid; gap:8px; max-width:65ch; }
+@media (max-width:767px) { .list > div { grid-template-columns:1fr; gap:6px; } }

@@ -27,6 +27,12 @@ export function validateMediaFile(file: File): string | null {
   return file.size > MAX_IMAGE_BYTES ? IMAGE_TOO_LARGE_MESSAGE : null;
 }
 
+// Photos (except GIF) are shrunk before upload, so only their type is checked here; uploadMedia applies the size limit to the shrunk file.
+export function validateBeforeShrink(file: File): string | null {
+  if (file.type.startsWith('image/') && file.type !== 'image/gif') return Object.hasOwn(extensions, file.type) ? null : WRONG_TYPE_MESSAGE;
+  return validateMediaFile(file);
+}
+
 export function uploadErrorMessage(status: number, body: string, file: File): string {
   try {
     const parsed: unknown = JSON.parse(body);

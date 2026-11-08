@@ -1,5 +1,4 @@
-.header {
-  margin-bottom:var(--space-3)}
+.header { display:grid; gap:var(--space-1); }
 
 .row {
   display:flex;

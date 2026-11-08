@@ -12,7 +12,7 @@ const Popup = () => {
     const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
 
     // Never interrupt the admin panel or the password reset page.
-    const hidden = pathname === "/admin" || pathname.startsWith("/auth");
+    const hidden = pathname.startsWith("/admin") || pathname.startsWith("/auth");
 
     useEffect(() => {
         if (hidden) return;

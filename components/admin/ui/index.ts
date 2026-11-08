@@ -10,8 +10,6 @@ export * from './Menu';
 export * from './Modal';
 export * from './ConfirmDialog';
 export * from './ToastProvider';
-export * from './Tooltip';
-export * from './ViewToggle';
 export * from './IndexTable';
 export * from './EmptyState';
 export * from './SaveBar';

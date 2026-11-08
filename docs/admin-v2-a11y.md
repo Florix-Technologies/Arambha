@@ -72,6 +72,6 @@ node docs/admin-v2-a11y.check.cjs
 
 ## Remaining verification
 
-On a dependency-ready checkout, rerun type checking, targeted lint and build, then open `/admin-preview`, `/admin-preview/interiors/wooden-interior`, `/admin-preview/products/new`, and `/admin-preview/login` at 360, 768 and 1280px. Capture screenshots and check horizontal overflow, 200% zoom, sticky controls, long labels and menu placement.
+On a dependency-ready checkout, rerun type checking, targeted lint and build, then open `/admin`, `/admin/interiors`, `/admin/products/new`, and `/admin/login` at 360, 768 and 1280px. Capture screenshots and check horizontal overflow, 200% zoom, sticky controls, long labels and menu placement.
 
 Use keyboard-only interaction to check drawer Tab/Shift+Tab trap, Escape, overlay dismissal, navigation and trigger focus return; resize to 768px while the drawer is open. Exercise Menu arrows/Home/End/typeahead/disabled items and Escape. Exercise table arrows and Tab into embedded controls. Open Modal and ConfirmDialog, check initial safe focus, Escape, Tab/Shift+Tab, close and focus return, including dialogs opened from a closing menu and when an opener is removed. Repeat with reduced motion and a screen reader. These browser/assistive-technology checks remain open because this sandbox cannot run the application.
