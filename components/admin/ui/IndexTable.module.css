@@ -108,3 +108,6 @@
 .srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 
 .table td:focus-visible { outline-offset:-3px; }
+
+/* The caption names the table for screen readers only; the card title is the visible heading. Beats the phone rule that makes captions full-width blocks. */
+.table caption.srOnly { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }

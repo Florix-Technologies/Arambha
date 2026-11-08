@@ -17,7 +17,8 @@ export default function Page() {
         async function load() {
             try {
                 const collections = await Promise.all(CATEGORY_KEYS.map(async category => {
-                    const [subcategories, products] = await Promise.all([listCategories(category), listProducts(category)]);
+                    const subcategories = await listCategories(category);
+                    const products = subcategories.error === null ? await listProducts(category, undefined, subcategories.data) : { data: null, error: subcategories.error };
                     if (subcategories.error !== null || products.error !== null) throw new Error('Dashboard request failed');
                     return { subcategories: subcategories.data, products: products.data };
                 }));
@@ -34,7 +35,7 @@ export default function Page() {
         return () => { disposed = true; };
     }, [attempt]);
 
-    return <DashboardScreen {...state} recent={state.products.slice(0, 6)} basePath="/admin-v2" managementHref="/admin" onRetry={() => {
+    return <DashboardScreen {...state} recent={state.products.slice(0, 6)} basePath="/admin-v2" onRetry={() => {
         setState({ products: [], subcategories: [], loading: true });
         setAttempt(value => value + 1);
     }} />;

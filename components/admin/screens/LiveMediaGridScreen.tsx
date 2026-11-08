@@ -14,7 +14,8 @@ export function LiveMediaGridScreen({ subcategoryId }: { subcategoryId: string }
         let cancelled = false;
         async function load() {
             try {
-                const [categories, products] = await Promise.all([listCategories('gallery'), listProducts('gallery', subcategoryId)]);
+                const categories = await listCategories('gallery');
+                const products = categories.error === null ? await listProducts('gallery', subcategoryId, categories.data) : { data: null, error: categories.error };
                 if (cancelled) return;
                 if (categories.error !== null || products.error !== null) throw new Error(categories.error ?? products.error ?? 'Could not load gallery.');
                 const sub = categories.data.find(item => item.id === subcategoryId);
@@ -26,6 +27,6 @@ export function LiveMediaGridScreen({ subcategoryId }: { subcategoryId: string }
         return () => { cancelled = true; };
     }, [subcategoryId, attempt]);
     if (error) return <Card><p role="alert">{error}</p><Button onClick={() => { setError(''); setAttempt(n => n + 1); }}>Retry</Button></Card>;
-    if (!data) return <p role="status">{TERMS.loading}�</p>;
+    if (!data) return <p role="status">{TERMS.loading}…</p>;
     return <MediaGridScreen {...data} uploads={[]} subcategoryId={subcategoryId} onUploaded={item => setData(previous => previous && ({ ...previous, media: [...previous.media, item] }))} />;
 }

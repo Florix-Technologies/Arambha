@@ -3,12 +3,6 @@
   gap:24px
 }
 
-.grid {
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:16px
-}
-
 .warning {
   display:flex;
   align-items:center;
@@ -22,17 +16,6 @@
 
 .warning svg {
   flex-shrink:0
-}
-
-.actions {
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap
-}
-
-.grid p {
-  margin-bottom:16px;
-  color:var(--text-muted)
 }
 
 .row {
@@ -49,13 +32,28 @@
 }
 
 @media(max-width:767px) {
-  .grid {
-    grid-template-columns:1fr
-  }
   .row {
     grid-template-columns:64px minmax(0,1fr)
   }
   .row time {
     grid-column:2
   }
+}
+
+/* Catalog summary: one scannable table instead of a card per collection. */
+.summary { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+.summary th, .summary td { padding:12px var(--space-2); text-align:left; border-bottom:1px solid var(--border); }
+.summary thead th { padding-top:0; font-size:14px; font-weight:500; color:var(--text-muted); }
+.summary tbody th { font-weight:600; }
+.summary td:nth-child(2), .summary td:nth-child(3), .summary thead th:nth-child(2), .summary thead th:nth-child(3) { text-align:right; }
+.summary td:last-child, .summary th:last-child { padding-right:0; }
+.summary th, .summary td { overflow-wrap:normal; word-break:normal; }
+.collection { color:var(--primary); text-decoration:underline; text-decoration-color:transparent; text-underline-offset:3px; }
+.collection:hover { text-decoration-color:currentColor; }
+.summary tfoot th, .summary tfoot td { border-bottom:0; font-weight:600; }
+.summary th:first-child { padding-left:0; }
+.srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+
+@media(max-width:767px) {
+  .summary th, .summary td { padding:12px var(--space-1); }
 }

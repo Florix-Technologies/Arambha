@@ -81,10 +81,11 @@ export function listCategories(category: CategoryKey): Promise<DataResult<AdminS
     });
 }
 // Omitting subcategoryId lists the collection using the same per-category query as the legacy admin.
-export function listProducts(category: CategoryKey, subcategoryId?: string): Promise<DataResult<AdminProduct[]>> {
+export function listProducts(category: CategoryKey, subcategoryId?: string, knownCategories?: AdminSubcategory[]): Promise<DataResult<AdminProduct[]>> {
     return result(async () => {
         if (subcategoryId !== undefined) requireId(subcategoryId);
-        const categories = await listCategories(category);
+        requireCategory(category);
+        const categories = knownCategories === undefined ? await listCategories(category) : { data: knownCategories.filter(row => row.category === category), error: null };
         if (categories.error !== null) throw new Error(categories.error);
         const selected = categories.data.filter(row => subcategoryId === undefined || row.id === subcategoryId);
         if (subcategoryId && !selected.length) throw new Error('Subcategory not found in this category');
@@ -98,6 +99,7 @@ export function listProducts(category: CategoryKey, subcategoryId?: string): Pro
                 if (error) throw error;
                 if (!data?.length) break;
                 rows.push(...data as ProductRow[]);
+                if (data.length < 1000) break;
             }
             return rows.map(row => mapProduct(row, subcategory));
         }));
@@ -143,6 +145,7 @@ export function deleteProduct(id: string): Promise<DataResult<string>> {
 export function renameCategory(category: AdminSubcategory, value: string): Promise<DataResult<string>> {
     return result(async () => {
         requireId(category.id); requireCategory(category.category);
+        await requireSession();
         const invalid = validateName(value, TERMS.subcategory);
         if (invalid) throw new Error(invalid);
         const name = normalizeCategoryName(value), slug = slugify(name);
@@ -164,6 +167,6 @@ export function countCategoryProducts(id: string): Promise<DataResult<number>> {
     });
 }
 export function deleteCategory(id: string): Promise<DataResult<string>> {
-    return result(async () => { requireId(id); return changed(supabase.from('categories').delete().eq('id', id).select('id')); });
+    return result(async () => { requireId(id); await requireSession(); return changed(supabase.from('categories').delete().eq('id', id).select('id')); });
 }
 

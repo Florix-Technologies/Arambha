@@ -151,13 +151,15 @@
     color:var(--primary);
     background:var(--primary-soft)  }
 
+  /* The whole cell is the touch target (button::after), so the icon button sits on the same line as the link icons. */
   .more {
-    position:relative;
-    gap:0  }
+    position:relative  }
 
   .more button {
-    min-height:44px;
-    width:100%  }
+    min-width:0;
+    min-height:0;
+    padding:0;
+    background:none  }
 
   .more>span {
     pointer-events:none  }

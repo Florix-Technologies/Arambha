@@ -23,33 +23,41 @@ export function AdminGate({ children, login = false }: { children?: ReactNode; l
     useEffect(() => {
         let disposed = false;
         let revision = 0;
-        const verify = async () => {
+        let userId: string | null = null;
+        // background: a re-check for the user already shown. A network failure there must not unmount the
+        // screen (unsaved edits, uploads); only a definite "no valid user" answer signs the admin out.
+        const verify = async (background = false) => {
             const current = ++revision;
             try {
                 // Verify with Auth; a locally stored session alone is not proof of identity.
                 const { data, error } = await supabase.auth.getUser();
                 if (!disposed && current === revision && !signingOut.current) {
+                    if (background && error && error.status !== 401 && error.status !== 403) return;
+                    userId = error ? null : data.user?.id ?? null;
                     setUser(error ? null : data.user);
                     setChecking(false);
                 }
             } catch {
-                if (!disposed && current === revision && !signingOut.current) {
+                if (!disposed && current === revision && !signingOut.current && !background) {
+                    userId = null;
                     setUser(null);
                     setChecking(false);
                 }
             }
         };
         void verify();
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            ++revision;
-            setUser(null);
-            if (!session) {
-                setChecking(false);
-                return;
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            const current = ++revision;
+            const nextUserId = event === 'SIGNED_OUT' ? null : session?.user.id ?? null;
+            const sameUser = event !== 'SIGNED_OUT' && nextUserId === userId;
+            if (!sameUser) {
+                userId = nextUserId;
+                setUser(null);
+                setChecking(nextUserId !== null);
             }
-            setChecking(true);
+            if (!nextUserId) return;
             // Run outside the Auth callback to avoid its session lock.
-            setTimeout(() => { if (!disposed && !signingOut.current) void verify(); }, 0);
+            setTimeout(() => { if (!disposed && current === revision && !signingOut.current) void verify(sameUser); }, 0);
         });
         return () => { disposed = true; ++revision; subscription.unsubscribe(); };
     }, []);
@@ -115,7 +123,7 @@ export function AdminGate({ children, login = false }: { children?: ReactNode; l
     return <ToastProvider><AdminShell basePath="/admin-v2" active={active} userEmail={user?.email ?? ''} onLogOut={() => void logOut()}>
         {children}
         <Modal open={secondsLeft !== null} onOpenChange={open => { if (!open) stayLoggedIn(); }} title={MESSAGES.sessionTitle} description={MESSAGES.sessionBody}>
-            <p role="status">Logging out in {secondsLeft ?? 0} seconds.</p>
+            <p role="status">Logging out in {secondsLeft ?? 0} {secondsLeft === 1 ? 'second' : 'seconds'}.</p>
             <Button onClick={stayLoggedIn}>Stay logged in</Button>
             <Button variant="plain" onClick={() => void logOut()}>{TERMS.logOut}</Button>
         </Modal>

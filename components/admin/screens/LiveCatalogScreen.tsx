@@ -14,7 +14,8 @@ export function LiveCatalogScreen({ category, subcategoryId }: { category: Categ
     useEffect(() => {
         let cancelled = false;
         async function load() {
-            const [categories, products] = await Promise.all([listCategories(category), listProducts(category, subcategoryId)]);
+            const categories = await listCategories(category);
+            const products = categories.error === null ? await listProducts(category, subcategoryId, categories.data) : { data: null, error: categories.error };
             if (cancelled) return;
             if (categories.error !== null || products.error !== null) { setError(categories.error ?? products.error ?? 'Could not load catalog'); return; }
             setData({ subcategories: categories.data, products: products.data });
