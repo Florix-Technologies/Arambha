@@ -16,8 +16,8 @@ export const fetchSubcategory = cache(async (collection: Collection, slug: strin
 /** Finds a product by the first 8 hex characters of its id (the tail of its public URL) with a uuid range filter. */
 export const fetchProductByPrefix = cache(async (prefix: string): Promise<ProductPage | null> => {
   if (!/^[0-9a-f]{8}$/.test(prefix)) return null;
-  const { data, error } = await supabase.from('products').select('*')
-    .gte('id', `${prefix}-0000-0000-0000-000000000000`).lte('id', `${prefix}-ffff-ffff-ffff-ffffffffffff`).limit(1);
+  const bound = (digit: string) => [prefix, digit.repeat(4), digit.repeat(4), digit.repeat(4), digit.repeat(12)].join('-');
+  const { data, error } = await supabase.from('products').select('*').gte('id', bound('0')).lte('id', bound('f')).limit(1);
   if (error) throw error;
   const row = data?.[0];
   if (!row) return null;
