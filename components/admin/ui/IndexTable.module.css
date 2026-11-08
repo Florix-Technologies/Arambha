@@ -1,0 +1,88 @@
+.wrapper {
+  min-width:0;
+  overflow-x:auto}
+
+.table {
+  width:100%;
+  border-collapse:collapse;
+  background:var(--surface)}
+
+.table caption {
+  text-align:left;
+  font-weight:600;
+  padding:var(--space-2)}
+
+.table th,.table td {
+  padding:var(--space-2);
+  text-align:left;
+  border-bottom:1px solid var(--border);
+  overflow-wrap:anywhere;
+  vertical-align:middle}
+
+.table th {
+  color:var(--text-muted);
+  font-weight:600}
+
+.selection {
+  width:64px}
+
+.check {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:44px;
+  min-height:44px;
+  cursor:pointer}
+
+.check input {
+  width:20px;
+  height:20px;
+  accent-color:var(--primary)}
+
+.bulk {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:var(--space-2);
+  padding:var(--space-2);
+  background:var(--primary-soft);
+  border-radius:var(--radius)}
+
+.cell {
+  min-width:0}
+
+.cell>* {
+  max-width:100%}
+
+@media(max-width:767px) {
+  .table, .table tbody { display:block; width:100%; min-width:0; background:transparent; }
+  .table thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+  /* Each product is a compact card: photo on the left, name and details beside it, actions underneath. */
+  .table tr { display:grid; grid-template-columns:56px minmax(0,1fr); column-gap:12px; row-gap:2px; align-items:center;
+    margin-bottom:12px; padding:12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); }
+  .table td { display:flex; gap:6px; grid-column:2; padding:0; border:0; font-size:13px; color:var(--text-muted); }
+  .table td::before { content:attr(data-label) ":"; font-weight:500; }
+  .table td[data-key=image] { grid-column:1; grid-row:1 / span 3; }
+  .table td[data-key=name] { font-size:15px; color:var(--text); }
+  .table td[data-key=image]::before, .table td[data-key=name]::before, .table td[data-key=actions]::before { display:none; }
+  .table td[data-key=actions] { grid-column:1 / -1; width:auto; margin-top:8px; padding-top:4px; border-top:1px solid var(--border); }
+  .table td[data-key=actions] .cell { margin-left:-12px; }
+  .table td.selection { display:flex; justify-content:flex-end; }
+  .table td.selection::before { display:none; }
+}
+
+.selectionBar { display:flex; padding:var(--space-1); background:var(--surface); border-bottom:1px solid var(--border); }
+.selectionBar .check { gap:var(--space-1); }
+.srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+
+.table td:focus-visible { outline-offset:-3px; }
+
+/* The caption names the table for screen readers only; the card title is the visible heading. Beats the phone rule that makes captions full-width blocks. */
+.table caption.srOnly { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+
+/* Photo and actions take only the room they need; the name gets the rest. */
+.table [data-key=image] { width:88px; }
+@media (min-width:768px) { .table th[data-key=actions], .table td[data-key=actions] { width:1%; white-space:nowrap; } }
+.table td[data-key=actions] .cell { display:flex; gap:4px; }
+.table th[data-key=price], .table td[data-key=price], .table th[data-key=date], .table td[data-key=date] { white-space:nowrap; }
+@media (min-width:768px) and (max-width:1099px) { .table [data-key=date] { display:none; } }

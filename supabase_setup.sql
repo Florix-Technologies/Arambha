@@ -39,40 +39,41 @@ ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================
--- CREATE RLS POLICIES (PUBLIC READ + WRITE ACCESS)
+-- RLS POLICIES: PUBLIC READ, WRITES ONLY FOR THE ADMIN ACCOUNT
+-- Matches the live database (read on 8 Nov 2026). Never re-create the old
+-- "for all users" insert/delete policies: they let anyone with the public key change data.
 -- ============================================================
 
--- Drop existing policies if they exist
 DROP POLICY IF EXISTS "Enable read access for all users" ON categories;
 DROP POLICY IF EXISTS "Enable read access for all users" ON products;
 DROP POLICY IF EXISTS "Enable insert for all users" ON categories;
 DROP POLICY IF EXISTS "Enable insert for all users" ON products;
 DROP POLICY IF EXISTS "Enable delete for all users" ON categories;
 DROP POLICY IF EXISTS "Enable delete for all users" ON products;
+DROP POLICY IF EXISTS "Admin can add categories" ON categories;
+DROP POLICY IF EXISTS "Admin can edit categories" ON categories;
+DROP POLICY IF EXISTS "Admin can delete categories" ON categories;
+DROP POLICY IF EXISTS "Admin can add products" ON products;
+DROP POLICY IF EXISTS "Admin can edit products" ON products;
+DROP POLICY IF EXISTS "Admin can delete products" ON products;
 
--- Categories - Allow public read
-CREATE POLICY "Enable read access for all users" ON categories
-  FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON categories FOR SELECT USING (true);
+CREATE POLICY "Admin can add categories" ON categories FOR INSERT TO authenticated
+  WITH CHECK ((auth.jwt() ->> 'email') = 'admin@arambhainteriorstudio.com');
+CREATE POLICY "Admin can edit categories" ON categories FOR UPDATE TO authenticated
+  USING ((auth.jwt() ->> 'email') = 'admin@arambhainteriorstudio.com')
+  WITH CHECK ((auth.jwt() ->> 'email') = 'admin@arambhainteriorstudio.com');
+CREATE POLICY "Admin can delete categories" ON categories FOR DELETE TO authenticated
+  USING ((auth.jwt() ->> 'email') = 'admin@arambhainteriorstudio.com');
 
--- Categories - Allow public insert
-CREATE POLICY "Enable insert for all users" ON categories
-  FOR INSERT WITH CHECK (true);
-
--- Categories - Allow public delete
-CREATE POLICY "Enable delete for all users" ON categories
-  FOR DELETE USING (true);
-
--- Products - Allow public read
-CREATE POLICY "Enable read access for all users" ON products
-  FOR SELECT USING (true);
-
--- Products - Allow public insert
-CREATE POLICY "Enable insert for all users" ON products
-  FOR INSERT WITH CHECK (true);
-
--- Products - Allow public delete
-CREATE POLICY "Enable delete for all users" ON products
-  FOR DELETE USING (true);
+CREATE POLICY "Enable read access for all users" ON products FOR SELECT USING (true);
+CREATE POLICY "Admin can add products" ON products FOR INSERT TO authenticated
+  WITH CHECK ((auth.jwt() ->> 'email') = 'admin@arambhainteriorstudio.com');
+CREATE POLICY "Admin can edit products" ON products FOR UPDATE TO authenticated
+  USING ((auth.jwt() ->> 'email') = 'admin@arambhainteriorstudio.com')
+  WITH CHECK ((auth.jwt() ->> 'email') = 'admin@arambhainteriorstudio.com');
+CREATE POLICY "Admin can delete products" ON products FOR DELETE TO authenticated
+  USING ((auth.jwt() ->> 'email') = 'admin@arambhainteriorstudio.com');
 
 -- ============================================================
 -- CREATE INDEXES FOR PERFORMANCE
@@ -377,12 +378,9 @@ INSERT INTO products (category_id, name, description, image_url, images) VALUES
 -- ============================================================
 -- IMPORTANT NOTES
 -- ============================================================
--- 1. RLS is enabled with public read/write access (DEVELOPMENT ONLY)
--- 2. For production, implement authentication:
---    - Add Supabase Auth
---    - Restrict INSERT/DELETE to authenticated users
---    - Use service role key only on backend
+-- 1. RLS: anyone can read; only the admin account can add, edit or delete.
+-- 2. Media uploads use the public "catalog-media" storage bucket; its upload/delete policies
+--    are pinned to the same admin email (see docs/admin-v2-staging-setup.sql).
 -- 3. Images array stores multiple image URLs
 -- 4. Price is optional (can be NULL)
--- 5. Current setup allows anyone to modify data - this is for development testing
--- 6. To make it production-ready, add authentication and update RLS policies
+-- 5. For a test copy, use docs/admin-v2-staging-setup.sql in a separate project, never the live one.

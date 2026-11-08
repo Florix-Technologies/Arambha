@@ -1,0 +1,25 @@
+.header { display:grid; gap:var(--space-1); }
+
+.row {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:var(--space-2);
+  flex-wrap:wrap}
+
+.copy {
+  min-width:0;
+  overflow-wrap:anywhere}
+
+.copy h1 {
+  font-size:28px}
+
+.subtitle {
+  color:var(--text-muted);
+  margin-top:var(--space-1)}
+
+.actions {
+  display:flex;
+  align-items:center;
+  gap:var(--space-1);
+  flex-wrap:wrap}

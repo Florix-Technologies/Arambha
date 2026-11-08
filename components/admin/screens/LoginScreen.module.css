@@ -1,0 +1,39 @@
+.page {
+  min-height:100dvh;
+  display:grid;
+  place-items:center;
+  padding:24px 16px
+}
+
+.card {
+  width:100%;
+  max-width:440px
+}
+
+.card h1 {
+  font-size:24px;
+  margin:24px 0 8px
+}
+
+.card p {
+  color:var(--text-muted);
+  margin-bottom:24px
+}
+
+.card form {
+  display:grid;
+  gap:16px
+}
+
+.full {
+  width:100%
+}
+
+.error {
+  color:var(--danger);
+  min-height:20px
+}
+
+.logo { display:block; width:120px; height:120px; object-fit:contain; margin:0 auto; }
+.card h1 { text-align:center; }
+.card form p { margin:0; color:var(--success); }
