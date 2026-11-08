@@ -12,9 +12,6 @@ const nextConfig: NextConfig = {
       { key: 'Content-Security-Policy', value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'" },
     ] }];
   },
-  async rewrites() {
-    return [{ source: '/favicon.ico', destination: '/logo2.png' }];
-  },
 };
 
 export default nextConfig;

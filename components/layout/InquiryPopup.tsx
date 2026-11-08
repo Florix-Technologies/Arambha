@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { track } from "@/lib/track";
 import styles from "./InquiryPopup.module.css";
 
 const Popup = () => {
@@ -102,7 +103,11 @@ const Popup = () => {
                         <div className={styles.imageSection}>
                             <img
                                 src="/popup.jpeg" // Using an existing interior image
-                                alt="Beautiful Interior"
+                                alt=""
+                                width={735}
+                                height={668}
+                                loading="lazy"
+                                decoding="async"
                                 className={styles.image}
                             />
                         </div>
@@ -122,6 +127,7 @@ const Popup = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={styles.ctaButton}
+                                onClick={() => track("click_whatsapp", { placement: "popup" })}
                             >
                                 WhatsApp Now
                             </a>

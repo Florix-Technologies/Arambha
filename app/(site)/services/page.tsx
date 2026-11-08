@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import ContactActions from "@/components/ui/ContactActions";
 import styles from "./page.module.css";
 
 type MediaItem = {
@@ -10,7 +13,7 @@ type MediaItem = {
   src: string;
 };
 
-function MediaGrid({ items }: { items: MediaItem[] }) {
+function MediaGrid({ items, title, priority }: { items: MediaItem[]; title: string; priority?: boolean }) {
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<"image" | "video" | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -63,7 +66,13 @@ function MediaGrid({ items }: { items: MediaItem[] }) {
           >
             <div className={styles.mediaBox}>
               {item.type === "image" ? (
-                <img src={item.src} alt={`Service ${i + 1}`} />
+                <Image
+                  src={item.src.startsWith("/") ? item.src : `/${item.src}`}
+                  alt={`${title} by Arambha Design & Interior Studio, Bangalore, photo ${i + 1}`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  priority={priority && i === 0}
+                />
               ) : (
                 <SmartVideo src={item.src} />
               )}
@@ -349,24 +358,26 @@ function ServicesContent() {
         </div>
       </div>
 
-      {displayCategories.map((catName) => (
+      {displayCategories.map((catName, catIndex) => (
         <section key={catName} className={styles.section}>
           {(filter === 'all' || allCategories.includes(filter)) && <h2>{catName}</h2>}
           {filteredSections
             .filter(s => s.category === catName)
-            .map((subSection) => (
+            .map((subSection, subIndex) => (
               <div key={subSection.id} className={styles.subSection}>
                 {(filter === 'all' || filter === catName || filter === subSection.id) && <h3>{subSection.title}</h3>}
-                <MediaGrid items={subSection.items} />
+                <MediaGrid items={subSection.items} title={subSection.title} priority={catIndex === 0 && subIndex === 0} />
               </div>
             ))}
         </section>
       ))}
 
+      <ContactActions placement="services" message="Hi, I would like to book an interior design consultation with Arambha." />
+
       {filteredSections.length === 0 && (
         <div style={{ textAlign: "center", padding: "4rem" }}>
           <p>No services found matching the criteria.</p>
-          <a href="/services" style={{ color: "var(--color-accent)", textDecoration: "underline" }}>View all services</a>
+          <Link href="/services" style={{ color: "var(--color-accent)", textDecoration: "underline" }}>View all services</Link>
         </div>
       )}
     </div>
@@ -376,10 +387,10 @@ function ServicesContent() {
 export default function ServicesPage() {
   return (
     <Suspense fallback={
-      <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>
-        <p style={{ fontSize: '1.2rem', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-cormorant)' }}>
-          Loading Services...
-        </p>
+      <div style={{ textAlign: 'center', padding: '8rem 1rem 4rem' }}>
+        <h1>Our Services</h1>
+        <p>Explore our wide range of interior and furniture solutions tailored for your needs.</p>
+        <ContactActions placement="services" message="Hi, I would like to book an interior design consultation with Arambha." />
       </div>
     }>
       <ServicesContent />

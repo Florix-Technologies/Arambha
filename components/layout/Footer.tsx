@@ -1,6 +1,8 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
+import { track } from '@/lib/track';
 import { motion } from 'framer-motion';
 import styles from './Footer.module.css';
 
@@ -22,9 +24,12 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <img
+            <Image
               src="/logo1.png"
-              alt="Arambha Logo"
+              alt="Arambha Design & Interior Studio logo"
+              width={300}
+              height={300}
+              sizes="300px"
               style={{
                 height: '300px',
                 width: '300px',
@@ -73,7 +78,7 @@ export default function Footer() {
               MEI Polytechnic College, Bangalore - 560010, Karnataka.
             </a>
             <p className={styles.link}>✉️ admin@arambhainteriorstudio.com</p>
-            <p className={styles.link}>📞 +91 91876 28243</p>
+            <a href="tel:+919187628243" className={styles.link} onClick={() => track('click_call', { placement: 'footer' })}>📞 +91 91876 28243</a>
           </motion.div>
 
           <motion.div

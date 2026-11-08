@@ -11,6 +11,10 @@ type Props = {
   onClick?: MouseEventHandler<HTMLVideoElement>;
   /** The visitor pressed pause, so scrolling back must not restart it. */
   userPaused?: boolean;
+  /** Still frame shown until the video plays (also the preview when autoplay is refused). */
+  poster?: string;
+  /** Wait for the page to finish loading before fetching the video, so it does not compete with the first paint. */
+  deferLoad?: boolean;
 };
 
 // iPhones need a time offset to draw the first frame of a video that has not started playing.
@@ -20,9 +24,18 @@ const withFirstFrame = (src: string) => (src.includes('#') ? src : `${src}#t=0.0
  * Every decorative video on the site goes through this. A page can list dozens of videos, but phones run out of memory
  * if they all load, so a video only has a source while it is on screen or about to be, and gives it up when it leaves.
  */
-export default function SmartVideo({ src, className, style, label, onClick, userPaused = false }: Props) {
+export default function SmartVideo({ src, className, style, label, onClick, userPaused = false, poster, deferLoad = false }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
   const [near, setNear] = useState(false);
+  const [ready, setReady] = useState(!deferLoad);
+
+  useEffect(() => {
+    if (!deferLoad) return;
+    const go = () => { window.setTimeout(() => setReady(true), 800); };
+    if (document.readyState === 'complete') go();
+    else window.addEventListener('load', go, { once: true });
+    return () => window.removeEventListener('load', go);
+  }, [deferLoad]);
 
   useEffect(() => {
     const video = ref.current;
@@ -41,7 +54,7 @@ export default function SmartVideo({ src, className, style, label, onClick, user
   useEffect(() => {
     const video = ref.current;
     if (!video) return;
-    if (!near) {
+    if (!near || !ready) {
       if (video.hasAttribute('src')) {
         video.pause();
         video.removeAttribute('src');
@@ -58,7 +71,7 @@ export default function SmartVideo({ src, className, style, label, onClick, user
     else video.play().catch(() => {
       // Autoplay refused, for example in iPhone Low Power Mode: the first frame stays visible instead.
     });
-  }, [near, src, userPaused]);
+  }, [near, ready, src, userPaused]);
 
   return (
     <video
@@ -66,6 +79,7 @@ export default function SmartVideo({ src, className, style, label, onClick, user
       className={className}
       style={{ backgroundColor: '#e8e4dc', ...style }}
       aria-label={label}
+      poster={poster}
       onClick={onClick}
       autoPlay
       muted

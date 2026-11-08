@@ -1,14 +1,8 @@
 import { fetchCatalog } from '@/lib/catalog';
-import InteriorsClient from './InteriorsClient';
+import { CollectionIndex } from '@/components/catalog/CollectionViews';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
-export default async function InteriorsPage({ searchParams }: { searchParams: Promise<{ filter?: string | string[] }> }) {
-  const { filter: rawFilter } = await searchParams;
-  const filter = Array.isArray(rawFilter) ? rawFilter[0] : rawFilter;
-  const catalog = await fetchCatalog('interiors').catch(error => {
-    console.error('Error fetching interiors:', error);
-    return [];
-  });
-  return <InteriorsClient catalog={catalog} filter={filter} />;
+export default async function InteriorsPage() {
+  return <CollectionIndex collection="interiors" catalog={await fetchCatalog('interiors')} />;
 }
