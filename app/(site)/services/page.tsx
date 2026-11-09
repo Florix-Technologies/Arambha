@@ -387,7 +387,8 @@ function ServicesContent() {
 export default function ServicesPage() {
   return (
     <Suspense fallback={
-      <div style={{ textAlign: 'center', padding: '8rem 1rem 4rem' }}>
+      // Full height, so the footer stays below the fold until the services render (otherwise it jumps: CLS 0.54).
+      <div style={{ textAlign: 'center', padding: '8rem 1rem 4rem', minHeight: '100vh' }}>
         <h1>Our Services</h1>
         <p>Explore our wide range of interior and furniture solutions tailored for your needs.</p>
         <ContactActions placement="services" message="Hi, I would like to book an interior design consultation with Arambha." />

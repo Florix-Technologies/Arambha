@@ -102,7 +102,8 @@ export default function InfiniteSlider<T>({ items, renderItem }: GenericSliderPr
                             className={styles.cardWrapper}
                             style={{ flex: `0 0 calc((100% - (${(itemsToShow - 1)} * 2rem)) / ${itemsToShow})` }}
                         >
-                            {renderItem(item, idx % totalItems)}
+                            {/* The index stays in [2n-1, 4n+2], so the first and last copies are never on screen: keep their width, skip their cards. */}
+                            {totalItems > 2 && (idx < totalItems || idx >= totalItems * 5) ? null : renderItem(item, idx % totalItems)}
                         </div>
                     ))}
                 </motion.div>
