@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createProduct, getProduct, updateProduct, validateMediaUrl, validateName, validatePrice, type ProductInput } from '@/lib/admin/data';
+import { createProduct, getProduct, seoFieldsAvailable, updateProduct, validateMediaUrl, validateName, validatePrice, type ProductInput } from '@/lib/admin/data';
 import { CATEGORIES, CATEGORY_KEYS, categoryFromParam, MESSAGES, TERMS, type CategoryKey } from '@/lib/admin/taxonomy';
 import { normalizeCategoryName } from '@/lib/slug';
 import { Button, Card, PageHeader, SaveBar, SelectField, Skeleton, TextArea, TextField, useToast } from '../ui';
@@ -11,9 +11,9 @@ import { useCatalog } from '../useCatalog';
 import { MediaField } from './MediaField';
 import s from './ProductScreen.module.css';
 
-type Fields = { name: string; description: string; category_id: string; price: string | number; media: string[] };
+type Fields = { name: string; description: string; category_id: string; price: string | number; media: string[]; seo_title: string; seo_description: string };
 type FieldKey = keyof Fields;
-const empty: Fields = { name: '', description: '', category_id: '', price: '', media: [] };
+const empty: Fields = { name: '', description: '', category_id: '', price: '', media: [], seo_title: '', seo_description: '' };
 
 export function ProductForm({ productId, initialCategory, initialSubcategory }: { productId?: string; initialCategory?: string; initialSubcategory?: string }) {
     const router = useRouter();
@@ -33,6 +33,8 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
     const [busy, setBusy] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [attempt, setAttempt] = useState(0);
+    const [seoReady, setSeoReady] = useState(false);
+    useEffect(() => { let live = true; void seoFieldsAvailable().then(ok => { if (live) setSeoReady(ok); }); return () => { live = false; }; }, []);
     const pending = useRef(false);
     const form = useRef<HTMLFormElement>(null);
     const dirty = JSON.stringify(fields) !== JSON.stringify(saved);
@@ -56,8 +58,9 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
                     const parent = all.find(row => row.id === product.category_id);
                     if (!parent) throw new Error('This product\'s subcategory no longer exists.');
                     selected = parent.category;
+                    const seo = product as { seo_title?: string | null; seo_description?: string | null };
                     next = { name: product.name, description: product.description ?? '', category_id: product.category_id, price: product.price ?? '',
-                        media: [product.image_url ?? '', ...(product.images ?? [])].filter(Boolean) };
+                        media: [product.image_url ?? '', ...(product.images ?? [])].filter(Boolean), seo_title: seo.seo_title ?? '', seo_description: seo.seo_description ?? '' };
                 } else if (!next.category_id) {
                     // Only one subcategory: nothing to choose.
                     const only = all.filter(row => row.category === selected);
@@ -135,7 +138,10 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
         pending.current = true; setBusy(true); setError('');
         try {
             const input: ProductInput = { category_id: fields.category_id, name: normalizeCategoryName(fields.name), description: fields.description,
-                price: CATEGORIES[category].hasPrice ? fields.price : '', image_url: fields.media[0], images: fields.media.slice(1) };
+                price: CATEGORIES[category].hasPrice ? fields.price : '', image_url: fields.media[0], images: fields.media.slice(1),
+                // Only overrides the owner actually changed are sent (and only once the database has the columns).
+                ...(seoReady && fields.seo_title !== saved.seo_title ? { seo_title: fields.seo_title } : {}),
+                ...(seoReady && fields.seo_description !== saved.seo_description ? { seo_description: fields.seo_description } : {}) };
             const result = productId ? await updateProduct(productId, input) : await createProduct(input);
             if (result.error !== null) { setError(result.error); return; }
             setSaved(fields); dirtyRef.current = false;
@@ -181,7 +187,12 @@ export function ProductForm({ productId, initialCategory, initialSubcategory }: 
                     </SelectField>
                     {!categories.some(row => row.category === category) && <p className={s.hint}>{c.label} has no subcategories yet. <a href={`/admin/${category}`}>Add one first</a>.</p>}
                     {sub && <p className={s.destination}>{c.label} › {sub.name}</p>}
-                </div></Card></aside>
+                </div></Card>
+                {seoReady && category !== 'gallery' && <Card title="Advanced SEO (optional)"><div className={s.fields}>
+                    <TextField label="Title in Google" maxLength={70} hint={`Leave empty to use "${fields.name.trim() || 'product name'} – ${sub?.name ?? 'subcategory'}".`} value={fields.seo_title} onChange={event => change('seo_title', event.target.value)} />
+                    <TextArea label="Description in Google" maxLength={170} rows={3} hint="Leave empty to use the product description. About 150 characters." value={fields.seo_description} onChange={event => change('seo_description', event.target.value)} />
+                </div></Card>}
+                </aside>
             </div>
         </fieldset>
         {(dirty || !productId) && <SaveBar loading={busy} disabled={!dirty || uploading} onSave={() => void save()} onDiscard={() => {

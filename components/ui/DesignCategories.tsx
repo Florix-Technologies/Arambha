@@ -51,7 +51,7 @@ const CategoryCard = ({
                     <motion.img
                         key={currentIndex}
                         src={category.images[currentIndex]}
-                        alt={`${cleanTitle} ${currentIndex + 1}`}
+                        alt={`${cleanTitle} interior design by Arambha, Bangalore, photo ${currentIndex + 1}`}
                         className={styles.categoryImage}
                         width={800}
                         height={600}

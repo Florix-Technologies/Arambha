@@ -134,7 +134,7 @@ function MediaGrid({ items, title, priority }: { items: MediaItem[]; title: stri
               {selectedType === "image" ? (
                 <img
                   src={selectedMedia}
-                  alt="Enlarged view"
+                  alt="Enlarged project photo by Arambha Design & Interior Studio"
                   className={`${styles.lightboxMedia} ${isZoomed ? styles.zoomed : ''}`}
                   onClick={() => setIsZoomed(!isZoomed)}
                 />
@@ -158,13 +158,7 @@ function MediaGrid({ items, title, priority }: { items: MediaItem[]; title: stri
 import { Suspense } from "react";
 import SmartVideo from '@/components/ui/SmartVideo';
 
-function ServicesContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const filter = searchParams.get("filter") || "all";
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  const sections = [
+const sections = [
     {
       id: "modular-house",
       category: "Complete Interior Solutions",
@@ -245,16 +239,22 @@ function ServicesContent() {
         { type: "image", src: "/BRS2.jpg.jpeg" },
       ] as MediaItem[]
     },
-    { id: "civil-works", category: "Interior Finishing", title: "Civil Works", items: [{ type: "image", src: "/civil1.png" }, { type: "image", src: "civil3.jpg.jpeg" },{ type: "image", src: "civil2.jpeg" }] as MediaItem[] },
+    { id: "civil-works", category: "Interior Finishing", title: "Civil Works", items: [{ type: "image", src: "/civil1.png" }, { type: "image", src: "/civil3.jpg.jpeg" },{ type: "image", src: "/civil2.jpeg" }] as MediaItem[] },
     { id: "lighting", category: "Interior Finishing", title: "Lighting", items: [{ type: "image", src: "/light1.jpeg" }, { type: "image", src: "/L2.jpg.jpeg" }, { type: "image", src: "/L3.jpeg" }] as MediaItem[] },
-    { id: "flooring", category: "Interior Finishing", title: "Flooring", items: [{ type: "image", src: "floring1.jpeg" }, { type: "image", src: "/f2.jpeg" }, { type: "image", src: "/f3.jpg.jpeg" }] as MediaItem[] },
+    { id: "flooring", category: "Interior Finishing", title: "Flooring", items: [{ type: "image", src: "/floring1.jpeg" }, { type: "image", src: "/f2.jpeg" }, { type: "image", src: "/f3.jpg.jpeg" }] as MediaItem[] },
     { id: "false-ceiling", category: "Interior Finishing", title: "False Ceiling", items: [{ type: "image", src: "/false1.png" }, { type: "image", src: "/fc2.jpg.jpeg" }, { type: "image", src: "/fc3.jpeg" }] as MediaItem[] },
-    { id: "wall-design", category: "Interior Finishing", title: "Wall Design", items: [{ type: "image", src: "walldesign1.jpeg" }, { type: "image", src: "walldesign2.jpeg" }, , { type: "image", src: "walldesign3.jpeg" }] as MediaItem[] },
+    { id: "wall-design", category: "Interior Finishing", title: "Wall Design", items: [{ type: "image", src: "/walldesign1.jpeg" }, { type: "image", src: "/walldesign2.jpeg" }, { type: "image", src: "/walldesign3.jpeg" }] as MediaItem[] },
     { id: "painting", category: "Interior Finishing", title: "Painting", items: [{ type: "image", src: "/p2.jpg.jpeg" }, { type: "image", src: "/p3.jpg.jpeg" }] as MediaItem[] },
     { id: "furniture", category: "Furniture & Partition System", title: "Furniture", items: [{ type: "image", src: "/f2.jpg.jpeg" }, { type: "image", src: "/fu3.jpg.jpeg" }] as MediaItem[] },
     { id: "office-furniture", category: "Furniture & Partition System", title: "Office & Commercial Furniture", items: [{ type: "image", src: "/ocf1.jpg.jpeg" }, { type: "image", src: "/ocf2.jpg.jpeg" }] as MediaItem[] },
     { id: "aluminum-interiors", category: "Furniture & Partition System", title: "Aluminum Interiors & Partitions", items: [{ type: "image", src: "/al1.jpeg" }, { type: "image", src: "/al2.jpeg" }] as MediaItem[] },
   ];
+
+function ServicesContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const filter = searchParams.get("filter") || "all";
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Get unique categories for filtering
   const allCategories = Array.from(new Set(sections.map(s => s.category)));
@@ -391,6 +391,15 @@ export default function ServicesPage() {
       <div style={{ textAlign: 'center', padding: '8rem 1rem 4rem', minHeight: '100vh' }}>
         <h1>Our Services</h1>
         <p>Explore our wide range of interior and furniture solutions tailored for your needs.</p>
+        {/* Server-rendered so crawlers see the service list; the client grid replaces it after hydration. */}
+        {[...new Set(sections.map(s => s.category))].map(cat => (
+          <section key={cat}>
+            <h2>{cat}</h2>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {sections.filter(s => s.category === cat).map(s => <li key={s.id}>{s.title}</li>)}
+            </ul>
+          </section>
+        ))}
         <ContactActions placement="services" message="Hi, I would like to book an interior design consultation with Arambha." />
       </div>
     }>

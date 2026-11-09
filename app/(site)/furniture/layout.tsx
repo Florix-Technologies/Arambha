@@ -3,7 +3,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
     title: "Custom Furniture in Bangalore",
-    description: "Handcrafted and custom furniture by Arambha Design & Interior Studio in Bangalore. Browse the furniture collection and request a design made to your needs.",
+    description: "Custom furniture by Arambha Design & Interior Studio in Bangalore, including office and commercial furniture. Browse the collection and book a consultation.",
     path: "/furniture",
 });
 

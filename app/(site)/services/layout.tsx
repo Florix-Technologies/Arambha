@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
-    title: "Interior Design Services in Bangalore",
-    description: "Interior services by Arambha in Bangalore: modular and hybrid interiors, kitchens, wardrobes, living rooms, pooja rooms, false ceilings, flooring, lighting, furniture and aluminum partitions.",
+    title: "Interior Design Services Bangalore",
+    description: "Interior design services in Bangalore by Arambha: modular and hybrid interiors, kitchens, wardrobes, living rooms, pooja rooms, false ceilings and flooring.",
     path: "/services",
 });
 

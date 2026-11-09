@@ -15,7 +15,7 @@ export default function StyleSlider({ items }: StyleSliderProps) {
                     <div className={styles.cardImageWrapper}>
                         <img
                             src={src}
-                            alt={`Interior design style, photo ${idx + 1}`}
+                            alt={`Interior design by Arambha Design & Interior Studio, photo ${idx + 1}`}
                             className={styles.cardImage}
                             width={800}
                             height={1000}
