@@ -214,6 +214,24 @@
   color: var(--color-accent);
 }
 
+/* Developer credit: logo beside the name, one line, wraps under the copyright on phones. */
+.credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+.credit img {
+  height: 22px;
+  width: auto;
+  flex-shrink: 0;
+}
+.credit:focus-visible {
+  outline: 2px solid var(--brand-text-on-dark, #fff);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 @media (max-width: 768px) {
   .topSection {
     padding: 3rem 0;

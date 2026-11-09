@@ -100,7 +100,11 @@ export default function Footer() {
         <div className={styles.bottomSection}>
           <p>&copy; {year} Arambha Design &amp; Interior Studio. All rights reserved.</p>
           <div className={styles.bottomLinks}>
-            <a href="https://florixtechnologies.com/" target="_blank" rel="noopener noreferrer">Developed by Florix Technologies</a>
+            <a href="https://www.florixtechnologies.com/" target="_blank" rel="noopener noreferrer" className={styles.credit} aria-label="Designed and developed by Florix Technologies (opens in a new tab)">
+              {/* 11 KB file served as-is (unoptimized: no resize round-trip), sized up front, lazy: the footer is below the fold. */}
+              <Image src="/florix-logo.png" alt="Florix Technologies logo" width={19} height={22} loading="lazy" unoptimized />
+              <span>Designed &amp; Developed by Florix Technologies</span>
+            </a>
           </div>
         </div>
       </div>
