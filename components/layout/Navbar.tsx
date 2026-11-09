@@ -13,6 +13,8 @@ export default function Navbar() {
   const isDarkText = pathname !== '/';
   const isContactPage = pathname === '/contact';
   const isAdminPage = pathname.startsWith('/admin');
+  // Product pages start with content at the top, so the large floating logo would cover the photo: use the compact bar.
+  const isProductPage = /^\/(interiors|furniture)\/[^/]+\/[^/]+/.test(pathname);
 
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -123,7 +125,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`${styles.navbar} ${scrolled || isAdminPage ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light} ${!isVisible ? styles.hidden : ''} ${isContactPage ? styles.contactNav : ''}`}>
+    <nav className={`${styles.navbar} ${scrolled || isAdminPage || isProductPage ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light} ${!isVisible ? styles.hidden : ''} ${isContactPage ? styles.contactNav : ''}`}>
       <div className={`container ${styles.navContainer}`}>
         <Link href="/" className={styles.logo}>
           <Image src="/logo2.png" alt="Arambha Design & Interior Studio, home" width={708} height={705} sizes="220px" priority />

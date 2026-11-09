@@ -147,7 +147,7 @@ export function ProductView({ collection, category, product }: { collection: Col
   const media = productMedia(product);
   const message = productInquiryMessage(`Hello, I am interested in the following ${label.toLowerCase()} product:`, { ...product, image_url: null });
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${styles.productPage}`}>
       <Breadcrumbs trail={[{ name: 'Home', path: '/' }, { name: label, path: COLLECTIONS[collection].path }, { name: category.name, path: categoryPath(collection, category.slug) }, { name: product.name }]} />
       <div className={styles.product}>
         <div className={styles.media}>
@@ -162,10 +162,10 @@ export function ProductView({ collection, category, product }: { collection: Col
           {product.price != null && Number(product.price) > 0 && <p className={styles.price}>{formatPrice(product.price)}</p>}
           {product.description && <p>{product.description}</p>}
           <ContactActions message={message} placement={`${collection}-product`} />
-          <p className={styles.back} style={{ textAlign: 'left' }}>
-            <Link href={categoryPath(collection, category.slug)} style={{ marginLeft: 0 }}>More {category.name}</Link>
+          <div className={styles.productLinks}>
+            <Link href={categoryPath(collection, category.slug)}>More {category.name}</Link>
             <Link href={COLLECTIONS[collection].path}>All {label.toLowerCase()}</Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>
