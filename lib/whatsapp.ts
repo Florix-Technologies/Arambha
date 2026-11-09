@@ -1,24 +1,28 @@
 export const WHATSAPP_NUMBER = '919187628243';
 
-type InquiryProduct = {
-  name: string;
-  description?: string | null;
-  price?: number | null;
-  image_url?: string | null;
-};
-
 /** Pass plain text with real line breaks; the message is encoded here, once. */
 export function whatsappUrl(message: string): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-export function productInquiryMessage(intro: string, product: InquiryProduct): string {
+export const formatPrice = (price: number) => `₹ ${Number(price).toLocaleString('en-IN')}`;
+
+type OrderDetails = { product: string; collection: string; category: string; price?: number | null; url: string };
+
+/** The customer's order enquiry, built from the real product; the price line appears only when a price is shown. */
+export function productOrderMessage({ product, collection, category, price, url }: OrderDetails): string {
   return [
-    intro,
+    'Hello Arambha Design & Interior Studio,',
     '',
-    `Product: ${product.name}`,
-    product.description ? `Description: ${product.description}` : null,
-    product.price != null ? `Price: ${product.price}` : null,
-    product.image_url ? `Image: ${product.image_url}` : null,
-  ].filter((line) => line !== null).join('\n');
+    'I would like to enquire about ordering this product:',
+    '',
+    `Product: ${product}`,
+    `Category: ${collection} / ${category}`,
+    Number(price) > 0 ? `Price: ${formatPrice(Number(price))}` : null,
+    `Product Link: ${url}`,
+    '',
+    'Please share availability and the next steps for placing my order.',
+    '',
+    'Thank you.',
+  ].filter(line => line !== null).join('\n');
 }

@@ -3,10 +3,21 @@ import type { Catalog, CatalogCategory, Collection, Product } from '@/lib/catalo
 import CatalogMedia from '@/components/ui/CatalogMedia';
 import ContactActions from '@/components/ui/ContactActions';
 import GalleryGrid from '@/components/catalog/GalleryGrid';
-import { productInquiryMessage } from '@/lib/whatsapp';
+import OrderOnWhatsApp from '@/components/ui/OrderOnWhatsApp';
+import { formatPrice, productOrderMessage } from '@/lib/whatsapp';
+import { SITE_URL } from '@/lib/site';
 import { BRAND, COLLECTIONS, categoryPath, mediaAlt, productImage, productMedia, productPath } from '@/lib/seo';
-const formatPrice = (price: number) => `₹ ${Number(price).toLocaleString('en-IN')}`;
 import styles from '@/components/catalog/Catalog.module.css';
+
+/** Every product, old or newly added, gets its order message from its own name, place, price and public address. */
+const orderMessage = (collection: Collection, category: { name: string; slug: string }, product: Product) =>
+  productOrderMessage({
+    product: product.name,
+    collection: COLLECTIONS[collection].label,
+    category: category.name,
+    price: product.price,
+    url: `${SITE_URL}${productPath(collection, category.slug, product)}`,
+  });
 import galleryStyles from '@/app/(site)/gallery/page.module.css';
 
 const HEADINGS: Record<Collection, { title: string; subtitle: string; noun: string }> = {
@@ -118,16 +129,19 @@ export function SubcategoryView({ collection, category, intro }: { collection: C
           {category.products.map((product, i) => {
             const cover = productImage(product);
             return (
-              <Link key={product.id} href={productPath(collection, category.slug, product)} className={styles.card}>
-                <div className={styles.imageBox}>
-                  {cover ? <CatalogMedia src={cover} alt={mediaAlt(collection, category, product, 0)} priority={i === 0} width={800} height={800} /> : product.name}
-                </div>
-                <div className={styles.cardContent}>
-                  <h2>{product.name}</h2>
-                  {product.description && <p>{product.description.length > 140 ? `${product.description.slice(0, 137)}…` : product.description}</p>}
-                  {product.price != null && Number(product.price) > 0 && <p className={styles.price}>{formatPrice(product.price)}</p>}
-                </div>
-              </Link>
+              <article key={product.id} className={styles.card}>
+                <Link href={productPath(collection, category.slug, product)} className={styles.cardLink}>
+                  <div className={styles.imageBox}>
+                    {cover ? <CatalogMedia src={cover} alt={mediaAlt(collection, category, product, 0)} priority={i === 0} width={800} height={800} /> : product.name}
+                  </div>
+                  <div className={styles.cardContent}>
+                    <h2>{product.name}</h2>
+                    {product.description && <p>{product.description.length > 140 ? `${product.description.slice(0, 137)}…` : product.description}</p>}
+                    {product.price != null && Number(product.price) > 0 && <p className={styles.price}>{formatPrice(product.price)}</p>}
+                  </div>
+                </Link>
+                <OrderOnWhatsApp message={orderMessage(collection, category, product)} placement={`${collection}-card`} className={`${styles.btn} ${styles.btnPrimary} ${styles.btnOrder} ${styles.cardOrder}`} />
+              </article>
             );
           })}
         </div>
@@ -145,7 +159,6 @@ export function SubcategoryView({ collection, category, intro }: { collection: C
 export function ProductView({ collection, category, product }: { collection: Collection; category: { name: string; slug: string }; product: Product }) {
   const label = COLLECTIONS[collection].label;
   const media = productMedia(product);
-  const message = productInquiryMessage(`Hello, I am interested in the following ${label.toLowerCase()} product:`, { ...product, image_url: null });
   return (
     <div className={`${styles.container} ${styles.productPage}`}>
       <Breadcrumbs trail={[{ name: 'Home', path: '/' }, { name: label, path: COLLECTIONS[collection].path }, { name: category.name, path: categoryPath(collection, category.slug) }, { name: product.name }]} />
@@ -161,7 +174,8 @@ export function ProductView({ collection, category, product }: { collection: Col
           <h1>{product.name}</h1>
           {product.price != null && Number(product.price) > 0 && <p className={styles.price}>{formatPrice(product.price)}</p>}
           {product.description && <p>{product.description}</p>}
-          <ContactActions message={message} placement={`${collection}-product`} />
+          <ContactActions orderMessage={orderMessage(collection, category, product)} placement={`${collection}-product`} />
+          <p className={styles.orderNote}>WhatsApp opens with your order details filled in. Press Send and our team will confirm availability and next steps.</p>
           <div className={styles.productLinks}>
             <Link href={categoryPath(collection, category.slug)}>More {category.name}</Link>
             <Link href={COLLECTIONS[collection].path}>All {label.toLowerCase()}</Link>
