@@ -3,7 +3,7 @@ import { SITE_URL } from '@/lib/site';
 import { BRAND, BUSINESS, pageMeta, serializeJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
-    title: "Contact Us – Book an Interior Design Consultation",
+    title: "Contact & Book a Design Consultation",
     description: "Contact Arambha Design & Interior Studio in Rajajinagar, Bangalore. Call, WhatsApp or visit us Mon–Sat, 10 AM–7 PM to book a design consultation.",
     path: "/contact",
 });

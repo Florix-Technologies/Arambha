@@ -11,6 +11,8 @@ export type ProductRow = Product & { category_id: string };
 export type ProductInput = {
     category_id: string; name: string; description: string; image_url: string;
     images: string[]; price: string | number;
+    /** Optional search-engine overrides; only sent once the database has the seo_* columns (seoFieldsAvailable). */
+    seo_title?: string; seo_description?: string;
 };
 const NOT_ALLOWED = 'This account is not allowed to make changes. Log in with the admin account.';
 
@@ -117,7 +119,10 @@ function productValues(input: ProductInput) {
         throw new Error('Provide valid product details and a featured image');
     }
     return { category_id: input.category_id, image_url: input.image_url, images: input.images, name: input.name.trim(), description: input.description.trim(),
-        price: typeof input.price === 'string' && !input.price.trim() ? null : Number(input.price) };
+        price: typeof input.price === 'string' && !input.price.trim() ? null : Number(input.price),
+        // Blank means "generate from the name and description" (lib/seo.ts).
+        ...(typeof input.seo_title === 'string' ? { seo_title: input.seo_title.trim() || null } : {}),
+        ...(typeof input.seo_description === 'string' ? { seo_description: input.seo_description.trim() || null } : {}) };
 }
 // After a saved change, refresh the cached public pages and sitemap now instead of within the hour. Best-effort.
 function refreshSite() {
@@ -213,6 +218,8 @@ export function subcategoryDeleteIsProtected(): Promise<boolean> {
         .then(ok => { if (!ok) protection = null; return ok; });
     return protection;
 }
+/** The same one-time SQL adds the optional seo_title / seo_description columns the Advanced SEO fields write to. */
+export const seoFieldsAvailable = subcategoryDeleteIsProtected;
 // Products are never deleted with a subcategory: `moveTo` first moves everything still in it (including products added
 // after the list was loaded), then an empty check, then the delete; the database refuses a delete that would still remove
 // products (error 23503), which closes the check-then-delete race.

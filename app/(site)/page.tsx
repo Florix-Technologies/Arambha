@@ -17,7 +17,7 @@ import CTASection from '@/components/ui/CTASection';
 export const metadata: Metadata = pageMeta({
   title: 'Interior Designers in Bangalore | Arambha Design & Interior Studio',
   description:
-    'Explore home interiors, modular kitchens, wardrobes and custom furniture by Arambha Design & Interior Studio in Rajajinagar, Bangalore. Request a design consultation.',
+    'Arambha Design & Interior Studio, Bangalore: complete home interiors, modular kitchens, wardrobes, living rooms and custom furniture. Book a consultation.',
   path: '/',
   absoluteTitle: true,
 });

@@ -3,7 +3,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
     title: "Interior Design Project Gallery",
-    description: "Photos and videos of interiors completed by Arambha Design & Interior Studio in Bangalore, from kitchens and wardrobes to living rooms and furniture.",
+    description: "Project photos by Arambha Design & Interior Studio, Bangalore: complete house interiors, kitchens, living rooms, bedrooms and wardrobes. Book a consultation.",
     path: "/gallery",
 });
 

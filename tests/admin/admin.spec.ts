@@ -235,6 +235,25 @@ test('edit persists name and an empty price as null', async ({ page, fake }) => 
     await expect(page.getByLabel(/^Price/)).toHaveValue('');
 });
 
+test('Advanced SEO saves only the overrides the owner fills in', async ({ page, fake }) => {
+    await login(page);
+    await page.goto('/admin/products/product-1');
+    await page.getByLabel('Title in Google').fill('  Solid oak dining chair in Bangalore ');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
+    expect(fake.writes).toHaveLength(1);
+    expect(fake.writes[0].payload).toMatchObject({ seo_title: 'Solid oak dining chair in Bangalore' });
+    expect(fake.writes[0].payload).not.toHaveProperty('seo_description');
+});
+
+test('Advanced SEO is hidden before the database update', async ({ page, fake }) => {
+    fake.unmigrated = true;
+    await login(page);
+    await page.goto('/admin/products/product-1');
+    await expect(page.getByLabel('Product name', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Title in Google')).toHaveCount(0);
+});
+
 test('move a product to another subcategory', async ({ page, fake }) => {
     await login(page);
     await page.goto('/admin/interiors/int-kitchen');

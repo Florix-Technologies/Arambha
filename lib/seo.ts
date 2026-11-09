@@ -48,15 +48,22 @@ export function productMedia(product: MediaProduct): string[] {
 export function productImage(product: MediaProduct): string | null {
   return productMedia(product).find(url => !isVideoUrl(url)) ?? null;
 }
+/** Stock-photo libraries: such a photo shows someone else's work, so it never counts as the product's own photo. */
+const STOCK_HOSTS = /(^|\.)(unsplash\.com|pexels\.com|pixabay\.com|shutterstock\.com|istockphoto\.com|freepik\.com)$/i;
+export function isStockPhoto(url: string): boolean {
+  try { return STOCK_HOSTS.test(new URL(url, 'https://placeholder.invalid').hostname); } catch { return false; }
+}
+/** The product's own photos: the only ones offered to search engines (indexing, sitemap, social preview, JSON-LD). */
+export const ownPhotos = (product: MediaProduct) => productMedia(product).filter(url => !isVideoUrl(url) && !isStockPhoto(url));
 
 export const categoryPath = (collection: Collection, slug: string) => `${COLLECTIONS[collection].path}/${slug}`;
 export const productSlug = (product: { id: string; name: string }) => `${slugify(product.name) || 'item'}-${product.id.slice(0, 8)}`;
 export const productPath = (collection: Collection, categorySlug: string, product: { id: string; name: string }) =>
   `${categoryPath(collection, categorySlug)}/${productSlug(product)}`;
 
-/** Thin pages stay out of search results: a product needs a photo and a real description. */
+/** Thin pages stay out of search results: a product needs its own photo (not a stock one) and a real description. */
 export function isIndexableProduct(product: SeoProduct): boolean {
-  return !!productImage(product) && (product.description ?? '').trim().length >= 60;
+  return ownPhotos(product).length > 0 && (product.description ?? '').trim().length >= 60;
 }
 
 export function pageMeta(opts: { title: string; description: string; path: string; image?: string | null; absoluteTitle?: boolean; noindex?: boolean }): Metadata {
@@ -83,7 +90,7 @@ export function subcategoryMeta(
   const title = override(category.seo_title) ?? {
     interiors: `${/design/i.test(name) ? name : `${name} Designs`} – Interiors in Bangalore`,
     furniture: `${name} – Furniture in Bangalore`,
-    gallery: `${name} – Project Gallery, Bangalore`,
+    gallery: `${/interior/i.test(name) ? name : `${name} Interior`} Photos – Bangalore Projects`,
   }[collection];
   const noun = { interiors: count === 1 ? 'design' : 'designs', furniture: count === 1 ? 'piece' : 'pieces', gallery: count === 1 ? 'project photo' : 'project photos' }[collection];
   const lead = collection === 'gallery' ? `${count} ${noun} of ${name} work` : `Explore ${count} ${name} ${noun}`;
@@ -92,14 +99,14 @@ export function subcategoryMeta(
   const names = collection === 'gallery' ? [] : products.slice(0, 3).map(p => p.name);
   let description = override(category.seo_description);
   for (let n = names.length; !description; n--) if (n === 0 || describe(names.slice(0, n)).length <= 160) description = describe(names.slice(0, n));
-  return pageMeta({ title, description, path: categoryPath(collection, category.slug), image: products.map(productImage).find(Boolean) });
+  return pageMeta({ title, description, path: categoryPath(collection, category.slug), image: products.map(p => ownPhotos(p)[0]).find(Boolean) });
 }
 
 export function productMeta(collection: Collection, category: SeoCategory, product: SeoProduct & SeoOverrides): Metadata {
   const title = override(product.seo_title) ?? `${product.name} – ${category.name}`;
   const description = override(product.seo_description)
     ?? (product.description?.trim() ? truncate(product.description, 158) : truncate(`${product.name}: ${category.name} ${COLLECTIONS[collection].label.toLowerCase()} by ${BRAND}, Bangalore. Enquire for details and a design consultation.`, 160));
-  return pageMeta({ title, description, path: productPath(collection, category.slug, product), image: productImage(product), noindex: !isIndexableProduct(product) });
+  return pageMeta({ title, description, path: productPath(collection, category.slug, product), image: ownPhotos(product)[0], noindex: !isIndexableProduct(product) });
 }
 
 export function mediaAlt(collection: Collection, category: SeoCategory, product: { name: string }, index: number): string {
@@ -123,7 +130,7 @@ export function breadcrumbJsonLd(trail: Array<{ name: string; path: string }>) {
 export function productJsonLd(collection: Collection, category: SeoCategory, product: SeoProduct & SeoOverrides) {
   if (!(Number(product.price) > 0)) return null;
   const url = `${SITE_URL}${productPath(collection, category.slug, product)}`;
-  const photos = productMedia(product).filter(u => !isVideoUrl(u));
+  const photos = ownPhotos(product);
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
