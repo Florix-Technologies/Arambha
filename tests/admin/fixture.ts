@@ -4,7 +4,8 @@ import { deflateSync } from 'node:zlib';
 export type Product = { id: string; category_id: string; name: string; description: string; image_url: string; images: string[]; price: number | null; created_at: string };
 export type Category = { id: string; name: string; slug: string; collection: 'furniture' | 'interiors' | 'gallery' };
 export type Write = { table: string; method: string; payload: unknown; id: string | null };
-export const origin = 'http://127.0.0.1:3100';
+const PORT = process.env.E2E_PORT ?? '3100';
+export const origin = `http://127.0.0.1:${PORT}`;
 export const mock = `${origin}/mock-supabase`;
 export const credentials = { email: 'admin@example.test', password: 'fake-browser-test-password' };
 const user = { id: '00000000-0000-4000-8000-000000000001', aud: 'authenticated', role: 'authenticated', email: credentials.email, app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' };
@@ -46,6 +47,9 @@ function fakeData() {
             p(5, 'gal-kitchen', 'Kitchen project', 'gallery-k.png', null), p(6, 'chairs', 'Broken photo chair', 'broken.png', 3000),
         ],
         writes: [] as Write[],
+        revalidations: [] as string[][],
+        // true = the live database before docs/admin-v2-restrict-category-delete.sql (no seo_title, CASCADE).
+        unmigrated: false,
         objects: [] as { path: string; bytes: Buffer; headers: Record<string, string>; type: string }[],
         denied: null as 'zero' | '42501' | null,
         signedIn: false,
@@ -65,6 +69,7 @@ export const test = base.extend<{ fake: Fake }>({
             const text = message.text(), url = message.location().url;
             if (message.type() !== 'error') return;
             if (fake.denied && /status of 403/.test(text)) return;
+            if (fake.unmigrated && /status of 400/.test(text) && /seo_title/.test(url)) return;
             if (/status of 404/.test(text) && /broken\.png/.test(url)) return;
             errors.push(text);
         });
@@ -106,6 +111,10 @@ export const test = base.extend<{ fake: Fake }>({
             });
             const selected = rows.filter(matches);
             const method = request.method();
+            if (method === 'GET' && fake.unmigrated && url.searchParams.get('select')?.includes('seo_title')) {
+                await route.fulfill({ status: 400, json: { code: '42703', message: 'column categories.seo_title does not exist' } });
+                return;
+            }
             if (method === 'GET' || method === 'HEAD') {
                 const single = request.headers().accept?.includes('application/vnd.pgrst.object+json');
                 const range = `${selected.length ? `0-${selected.length - 1}` : '*'}/${selected.length}`;
@@ -129,11 +138,21 @@ export const test = base.extend<{ fake: Fake }>({
                 changed.forEach(row => Object.assign(row, payload));
             } else if (method === 'DELETE') {
                 changed = selected;
-                if (table === 'categories') fake.products = fake.products.filter(row => !changed.some(c => c.id === row.category_id)); // ON DELETE CASCADE
+                // ON DELETE RESTRICT (docs/admin-v2-restrict-category-delete.sql): a subcategory with products is refused.
+                if (table === 'categories' && fake.products.some(row => changed.some(c => c.id === row.category_id))) {
+                    await route.fulfill({ status: 409, json: { code: '23503', message: 'update or delete on table "categories" violates foreign key constraint' } });
+                    return;
+                }
                 const kept = rows.filter(row => !matches(row));
                 if (table === 'categories') fake.categories = kept as Category[]; else fake.products = kept as Product[];
             } else unexpected.push(`${method} ${request.url()}`);
             await route.fulfill({ status: method === 'POST' ? 201 : 200, json: changed.map(row => ({ id: row.id })) });
+        });
+        // After each saved change the admin asks the site to refresh its public pages (real route verifies the token).
+        await page.route('**/api/revalidate', async route => {
+            expect(route.request().headers().authorization).toBe('Bearer fake-access-token');
+            fake.revalidations.push(route.request().postDataJSON().paths);
+            await route.fulfill({ json: { revalidated: [] } });
         });
         await page.route(`${mock}/storage/v1/**`, async route => {
             const request = route.request();

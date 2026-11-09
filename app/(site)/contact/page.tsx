@@ -2,6 +2,7 @@
 import { motion, Variants } from 'framer-motion';
 import { useState } from 'react';
 import { whatsappUrl } from '@/lib/whatsapp';
+import { track } from '@/lib/track';
 import SmartVideo from '@/components/ui/SmartVideo';
 import LazyMap from '@/components/ui/LazyMap';
 import styles from './page.module.css';
@@ -57,6 +58,7 @@ Please get back to me at your earliest convenience.
 
 Thank you!`;
 
+    track('submit_enquiry', { placement: 'contact-form' });
     window.open(whatsappUrl(message), '_blank');
 
     // Reset form
@@ -112,7 +114,7 @@ Thank you!`;
                 </div>
                 <div>
                   <h2>Direct Inquiry</h2>
-                  <p>+91 91876 28243</p>
+                  <p><a href="tel:+919187628243" onClick={() => track('click_call', { placement: 'contact' })}>+91 91876 28243</a></p>
                   <p>admin@arambhainteriorstudio.com</p>
                 </div>
               </motion.div>

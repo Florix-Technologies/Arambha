@@ -6,6 +6,8 @@ import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { categoryFromParam, MESSAGES, TERMS, type CategoryKey } from '@/lib/admin/taxonomy';
 import { useInactivityLogout } from './useInactivityLogout';
+import { CatalogProvider } from './useCatalog';
+import { TourProvider } from './Tour';
 import { AdminShell, type ActiveKey } from './AdminShell';
 import { LoginScreen } from './screens/LoginScreen';
 import { Button, Card, Modal, ToastProvider } from './ui';
@@ -142,12 +144,12 @@ export function AdminGate({ children, login = false }: { children?: ReactNode; l
     const segment = pathname.split('/')[2] ?? '';
     const active: ActiveKey = segment === '' ? 'dashboard' : segment === 'media' || segment === 'settings' || segment === 'help' ? segment
         : categoryFromParam(segment)?.key ?? activeCategory;
-    return <ToastProvider><ActiveCategory.Provider value={setActiveCategory}><AdminShell active={active} userEmail={user?.email ?? ''} onLogOut={() => void logOut()}>
+    return <ToastProvider><CatalogProvider><TourProvider><ActiveCategory.Provider value={setActiveCategory}><AdminShell active={active} userEmail={user?.email ?? ''} onLogOut={() => void logOut()}>
         {children}
         <Modal open={secondsLeft !== null} onOpenChange={open => { if (!open) stayLoggedIn(); }} title={MESSAGES.sessionTitle} description={MESSAGES.sessionBody}>
             <p role="status">Logging out in {secondsLeft ?? 0} {secondsLeft === 1 ? 'second' : 'seconds'}.</p>
             <Button onClick={stayLoggedIn}>Stay logged in</Button>
             <Button variant="plain" onClick={() => void logOut()}>{TERMS.logOut}</Button>
         </Modal>
-    </AdminShell></ActiveCategory.Provider></ToastProvider>;
+    </AdminShell></ActiveCategory.Provider></TourProvider></CatalogProvider></ToastProvider>;
 }

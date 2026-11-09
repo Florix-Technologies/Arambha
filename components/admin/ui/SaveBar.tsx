@@ -8,4 +8,4 @@ export function SaveBar({ label = TERMS.unsavedChanges, onDiscard, onSave, loadi
     onSave: () => void;
     loading?: boolean;
     disabled?: boolean;
-}) { return <div className={s.bar} role="region" aria-label={label}><span role="status">{label}</span><div className={s.actions}><Button variant="secondary" onClick={onDiscard} disabled={loading}>{TERMS.discard}</Button><Button onClick={onSave} loading={loading} disabled={disabled}>{TERMS.save}</Button></div></div>; }
+}) { return <div className={s.bar} data-tour="save-bar" role="region" aria-label={label}><span role="status">{label}</span><div className={s.actions}><Button variant="secondary" onClick={onDiscard} disabled={loading}>{TERMS.discard}</Button><Button onClick={onSave} loading={loading} disabled={disabled}>{TERMS.save}</Button></div></div>; }

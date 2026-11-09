@@ -52,7 +52,7 @@ for (const [name, viewport] of [['desktop', { width: 1280, height: 900 }], ['mob
 
         await page.goto('/admin/interiors');
         await page.getByRole('button', { name: 'Delete Kitchen', exact: true }).click();
-        await expect(page.getByRole('dialog')).toContainText('Deleting subcategories is switched off');
+        await page.getByRole('dialog').getByLabel('Move products to').selectOption({ label: 'Wardrobes' });
         await shot('h-delete-subcategory');
     });
 }

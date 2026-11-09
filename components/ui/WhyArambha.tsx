@@ -114,6 +114,10 @@ export default function WhyArambha() {
                                     src={tabs[activeTab].image}
                                     alt={tabs[activeTab].label}
                                     className={styles.image}
+                                    width={800}
+                                    height={600}
+                                    loading="lazy"
+                                    decoding="async"
                                 />
                             </div>
 

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { fetchNavCategories, type NavCategories } from '@/lib/catalog';
 import styles from './Navbar.module.css';
@@ -101,7 +102,7 @@ export default function Navbar() {
         title: i === 0 ? firstTitle : moreTitle,
         links: categories.slice(i, i + 4).map(category => ({
           name: category.name,
-          href: `/${collection}?filter=${encodeURIComponent(category.slug)}`,
+          href: `/${collection}/${encodeURIComponent(category.slug)}`,
         })),
       });
     }
@@ -125,7 +126,7 @@ export default function Navbar() {
     <nav className={`${styles.navbar} ${scrolled || isAdminPage ? styles.scrolled : ''} ${isDarkText ? styles.dark : styles.light} ${!isVisible ? styles.hidden : ''} ${isContactPage ? styles.contactNav : ''}`}>
       <div className={`container ${styles.navContainer}`}>
         <Link href="/" className={styles.logo}>
-          <img src="/logo2.png" alt="Logo" />
+          <Image src="/logo2.png" alt="Arambha Design & Interior Studio, home" width={708} height={705} sizes="220px" priority />
         </Link>
 
         {/* Desktop Menu */}
@@ -134,7 +135,7 @@ export default function Navbar() {
             <div key={link.name} className={`${styles.navItemContainer} ${link.name === 'Furniture' ? styles.furnitureItem : ''}`}>
               <Link
                 href={link.href}
-                className={`${styles.navLink} ${pathname === link.href ? styles.active : ''}`}
+                className={`${styles.navLink} ${pathname === link.href || (link.href !== '/' && pathname.startsWith(`${link.href}/`)) ? styles.active : ''}`}
               >
                 {link.name}
                 {link.hasDropdown && <span className={styles.arrow}></span>}

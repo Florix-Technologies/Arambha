@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
+import { preload } from 'react-dom';
 import { SITE_URL } from '@/lib/site';
-import Image from 'next/image';
+import { BRAND, pageMeta, serializeJsonLd } from '@/lib/seo';
 import Button from '@/components/ui/Button';
 import SmartVideo from '@/components/ui/SmartVideo';
 import SectionBoundary from '@/components/ui/SectionBoundary';
@@ -13,29 +14,27 @@ import WhatYouGet from '@/components/ui/WhatYouGet';
 import WhyArambha from '@/components/ui/WhyArambha';
 import CTASection from '@/components/ui/CTASection';
 
-export const metadata: Metadata = {
-  title: 'Arambha Design & Interior Studio | Premium Interior Design in Bangalore',
+export const metadata: Metadata = pageMeta({
+  title: 'Interior Designers in Bangalore | Arambha Design & Interior Studio',
   description:
-    'Premium interiors in Bangalore by Arambha. 35+ years, 2000+ projects: modular kitchens, wardrobes, living rooms, custom furniture and complete homes.',
-  alternates: {
-    canonical: SITE_URL,
-  },
-};
+    'Explore home interiors, modular kitchens, wardrobes and custom furniture by Arambha Design & Interior Studio in Rajajinagar, Bangalore. Request a design consultation.',
+  path: '/',
+  absoluteTitle: true,
+});
 
 const homeJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: 'Arambha Design & Interior Studio - Home',
-  description: 'Premium Interior Design & Architectural Solutions in Bangalore.',
+  '@type': 'WebSite',
+  '@id': `${SITE_URL}/#website`,
+  name: BRAND,
+  alternateName: 'Arambha',
   url: SITE_URL,
-  mainEntity: {
-    '@type': 'LocalBusiness',
-    name: 'Arambha Design & Interior Studio',
-    url: SITE_URL,
-  },
+  publisher: { '@id': `${SITE_URL}/#business` },
 };
 
 export default function Home() {
+  // The hero poster is the largest thing on screen at load, so fetch it first.
+  preload('/hero-poster.jpg', { as: 'image', fetchPriority: 'high' });
 
   const designCategories = [
     {
@@ -60,12 +59,12 @@ export default function Home() {
     <div className={styles.main}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(homeJsonLd) }}
       />
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroBackground}>
-          <SmartVideo src="/v3.mp4" className={styles.heroVideo} />
+          <SmartVideo src="/v3.mp4" className={styles.heroVideo} poster="/hero-poster.jpg" deferLoad />
         </div>
         <div className={styles.heroOverlay}></div>
 

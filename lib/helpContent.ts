@@ -37,7 +37,7 @@ export const HELP_GUIDES: HelpGuide[] = [
     steps: [
       'Open a main category and press "Add subcategory". Keep the name short, for example "Kitchen".',
       'Press Edit beside a subcategory to rename it.',
-      'Delete asks where its products should go first, so products are never deleted with a subcategory.',
+      'Delete: an empty subcategory is deleted after you confirm. A subcategory that has products needs its products moved to another subcategory first (the delete window offers to move them for you). Products are never deleted with a subcategory.',
       'An empty subcategory is hidden from the website menu until it has products.',
     ],
   },
@@ -68,4 +68,28 @@ export const HELP_GUIDES: HelpGuide[] = [
       'If you leave a product with unsaved changes, you are asked before they are discarded.',
     ],
   },
+];
+
+// The guided tour: each step highlights a real element (data-tour="..."; the first listed that is on screen wins).
+// page: where the step lives: any page, the main category page, a subcategory page, or the product form.
+export type TourStep = { id: string; title: string; body: string; target: string[]; page: 'any' | 'category' | 'subcategory' | 'form' };
+export const TOUR_STEPS: TourStep[] = [
+  { id: 'category', page: 'any', target: ['nav-category'], title: 'Open a main category',
+    body: 'Everything starts with a main category. Press Interiors or Furniture in the menu to see its subcategories.' },
+  { id: 'subcategory', page: 'category', target: ['subcategory-row'], title: 'Choose a subcategory',
+    body: 'A subcategory is a heading on your website, for example Kitchen. Press its name to open it and see its products.' },
+  { id: 'add-subcategory', page: 'category', target: ['add-subcategory'], title: 'Add a subcategory',
+    body: 'Need a new heading? Press "Add subcategory", type a short name and save. It appears on the website once it has a product.' },
+  { id: 'add-product', page: 'subcategory', target: ['add-product'], title: 'Add a product',
+    body: 'Inside a subcategory, press "Add product". The place it belongs to is already filled in for you.' },
+  { id: 'details', page: 'form', target: ['product-photos'], title: 'Details, photos and videos',
+    body: 'Drop photos or videos into this box, or click it to choose them. Then type the name below, and optionally a description and price.' },
+  { id: 'cover', page: 'form', target: ['cover-tile', 'save-bar'], title: 'Choose the cover and save',
+    body: 'The first photo is the cover shown on the website. Press "Make cover" on another photo to change it. When you are happy, press Save: the product appears on the website straight away.' },
+  { id: 'edit', page: 'subcategory', target: ['product-search'], title: 'Find and edit a product',
+    body: 'Type part of a name to find a product, then press Edit on its row, change what you need and press Save.' },
+  { id: 'move-delete', page: 'subcategory', target: ['product-move', 'product-delete'], title: 'Move or delete a product',
+    body: 'Move puts a product in another subcategory. Delete removes it from the website after you confirm, and cannot be undone.' },
+  { id: 'delete-subcategory', page: 'category', target: ['subcategory-delete'], title: 'Deleting a subcategory safely',
+    body: 'An empty subcategory is deleted after you confirm. If it has products, move them to another subcategory first (the window offers to do it for you). Products are never deleted together with a subcategory.' },
 ];

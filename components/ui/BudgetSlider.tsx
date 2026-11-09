@@ -40,6 +40,10 @@ export default function BudgetSlider() {
                                 src={item.img}
                                 alt={item.label}
                                 className={styles.cardImage}
+                                width={800}
+                                height={1000}
+                                loading="lazy"
+                                decoding="async"
                             />
                         )}
                     </div>

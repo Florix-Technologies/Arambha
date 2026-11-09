@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { requestRevalidate } from '../revalidate';
 import type { Product } from '../catalog';
 import { findCategoryConflict, normalizeCategoryName, slugify } from '../slug';
 import { CATEGORIES, categoryFromParam, TERMS, type CategoryKey } from './taxonomy';
@@ -11,7 +12,6 @@ export type ProductInput = {
     category_id: string; name: string; description: string; image_url: string;
     images: string[]; price: string | number;
 };
-export const DELETE_OFF = 'Deleting subcategories is switched off until a database safety update is approved. You can still rename it, or move its products.';
 const NOT_ALLOWED = 'This account is not allowed to make changes. Log in with the admin account.';
 
 export function validateName(value: unknown, label: string = TERMS.productName): string | null {
@@ -119,10 +119,17 @@ function productValues(input: ProductInput) {
     return { category_id: input.category_id, image_url: input.image_url, images: input.images, name: input.name.trim(), description: input.description.trim(),
         price: typeof input.price === 'string' && !input.price.trim() ? null : Number(input.price) };
 }
+// After a saved change, refresh the cached public pages and sitemap now instead of within the hour. Best-effort.
+function refreshSite() {
+    Promise.resolve().then(() => supabase.auth.getSession())
+        .then(({ data }) => data.session && requestRevalidate(['/', '/interiors', '/furniture', '/gallery'], data.session.access_token))
+        .catch(() => undefined);
+}
 async function changed(query: PromiseLike<{ data: { id: string }[] | null; error: unknown }>): Promise<string> {
     const { data, error } = await query;
     if (error) throw error;
     if (!data?.length) throw new Error(NOT_ALLOWED);
+    refreshSite();
     return data[0].id;
 }
 export function createProduct(input: ProductInput): Promise<DataResult<string>> {
@@ -168,8 +175,9 @@ export function renameCategory(category: AdminSubcategory, value: string): Promi
     return result(async () => {
         requireId(category.id);
         await requireSession();
-        const values = await checkedName(category.category, value, category.id);
-        return changed(supabase.from('categories').update(values).eq('id', category.id).select('id'));
+        const { name } = await checkedName(category.category, value, category.id);
+        // The slug (web address) stays the same, so links to the subcategory and its products keep working.
+        return changed(supabase.from('categories').update({ name }).eq('id', category.id).select('id'));
     });
 }
 // Moves products to another subcategory; fails if any product was not moved.
@@ -182,6 +190,7 @@ export function moveProducts(ids: string[], categoryId: string): Promise<DataRes
         const { data, error } = await supabase.from('products').update({ category_id: categoryId }).in('id', ids).select('id');
         if (error) throw error;
         if ((data?.length ?? 0) !== ids.length) throw new Error(data?.length ? 'Some products could not be moved. Reload and try again.' : NOT_ALLOWED);
+        refreshSite();
         return ids.length;
     });
 }
@@ -193,15 +202,31 @@ export function countCategoryProducts(id: string): Promise<DataResult<number>> {
         return count ?? 0;
     });
 }
-// shortcut: the live database still deletes a subcategory's products with it (ON DELETE CASCADE), so a product added
-// between the count and the delete would be lost. Deletion stays off until docs/admin-v2-restrict-category-delete.sql
-// is applied (owner approval); then set this to true. The count check below stays as a second layer.
-export const SUBCATEGORY_DELETE_ENABLED = false;
-export function deleteCategory(id: string): Promise<DataResult<string>> {
+export const DELETE_NEEDS_DATABASE_UPDATE = 'Deleting subcategories starts working after a one-time database safety update (docs/admin-v2-restrict-category-delete.sql). You can rename it or move its products now.';
+// docs/admin-v2-restrict-category-delete.sql adds seo_title and switches the products foreign key to ON DELETE RESTRICT in
+// one transaction, so a readable seo_title column proves the database refuses any delete that would remove products.
+// Checked again until it succeeds: once the owner applies the SQL, deletion works without a new release.
+let protection: Promise<boolean> | null = null;
+export function subcategoryDeleteIsProtected(): Promise<boolean> {
+    protection ??= Promise.resolve(supabase.from('categories').select('seo_title').limit(1))
+        .then(({ error }) => !error, () => false)
+        .then(ok => { if (!ok) protection = null; return ok; });
+    return protection;
+}
+// Products are never deleted with a subcategory: `moveTo` first moves everything still in it (including products added
+// after the list was loaded), then an empty check, then the delete; the database refuses a delete that would still remove
+// products (error 23503), which closes the check-then-delete race.
+export function deleteCategory(id: string, moveTo?: string): Promise<DataResult<string>> {
     return result(async () => {
         requireId(id);
-        if (!SUBCATEGORY_DELETE_ENABLED) throw new Error(DELETE_OFF);
+        if (moveTo !== undefined) requireId(moveTo);
+        if (moveTo === id) throw new Error('Choose a different subcategory to move the products to.');
         await requireSession();
+        if (!await subcategoryDeleteIsProtected()) throw new Error(DELETE_NEEDS_DATABASE_UPDATE);
+        if (moveTo) {
+            const { error } = await supabase.from('products').update({ category_id: moveTo }).eq('category_id', id);
+            if (error) throw error;
+        }
         const count = await countCategoryProducts(id);
         if (count.error !== null) throw new Error(count.error);
         if (count.data > 0) throw new Error(`This subcategory still has ${count.data === 1 ? '1 product' : `${count.data} products`}. Move them first.`);

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { SITE_URL } from '@/lib/site';
+import { BRAND, BUSINESS, DEFAULT_OG_IMAGE, serializeJsonLd } from '@/lib/seo';
 import { Outfit, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 
@@ -16,65 +18,32 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+const DESCRIPTION =
+  "Explore home interiors, modular kitchens, wardrobes and custom furniture by Arambha Design & Interior Studio in Rajajinagar, Bangalore. Request a design consultation.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Arambha Design & Interior Studio | Premium Interior Design in Bangalore",
+    default: "Interior Designers in Bangalore | Arambha Design & Interior Studio",
     template: "%s | Arambha Design & Interior Studio",
   },
-  description:
-    "Transform your home with Arambha, Bangalore's interior design studio. 35+ years, 2000+ projects: kitchens, wardrobes, furniture and complete interiors.",
-  keywords: [
-    "interior design Bangalore",
-    "home interiors Bangalore",
-    "modular kitchen Bangalore",
-    "wardrobe design",
-    "living room interiors",
-    "furniture Bangalore",
-    "interior designer near me",
-    "home renovation Bangalore",
-    "modular interiors",
-    "kitchen design",
-    "false ceiling",
-    "pooja room design",
-    "TV unit design",
-    "crockery unit",
-    "office furniture Bangalore",
-    "Arambha interiors",
-    "premium interior design",
-    "residential interior design",
-    "commercial interior design",
-  ],
-  authors: [{ name: "Arambha Design & Interior Studio" }],
-  creator: "Arambha Design & Interior Studio",
-  publisher: "Arambha Design & Interior Studio",
-  icons: {
-    icon: "/logo2.png",
-    apple: "/logo2.png",
-  },
+  description: DESCRIPTION,
+  authors: [{ name: BRAND }],
+  creator: BRAND,
+  publisher: BRAND,
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: SITE_URL,
-    siteName: "Arambha Design & Interior Studio",
-    title: "Arambha Design & Interior Studio | Premium Interior Design in Bangalore",
-    description:
-      "Transform your home with Arambha, Bangalore's interior design studio. 35+ years, 2000+ projects: kitchens, wardrobes, furniture and complete interiors.",
-    images: [
-      {
-        url: "/logo1.png",
-        width: 1200,
-        height: 630,
-        alt: "Arambha Design & Interior Studio - Premium Interior Design",
-      },
-    ],
+    siteName: BRAND,
+    title: "Interior Designers in Bangalore | Arambha Design & Interior Studio",
+    description: DESCRIPTION,
+    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: BRAND }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Arambha Design & Interior Studio | Premium Interior Design in Bangalore",
-    description:
-      "Transform your home with Arambha – Bangalore's premier interior design studio. Modular kitchens, wardrobes, living rooms & complete home interiors.",
-    images: ["/logo1.png"],
+    title: "Interior Designers in Bangalore | Arambha Design & Interior Studio",
+    description: DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
   },
   robots: {
     index: true,
@@ -87,9 +56,6 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  alternates: {
-    canonical: SITE_URL,
-  },
   category: "Interior Design",
 };
 
@@ -98,27 +64,15 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "@id": `${SITE_URL}/#business`,
-  name: "Arambha Design & Interior Studio",
+  name: BRAND,
   image: `${SITE_URL}/logo1.png`,
+  logo: `${SITE_URL}/icon-512.png`,
   description:
     "Premium Interior Design, Furniture & Architectural Solutions in Bangalore with 35+ years of experience and 2000+ projects delivered.",
   url: SITE_URL,
-  telephone: "+91-91876-28243",
-  email: "hello@arambha.com",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress:
-      "No.11/68/1, 2nd Floor, 59th Cross, 4th Block, Rajajinagar, Opp. MEI Polytechnic College",
-    addressLocality: "Bangalore",
-    addressRegion: "Karnataka",
-    postalCode: "560010",
-    addressCountry: "IN",
-  },
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: 12.9716,
-    longitude: 77.5946,
-  },
+  telephone: BUSINESS.phone,
+  email: BUSINESS.email,
+  address: { "@type": "PostalAddress", ...BUSINESS.address },
   openingHoursSpecification: [
     {
       "@type": "OpeningHoursSpecification",
@@ -180,6 +134,9 @@ const jsonLd = {
   },
 };
 
+// Analytics only loads once the owner sets NEXT_PUBLIC_GA_ID.
+const GA_ID = /^[A-Za-z0-9-]+$/.test(process.env.NEXT_PUBLIC_GA_ID ?? '') ? process.env.NEXT_PUBLIC_GA_ID : undefined;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -190,11 +147,17 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
         />
       </head>
       <body suppressHydrationWarning>
         {children}
+        {GA_ID && (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+            <Script id="ga4" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`}</Script>
+          </>
+        )}
       </body>
     </html>
   );

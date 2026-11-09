@@ -1,39 +1,51 @@
 "use client";
-import { useEffect, useMemo, useState } from 'react';
-import { listCategories, listProducts } from '@/lib/admin/data';
-import { CATEGORY_KEYS } from '@/lib/admin/taxonomy';
+import { createContext, createElement, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { loadCatalog } from '@/lib/admin/catalogQuery';
 import type { AdminProduct, AdminSubcategory } from '@/lib/admin/types';
 import { isImgbbPlaceholder, isVideoUrl } from '@/lib/imageUtils';
 
-export type Catalog = { products: AdminProduct[]; subcategories: AdminSubcategory[]; loading: boolean; error?: string; retry: () => void };
+export type Catalog = { products: AdminProduct[]; subcategories: AdminSubcategory[]; loading: boolean; error?: string; retry: () => void; reload: () => Promise<void> };
+type Data = { products: AdminProduct[]; subcategories: AdminSubcategory[]; error?: string; at: number };
+const STALE_MS = 5 * 60 * 1000;
+const CatalogContext = createContext<{ data: Data | null; ensure: () => void; reload: () => Promise<void>; retry: () => void } | null>(null);
 
-// Every main category with its subcategories and products, newest product first.
+function createStore(publish: (update: (previous: Data | null) => Data | null) => void) {
+    let revision = 0, inFlight: Promise<void> | null = null, loadedAt = 0, alive = true;
+    const store = {
+        alive(value: boolean) { alive = value; },
+        reload(): Promise<void> {
+            const current = ++revision;
+            const run: Promise<void> = loadCatalog().then(result => {
+                if (!alive || current !== revision) return;
+                if (result.error === null) { loadedAt = Date.now(); publish(() => ({ ...result.data, at: loadedAt })); }
+                // A failed refresh keeps what is already shown; only a first load reports the error.
+                else publish(previous => previous && !previous.error ? previous : { products: [], subcategories: [], error: result.error, at: 0 });
+            }).finally(() => { if (inFlight === run) inFlight = null; });
+            inFlight = run;
+            return run;
+        },
+        ensure() { if (!inFlight && (!loadedAt || Date.now() - loadedAt > STALE_MS)) void store.reload(); },
+        retry() { publish(() => null); loadedAt = 0; void store.reload(); },
+    };
+    return store;
+}
+
+// One catalog (every main category with its subcategories and products, newest product first) shared by all admin
+// routes: loaded on first use, kept while the admin moves around, and reloaded only after a write (reload) or when old.
+export function CatalogProvider({ children }: { children: ReactNode }) {
+    const [data, setData] = useState<Data | null>(null);
+    const [store] = useState(() => createStore(setData));
+    useEffect(() => { store.alive(true); return () => store.alive(false); }, [store]);
+    const value = useMemo(() => ({ data, ensure: store.ensure, reload: store.reload, retry: store.retry }), [data, store]);
+    return createElement(CatalogContext.Provider, { value }, children);
+}
+
 export function useCatalog(): Catalog {
-    const [state, setState] = useState<Omit<Catalog, 'retry'>>({ products: [], subcategories: [], loading: true });
-    const [attempt, setAttempt] = useState(0);
-    useEffect(() => {
-        let disposed = false;
-        async function load() {
-            try {
-                const collections = await Promise.all(CATEGORY_KEYS.map(async category => {
-                    const subcategories = await listCategories(category);
-                    const products = subcategories.error === null ? await listProducts(category, undefined, subcategories.data) : { data: null, error: subcategories.error };
-                    if (subcategories.error !== null || products.error !== null) throw new Error('Catalog request failed');
-                    return { subcategories: subcategories.data, products: products.data };
-                }));
-                if (!disposed) setState({
-                    products: collections.flatMap(c => c.products).sort((a, b) => Date.parse(b.date) - Date.parse(a.date)),
-                    subcategories: collections.flatMap(c => c.subcategories).sort((a, b) => a.name.localeCompare(b.name)),
-                    loading: false,
-                });
-            } catch {
-                if (!disposed) setState({ products: [], subcategories: [], loading: false, error: 'Could not load the catalog. Check your connection and try again.' });
-            }
-        }
-        void load();
-        return () => { disposed = true; };
-    }, [attempt]);
-    return { ...state, retry: () => { setState({ products: [], subcategories: [], loading: true }); setAttempt(n => n + 1); } };
+    const context = useContext(CatalogContext);
+    if (!context) throw new Error('useCatalog needs CatalogProvider');
+    const { data, ensure, reload, retry } = context;
+    useEffect(() => { ensure(); }, [ensure]);
+    return { products: data?.products ?? [], subcategories: data?.subcategories ?? [], loading: data === null, error: data?.error, retry, reload };
 }
 
 export type MediaStatus = 'checking' | 'ok' | 'broken';
