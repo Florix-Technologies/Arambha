@@ -61,9 +61,9 @@ export const productSlug = (product: { id: string; name: string }) => `${slugify
 export const productPath = (collection: Collection, categorySlug: string, product: { id: string; name: string }) =>
   `${categoryPath(collection, categorySlug)}/${productSlug(product)}`;
 
-/** Thin pages stay out of search results: a product needs its own photo (not a stock one) and a real description. */
+/** Thin pages stay out of search results: a product needs a photo and a real description. Stock photos are still never offered as its image (ownPhotos). */
 export function isIndexableProduct(product: SeoProduct): boolean {
-  return ownPhotos(product).length > 0 && (product.description ?? '').trim().length >= 60;
+  return productImage(product) !== null && (product.description ?? '').trim().length >= 60;
 }
 
 export function pageMeta(opts: { title: string; description: string; path: string; image?: string | null; absoluteTitle?: boolean; noindex?: boolean }): Metadata {
